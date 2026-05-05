@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GustavoTranscritor Exames</title>
+  <link rel="stylesheet" href="transcritor-exames.css">
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <div class="brand">
+        <div class="brand-mark">G</div>
+        <div>
+          <h1>GustavoTranscritor Exames</h1>
+          <p>Transcrição rápida de exames laboratoriais para prontuário.</p>
+        </div>
+      </div>
+      <button id="copyBtn" class="primary" type="button">Copiar resultado</button>
+    </header>
+
+    <section class="workspace">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Exame original</h2>
+          <button id="clearBtn" type="button">Limpar</button>
+        </div>
+        <textarea id="input" placeholder="Cole aqui o texto completo do exame laboratorial"></textarea>
+      </div>
+
+      <div class="panel result-panel">
+        <div class="panel-head">
+          <h2>Resultado transcrito</h2>
+          <div class="button-row">
+            <button id="campoLimpoBtn" class="source-btn campo-limpo-btn" type="button">Campo Limpo</button>
+            <button id="jundiaiBtn" class="source-btn jundiai-btn" type="button">Jundiai</button>
+          </div>
+        </div>
+        <pre id="output">Cole o exame ao lado e clique em Transcrever exames.</pre>
+      </div>
+    </section>
+  </main>
+  <script src="transcritor-exames.js"></script>
+</body>
+</html>
