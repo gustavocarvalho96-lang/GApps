@@ -200,6 +200,29 @@ function scoreSuggestedConduct(id, result) {
       : summary.indexOf("intermediario") >= 0
         ? "considerar teste rapido/cultura se disponivel; antibiotico conforme resultado ou alta suspeita local."
         : "alta probabilidade: considerar antibiotico conforme protocolo local e alergias, alem de analgesia/orientacoes.",
+    bisap: summary.indexOf("alto") >= 0
+      ? "pancreatite com maior risco: internar, hidratar conforme volemia, analgesia, monitorizar disfuncao organica e considerar UTI/transferencia se instabilidade."
+      : summary.indexOf("moderado") >= 0
+        ? "considerar internacao/observacao, analgesia, hidratacao guiada por volemia, exames seriados e imagem conforme evolucao."
+        : "baixo risco pelo escore: analgesia, hidratacao conforme necessidade, dieta conforme tolerancia e reavaliacao clinica; internar se dor persistente, vomitos ou comorbidades.",
+    ransonAdm: summary.indexOf("alto") >= 0
+      ? "sugere pancreatite potencialmente grave: internar, monitorizar, hidratar conforme volemia e completar criterios em 48h; considerar UTI se disfuncao organica."
+      : "risco inicial baixo/moderado: manter suporte clinico, analgesia, hidratacao conforme volemia e completar reavaliacao/laboratorio em 48h se internado.",
+    tokyoChole: summary.indexOf("grau iii") >= 0
+      ? "colecistite grave: reanimacao, antibiotico, suporte organico e avaliacao cirurgica/intervencionista urgente para controle de foco/transferencia."
+      : summary.indexOf("grau ii") >= 0
+        ? "colecistite moderada: internar, analgesia, antibiotico e avaliacao cirurgica precoce; considerar drenagem se alto risco cirurgico ou piora."
+        : "colecistite leve: analgesia, antibiotico conforme protocolo, ultrassom/laboratorio e avaliacao cirurgica para colecistectomia precoce se disponivel.",
+    tokyoCholangitis: summary.indexOf("grau iii") >= 0
+      ? "colangite grave: reanimacao, antibiotico precoce, suporte organico e drenagem biliar urgente/transferencia."
+      : summary.indexOf("grau ii") >= 0
+        ? "colangite moderada: internar, antibiotico e drenagem biliar precoce apos estabilizacao."
+        : "colangite leve: antibiotico, investigacao biliar e observar resposta; indicar drenagem se nao houver melhora ou houver obstrucao persistente.",
+    gbs: summary.indexOf("muito baixo") >= 0
+      ? "HDA de muito baixo risco: se estavel e sem outros sinais de gravidade, considerar alta com endoscopia/seguimento ambulatorial e orientacoes de retorno."
+      : summary.indexOf("intermediario") >= 0
+        ? "considerar observacao/internacao, acesso venoso, hemograma seriado, reposicao conforme perdas e endoscopia conforme disponibilidade."
+        : "alto risco: reanimacao, acesso venoso calibroso, tipagem/provas, transfusao conforme limiares, internacao e endoscopia urgente conforme estabilidade.",
     wellsPe: summary.indexOf("provavel") >= 0
       ? "seguir fluxo de TEP provavel: imagem diagnostica prioritária e considerar anticoagulacao se alta suspeita e baixo risco de sangramento."
       : "TEP improvavel: considerar D-dimero se baixa/intermediaria probabilidade e imagem se D-dimero positivo ou clinica persistente.",

@@ -39,6 +39,95 @@ function scoreConfigsAbdome() {
         return { summary: total + " pts - risco " + risk, text: "- Centor/McIsaac: " + total + " pts (risco " + risk + " para estreptococo)." };
       }
     });
+    configs.push({
+      id: "bisap",
+      short: "BISAP",
+      title: "BISAP - Pancreatite aguda",
+      fields: [
+        { type: "yesno", key: "bun", label: "Ureia/BUN >25 mg/dL" },
+        { type: "yesno", key: "mental", label: "Alteracao mental" },
+        { type: "yesno", key: "sirs", label: "SIRS presente" },
+        { type: "yesno", key: "age", label: "Idade >60" },
+        { type: "yesno", key: "pleural", label: "Derrame pleural" }
+      ],
+      result: function (s) {
+        var total = scoreSum(s, ["bun", "mental", "sirs", "age", "pleural"]);
+        var risk = total <= 1 ? "baixo" : total === 2 ? "moderado" : "alto";
+        return { summary: total + "/5 - risco " + risk, text: "- BISAP: " + total + "/5 (risco " + risk + " em pancreatite aguda)." };
+      }
+    });
+    configs.push({
+      id: "ransonAdm",
+      short: "Ranson adm.",
+      title: "Ranson admissao - Pancreatite",
+      fields: [
+        { type: "yesno", key: "age", label: "Idade >55 anos" },
+        { type: "yesno", key: "wbc", label: "Leuco >16000" },
+        { type: "yesno", key: "glucose", label: "Glicose >200 mg/dL" },
+        { type: "yesno", key: "ast", label: "TGO/AST >250" },
+        { type: "yesno", key: "ldh", label: "LDH >350" }
+      ],
+      result: function (s) {
+        var total = scoreSum(s, ["age", "wbc", "glucose", "ast", "ldh"]);
+        var risk = total <= 2 ? "baixo/moderado" : "alto";
+        return { summary: total + "/5 admissao - risco " + risk, text: "- Ranson na admissao: " + total + "/5 (risco " + risk + "; completar criterios em 48h se internado)." };
+      }
+    });
+    configs.push({
+      id: "tokyoChole",
+      short: "Tokyo colecistite",
+      title: "Tokyo - Colecistite aguda",
+      fields: [
+        { type: "yesno", key: "organ", label: "Disfuncao organica" },
+        { type: "yesno", key: "wbc", label: "Leuco >18000" },
+        { type: "yesno", key: "mass", label: "Massa dolorosa palpavel" },
+        { type: "yesno", key: "duration", label: "Sintomas >72h" },
+        { type: "yesno", key: "local", label: "Inflamacao local importante" }
+      ],
+      result: function (s) {
+        var moderate = scoreSum(s, ["wbc", "mass", "duration", "local"]);
+        var grade = Number(s.organ || 0) ? "grau III - grave" : moderate ? "grau II - moderada" : "grau I - leve";
+        return { summary: grade, text: "- Tokyo colecistite: " + grade + "." };
+      }
+    });
+    configs.push({
+      id: "tokyoCholangitis",
+      short: "Tokyo colangite",
+      title: "Tokyo - Colangite aguda",
+      fields: [
+        { type: "yesno", key: "organ", label: "Disfuncao organica" },
+        { type: "yesno", key: "wbc", label: "Leuco >12000 ou <4000" },
+        { type: "yesno", key: "fever", label: "Febre >=39" },
+        { type: "yesno", key: "age", label: "Idade >=75" },
+        { type: "yesno", key: "bili", label: "Bilirrubina >=5 mg/dL" },
+        { type: "yesno", key: "albumin", label: "Albumina baixa" }
+      ],
+      result: function (s) {
+        var moderate = scoreSum(s, ["wbc", "fever", "age", "bili", "albumin"]);
+        var grade = Number(s.organ || 0) ? "grau III - grave" : moderate ? "grau II - moderada" : "grau I - leve";
+        return { summary: grade, text: "- Tokyo colangite: " + grade + "." };
+      }
+    });
+    configs.push({
+      id: "gbs",
+      short: "Glasgow-Blatchford",
+      title: "Glasgow-Blatchford - HDA",
+      fields: [
+        { type: "option", key: "bun", label: "Ureia/BUN", options: [["0", "normal"], ["2", "18,2-22,4"], ["3", "22,4-28"], ["4", "28-70"], ["6", ">70"]] },
+        { type: "option", key: "hb", label: "Hemoglobina", options: [["0", "normal"], ["1", "queda leve"], ["3", "queda moderada"], ["6", "queda importante"]] },
+        { type: "option", key: "sbp", label: "PAS", options: [["0", ">=110"], ["1", "100-109"], ["2", "90-99"], ["3", "<90"]] },
+        { type: "yesno", key: "pulse", label: "Pulso >=100" },
+        { type: "yesno", key: "melena", label: "Melena" },
+        { type: "yesno", key: "syncope", label: "Sincope", points: 2 },
+        { type: "yesno", key: "hepatic", label: "Doenca hepatica", points: 2 },
+        { type: "yesno", key: "heart", label: "Insuf. cardiaca", points: 2 }
+      ],
+      result: function (s) {
+        var total = scoreSum(s, ["bun", "hb", "sbp", "pulse", "melena", "syncope", "hepatic", "heart"]);
+        var risk = total <= 1 ? "muito baixo" : total <= 5 ? "intermediario" : "alto";
+        return { summary: total + " pts - risco " + risk, text: "- Glasgow-Blatchford: " + total + " pts (risco " + risk + " em hemorragia digestiva alta)." };
+      }
+    });
   
   return configs;
 }
