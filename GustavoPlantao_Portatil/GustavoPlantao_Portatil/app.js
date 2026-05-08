@@ -1615,10 +1615,11 @@ function renderFreeGroups(body) {
   var title = div("mini-title");
   title.textContent = "RECEITA LIVRE RAPIDA";
   box.appendChild(title);
-  [["dor", "dor / febre"], ["gastro", "nausea / gastro"], ["resp", "alergia / respiratorio"], ["antibiotics", "antibioticos"], ["orientacoes", "orientacoes / sinais de alarme"]].forEach(function (group) {
+  var tabs = div("free-topic-row");
+  var content = div("free-topic-content");
+  [["dor", "Dor/Febre"], ["gastro", "Nausea/Gastro"], ["resp", "Alergia/Respiratorio"], ["antibiotics", "Antibioticos"], ["orientacoes", "Orientacoes/Sinais de Alarme"]].forEach(function (group) {
     var key = group[0];
-    var wrap = div("toggle-block");
-    wrap.appendChild(textButton(group[1], "text-btn" + (state.openGroups[key] ? " active" : ""), function () {
+    tabs.appendChild(textButton(group[1], "text-btn free-topic-btn" + (state.openGroups[key] ? " active" : ""), function () {
       state.openGroups[key] = !state.openGroups[key];
       render();
     }));
@@ -1630,10 +1631,11 @@ function renderFreeGroups(body) {
       source.slice().sort(function (a, b) { return a[0].localeCompare(b[0], "pt-BR"); }).forEach(function (item) {
         row.appendChild(dotButton(item[0], function () { addTextToEditable(item[0], item[1]); }));
       });
-      wrap.appendChild(row);
+      content.appendChild(row);
     }
-    box.appendChild(wrap);
   });
+  box.appendChild(tabs);
+  if (content.children.length) box.appendChild(content);
   body.appendChild(box);
 }
 

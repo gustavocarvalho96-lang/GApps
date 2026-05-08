@@ -664,6 +664,39 @@ input[type="number"]:focus {
   padding: 12px;
 }
 
+.free-topic-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.free-topic-btn {
+  width: 100%;
+  min-height: 40px;
+  border-color: #d9e1ec;
+  background: #fff;
+  color: #344054;
+  box-shadow: 0 6px 14px rgba(29, 41, 57, .06);
+}
+
+.free-topic-btn:hover {
+  border-color: rgba(15, 118, 110, .24);
+  background: #f1fbf8;
+  color: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.free-topic-btn.active {
+  border-color: rgba(15, 118, 110, .28);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(15, 118, 110, .18);
+}
+
+.free-topic-content {
+  padding-top: 4px;
+}
+
 .free-groups .row {
   justify-content: flex-start;
 }
@@ -701,6 +734,10 @@ input[type="number"]:focus {
   .header-actions {
     align-self: flex-start;
   }
+
+  .free-topic-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
@@ -718,5 +755,9 @@ input[type="number"]:focus {
   .body {
     padding-left: 18px;
     padding-right: 18px;
+  }
+
+  .free-topic-row {
+    grid-template-columns: 1fr;
   }
 }
