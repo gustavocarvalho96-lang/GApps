@@ -679,7 +679,7 @@ Aplicar nas lesões de 5x/dia.`]
     title: "Labirintite / Vertigem",
     category: "Neurologia",
     prescription: `Uso oral:
-Betahistina 16mg ---- 20 cps
+Betaistina 16mg ---- 20 cps
 Tomar 1 cp de 12/12h se tontura rotatória.
 
 Dimenidrinato + piridoxina ---- 10 cps
