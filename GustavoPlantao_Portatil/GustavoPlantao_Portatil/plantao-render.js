@@ -198,7 +198,7 @@ function renderEditable(protocol, body) {
     titleWrap.appendChild(hint);
     var sourceRow = div("row lab-source-row");
     (protocol.labSources || []).forEach(function (source) {
-      sourceRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className, function () {
+      sourceRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className + (state.labSource === source.source ? " active" : ""), function () {
         transcribeCurrentLabs(input, source.source);
         showToast("Transcrito: " + source.label);
         render();
@@ -216,6 +216,7 @@ function renderEditable(protocol, body) {
         event.preventDefault();
         event.stopPropagation();
         transcribeCurrentLabs(input);
+        showToast("Transcrito: " + labSourceLabel());
         render();
       }
     };

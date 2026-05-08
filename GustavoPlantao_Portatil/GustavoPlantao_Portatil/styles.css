@@ -401,6 +401,13 @@ textarea:focus {
   transform: translateY(-1px);
 }
 
+.lab-source-btn.active {
+  border-color: rgba(15, 118, 110, .34);
+  background: #0f766e;
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(15, 118, 110, .18);
+}
+
 .jundiai-btn {
   border-color: rgba(59, 130, 246, .20);
   background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
@@ -412,6 +419,13 @@ textarea:focus {
   border-color: rgba(59, 130, 246, .34);
   background: #dbeafe;
   color: #1e40af;
+}
+
+.jundiai-btn.active {
+  border-color: rgba(29, 78, 216, .38);
+  background: #1d4ed8;
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(59, 130, 246, .18);
 }
 
 .ghost-btn {

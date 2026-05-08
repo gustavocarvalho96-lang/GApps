@@ -1,6 +1,11 @@
 function transcribeCurrentLabs(input, source) {
   state.labInput = input ? input.value : state.labInput;
-  state.labOutput = source === "jundiai" ? transcribeJundiaiLabs(state.labInput) : transcribeCampoLimpoLabs(state.labInput);
+  state.labSource = source || state.labSource || "campo-limpo";
+  state.labOutput = state.labSource === "jundiai" ? transcribeJundiaiLabs(state.labInput) : transcribeCampoLimpoLabs(state.labInput);
+}
+
+function labSourceLabel() {
+  return state.labSource === "jundiai" ? "Jundiai" : "Campo Limpo";
 }
 
 function insertLabOutputIntoReavaliacao() {
