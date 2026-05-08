@@ -311,7 +311,8 @@ function transcribeJundiaiLabs(rawText) {
   var examHeaders = [
     "Hemograma Completo", "Tempo e atividade Protrombina", "TTPA - Tempo de Tromboplastina Parcial Ativada",
     "Ureia, sérica", "Dosagem sérica de Creatinina", "Sódio", "Potássio", "Magnésio", "Bilirrubinas",
-    "Proteína C Reativa - PCR", "Urina I", "Cálcio Ionizado", "Dosagem de Lactato", "Problema ao visualizar"
+    "Proteína C Reativa - PCR", "Troponina", "Troponina I", "Troponina T", "Urina I", "Cálcio Ionizado",
+    "Dosagem de Lactato", "Problema ao visualizar"
   ];
   var items = [];
   function push(item) {
@@ -350,7 +351,8 @@ function transcribeJundiaiLabs(rawText) {
     [["Sódio"], "sodio", ["Resultado"]],
     [["Potássio"], "potassio", ["Resultado"]],
     [["Magnésio"], "magnesio", ["Resultado"]],
-    [["Proteína C Reativa - PCR"], "PCR", ["Resultado"]]
+    [["Proteína C Reativa - PCR"], "PCR", ["Resultado"]],
+    [["Troponina", "Troponina I", "Troponina T"], "troponina", ["Resultado"]]
   ].forEach(function (config) {
     var section = jundiaiSection(lines, config[0], examHeaders);
     var value = jundiaiValueWithUnitAfter(section, config[2]);

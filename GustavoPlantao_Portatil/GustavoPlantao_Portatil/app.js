@@ -167,13 +167,12 @@ function buildReferralText(template, mode) {
 function getPrescription(protocol) {
   if (!protocol) return "";
   if (isEditable(protocol.id)) return state.editableText;
-  if (protocol.id === "antibioticos" && protocol.antibioticOptions) {
-    return (protocol.antibioticOptions[state.selectedAntibiotic] || protocol.antibioticOptions[0]).value || "";
-  }
-  if (protocol.options && protocol.options.length) {
-    return (protocol.options[state.selectedOption] || protocol.options[0]).value || "";
-  }
   var base = protocol.prescription || "";
+  if (protocol.id === "antibioticos" && protocol.antibioticOptions) {
+    base = (protocol.antibioticOptions[state.selectedAntibiotic] || protocol.antibioticOptions[0]).value || "";
+  } else if (protocol.options && protocol.options.length) {
+    base = (protocol.options[state.selectedOption] || protocol.options[0]).value || "";
+  }
   if (protocol.id === "constipacao" && state.useBisacodil) base += protocol.optional || "";
   if (protocol.id === "gastroenterite" && state.useGastroCipro) base += protocol.optionalAntibiotic || "";
   if (state.useParacetamolAlt) {
@@ -1306,7 +1305,8 @@ function transcribeJundiaiLabs(rawText) {
   var examHeaders = [
     "Hemograma Completo", "Tempo e atividade Protrombina", "TTPA - Tempo de Tromboplastina Parcial Ativada",
     "Ureia, sérica", "Dosagem sérica de Creatinina", "Sódio", "Potássio", "Magnésio", "Bilirrubinas",
-    "Proteína C Reativa - PCR", "Urina I", "Cálcio Ionizado", "Dosagem de Lactato", "Problema ao visualizar"
+    "Proteína C Reativa - PCR", "Troponina", "Troponina I", "Troponina T", "Urina I", "Cálcio Ionizado",
+    "Dosagem de Lactato", "Problema ao visualizar"
   ];
   var items = [];
   function push(item) {
@@ -1345,7 +1345,8 @@ function transcribeJundiaiLabs(rawText) {
     [["Sódio"], "sodio", ["Resultado"]],
     [["Potássio"], "potassio", ["Resultado"]],
     [["Magnésio"], "magnesio", ["Resultado"]],
-    [["Proteína C Reativa - PCR"], "PCR", ["Resultado"]]
+    [["Proteína C Reativa - PCR"], "PCR", ["Resultado"]],
+    [["Troponina", "Troponina I", "Troponina T"], "troponina", ["Resultado"]]
   ].forEach(function (config) {
     var section = jundiaiSection(lines, config[0], examHeaders);
     var value = jundiaiValueWithUnitAfter(section, config[2]);
@@ -1590,7 +1591,7 @@ function renderOptions(protocol, parent) {
   var hasStandaloneDipirona = /dipirona/i.test(currentPrescription.replace(/Escopolamina \+ dipirona/gi, ""));
   if (!isEditable(protocol.id) && (hasStandaloneDipirona || state.useParacetamolAlt)) {
     var troca = div("section row");
-    troca.appendChild(textButton(state.useParacetamolAlt ? "Voltar para dipirona" : "Trocar dipirona por paracetamol", "text-btn" + (state.useParacetamolAlt ? " active" : ""), function () {
+    troca.appendChild(textButton(state.useParacetamolAlt ? "Voltar para dipirona" : "Alergia a dipirona", "text-btn" + (state.useParacetamolAlt ? " active" : ""), function () {
       state.useParacetamolAlt = !state.useParacetamolAlt;
       render();
     }));
