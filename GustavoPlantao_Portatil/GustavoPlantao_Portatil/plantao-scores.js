@@ -133,6 +133,99 @@ function scoreSum(score, keys) {
   }, 0);
 }
 
+function scoreSuggestedConduct(id, result) {
+  var summary = (result && result.summary ? result.summary : "").toLowerCase();
+  var map = {
+    heart: summary.indexOf("baixo") >= 0
+      ? "se ECG/troponina seriada e contexto forem favoraveis, considerar alta com orientacoes e seguimento; se duvida clinica, manter observacao."
+      : summary.indexOf("intermediario") >= 0
+        ? "manter observacao, repetir ECG/troponina seriados, otimizar analgesia/antiagregacao conforme suspeita e considerar avaliacao cardiologica."
+        : "tratar como alto risco para SCA, monitorizar, ECG/troponina seriados, terapia conforme protocolo local e avaliacao cardiologica/transferencia.",
+    grace: summary.indexOf("baixo") >= 0
+      ? "considerar estrategia conservadora/observacao conforme quadro, com reestratificacao clinica e exames seriados."
+      : summary.indexOf("intermediario") >= 0
+        ? "manter monitorizacao, tratamento anti-isquemico/antitrombotico conforme protocolo e discutir estratificacao invasiva conforme disponibilidade."
+        : "alto risco: monitorizacao continua, terapia conforme SCA e avaliacao cardiologica precoce para estrategia invasiva/transferencia.",
+    chadsvasc: summary.indexOf("baixo") >= 0
+      ? "risco tromboembolico baixo; anticoagulacao geralmente nao indicada apenas pelo escore, individualizar."
+      : "considerar anticoagulacao se fibrilacao atrial confirmada e sem contraindicoes, ponderando HAS-BLED e contexto clinico.",
+    hasbled: summary.indexOf("alto") >= 0
+      ? "corrigir fatores modificaveis de sangramento, revisar AINE/antiagregantes/alcool/PA e monitorar mais de perto se anticoagular."
+      : "risco de sangramento baixo/moderado; nao contraindica anticoagulacao isoladamente, mas orientar e acompanhar.",
+    news2: summary.indexOf("alto") >= 0
+      ? "priorizar atendimento, monitorizacao continua, investigar sepse/hipoxia/choque e considerar sala de emergencia/transferencia."
+      : summary.indexOf("medio") >= 0
+        ? "reavaliar com prioridade, repetir sinais vitais, investigar foco infeccioso/hipoxia e considerar observacao."
+        : "manter vigilancia clinica e repetir sinais vitais se sintomas persistirem ou houver piora.",
+    qsofa: summary.indexOf("risco aumentado") >= 0
+      ? "suspeitar sepse grave se infeccao provavel; priorizar avaliacao, lactato/exames, culturas se possivel e antibiotico/fluido conforme protocolo."
+      : "baixo risco pelo escore, mas nao exclui sepse; correlacionar com clinica, NEWS2/SIRS/lactato e reavaliacao.",
+    sirs: summary.indexOf("positivo") >= 0
+      ? "se infeccao suspeita, investigar sepse, coletar exames conforme protocolo e iniciar tratamento do foco sem atraso indevido."
+      : "SIRS negativo nao exclui infeccao grave; manter reavaliacao se contexto clinico preocupante.",
+    curb65: summary.indexOf("alto") >= 0
+      ? "pneumonia de alto risco: considerar internacao, antibiotico precoce, oxigenio se indicado e avaliacao de UTI se instabilidade."
+      : summary.indexOf("intermediario") >= 0
+        ? "considerar observacao/internacao curta conforme saturacao, comorbidades, suporte social e resposta inicial."
+        : "baixo risco: considerar tratamento ambulatorial se sinais vitais, saturacao e contexto social forem seguros.",
+    psiport: summary.indexOf("alto") >= 0
+      ? "considerar internacao e monitorizacao; avaliar UTI se choque, hipoxemia, desconforto respiratorio ou comorbidades relevantes."
+      : summary.indexOf("intermediario") >= 0
+        ? "considerar observacao/internacao conforme saturacao, comorbidades e resposta inicial."
+        : "baixo risco: considerar manejo ambulatorial se clinicamente estavel e com retorno garantido.",
+    glasgow: summary.indexOf("grave") >= 0
+      ? "priorizar ABC, protecao de via aerea se indicado, monitorizacao e neuroimagem/transferencia urgente."
+      : summary.indexOf("moderado") >= 0
+        ? "observar, monitorizar neurologico, investigar causa e considerar neuroimagem conforme contexto."
+        : "manter reavaliacao neurologica e orientacoes de retorno se TCE/sintomas neurologicos.",
+    nihss: summary.indexOf("leve") >= 0
+      ? "acionar protocolo AVC se inicio agudo; mesmo deficit leve pode exigir imagem e avaliacao de reperfusao conforme janela."
+      : "acionar protocolo AVC, checar glicemia, neuroimagem urgente e avaliar trombolise/trombectomia conforme janela e criterios.",
+    cchr: summary.indexOf("sem criterio") >= 0
+      ? "se regra aplicavel e exame clinico favoravel, considerar observacao/orientacoes sem TC; individualizar anticoagulacao/idoso."
+      : "considerar TC de cranio e observacao conforme criterio positivo e exame neurologico.",
+    noc: summary.indexOf("sem criterio") >= 0
+      ? "se regra aplicavel, considerar observacao/orientacoes sem TC; manter baixo limiar se piora ou fatores de risco."
+      : "considerar TC de cranio em TCE leve com criterio positivo.",
+    ciwa: summary.indexOf("grave") >= 0 || summary.indexOf("moderada") >= 0
+      ? "considerar benzodiazepinico conforme protocolo, tiamina antes de glicose se risco, monitorizacao e observacao/internacao."
+      : "orientar, hidratar, considerar tiamina e reavaliar risco de progressao/convulsao conforme historia.",
+    alvarado: summary.indexOf("provavel") >= 0
+      ? "considerar avaliacao cirurgica, imagem conforme disponibilidade e analgesia/jejum se suspeita forte."
+      : summary.indexOf("observacao") >= 0
+        ? "manter observacao, reexame abdominal seriado e considerar imagem/laboratorio conforme evolucao."
+        : "baixa probabilidade pelo escore; orientar retorno se dor migratoria/progressiva, febre ou vomitos.",
+    centor: summary.indexOf("baixo") >= 0
+      ? "evitar antibiotico empirico; sintomaticos e orientacoes, salvo sinais de gravidade ou contexto especial."
+      : summary.indexOf("intermediario") >= 0
+        ? "considerar teste rapido/cultura se disponivel; antibiotico conforme resultado ou alta suspeita local."
+        : "alta probabilidade: considerar antibiotico conforme protocolo local e alergias, alem de analgesia/orientacoes.",
+    wellsPe: summary.indexOf("provavel") >= 0
+      ? "seguir fluxo de TEP provavel: imagem diagnostica prioritária e considerar anticoagulacao se alta suspeita e baixo risco de sangramento."
+      : "TEP improvavel: considerar D-dimero se baixa/intermediaria probabilidade e imagem se D-dimero positivo ou clinica persistente.",
+    perc: summary.indexOf("negativo") >= 0
+      ? "se probabilidade pre-teste baixa, pode evitar D-dimero/imagem; se suspeita maior, PERC nao se aplica."
+      : "PERC positivo: nao exclui TEP; prosseguir com D-dimero ou imagem conforme probabilidade pre-teste.",
+    wellsDvt: summary.indexOf("alto") >= 0
+      ? "considerar ultrassom venoso e anticoagulacao se alta suspeita e baixo risco de sangramento enquanto aguarda confirmacao."
+      : summary.indexOf("moderado") >= 0
+        ? "considerar D-dimero/ultrassom conforme disponibilidade e contexto."
+        : "baixo risco: considerar D-dimero e seguimento se negativo; reavaliar se piora.",
+    spesi: summary.indexOf("baixo") >= 0
+      ? "baixo risco em TEP confirmado; considerar alta precoce apenas se estavel, sem hipoxemia, com suporte e anticoagulacao segura."
+      : "alto risco pelo sPESI: considerar internacao/observacao, avaliar VD/troponina e risco de deterioracao.",
+    pesi: summary.indexOf("classe i") >= 0 || summary.indexOf("classe ii") >= 0
+      ? "baixo risco em TEP confirmado; considerar manejo ambulatorial apenas se criterios clinicos e sociais forem seguros."
+      : "risco aumentado: considerar internacao, monitorizacao e estratificacao com VD/troponina conforme estabilidade."
+  };
+  return map[id] || "";
+}
+
+function scoreTextWithConduct(id, result) {
+  var conduct = scoreSuggestedConduct(id, result);
+  return result.text + (conduct ? "\n  Conduta sugerida: " + conduct : "");
+}
+
 function renderSimpleScore(parent, config) {
   var score = ensureScore(config.id, config.defaults || {});
   var result = config.result(score);
@@ -162,8 +255,14 @@ function renderSimpleScore(parent, config) {
   var resultBox = div("score-result");
   resultBox.textContent = result.summary;
   box.appendChild(resultBox);
+  var conduct = scoreSuggestedConduct(config.id, result);
+  if (conduct) {
+    var conductBox = div("score-conduct");
+    conductBox.textContent = "Conduta sugerida: " + conduct;
+    box.appendChild(conductBox);
+  }
   box.appendChild(textButton("Inserir " + config.short, "text-btn primary-btn", function () {
-    insertScoreLine(config.short, result.text);
+    insertScoreLine(config.short, scoreTextWithConduct(config.id, result));
     render();
   }));
   parent.appendChild(box);
@@ -271,8 +370,14 @@ function renderScorePanel(body) {
   var heartResultBox = div("score-result");
   heartResultBox.textContent = heartData.score + "/10 - risco " + heartData.risk;
   heart.appendChild(heartResultBox);
+  var heartConduct = scoreSuggestedConduct("heart", { summary: heartResultBox.textContent, text: heartData.text });
+  if (heartConduct) {
+    var heartConductBox = div("score-conduct");
+    heartConductBox.textContent = "Conduta sugerida: " + heartConduct;
+    heart.appendChild(heartConductBox);
+  }
   heart.appendChild(textButton("Inserir HEART", "text-btn primary-btn", function () {
-    insertScoreLine("HEART", heartResult().text);
+    insertScoreLine("HEART", scoreTextWithConduct("heart", heartResult()));
     render();
   }));
   });
@@ -312,8 +417,14 @@ function renderScorePanel(body) {
   var graceResultBox = div("score-result");
   graceResultBox.textContent = graceData.score + " pts - risco " + graceData.risk;
   grace.appendChild(graceResultBox);
+  var graceConduct = scoreSuggestedConduct("grace", { summary: graceResultBox.textContent, text: graceData.text });
+  if (graceConduct) {
+    var graceConductBox = div("score-conduct");
+    graceConductBox.textContent = "Conduta sugerida: " + graceConduct;
+    grace.appendChild(graceConductBox);
+  }
   grace.appendChild(textButton("Inserir GRACE", "text-btn primary-btn", function () {
-    insertScoreLine("GRACE", graceResult().text);
+    insertScoreLine("GRACE", scoreTextWithConduct("grace", graceResult()));
     render();
   }));
   });
