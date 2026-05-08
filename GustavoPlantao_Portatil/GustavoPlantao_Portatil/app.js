@@ -180,6 +180,9 @@ function getPrescription(protocol) {
     base = base.replaceAll("Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se febre ou dor.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se febre ou dor.");
     base = base.replaceAll("Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor.");
     base = base.replaceAll("Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h.");
+    if (protocol.id === "enxaqueca") {
+      base = base.replaceAll("Mesilato de diidroergotamina 1mg + dipirona 350mg + cafeína 100mg ---- 12 cps\nTomar 1 cp no início da crise, podendo repetir de 8/8h se necessário.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor.");
+    }
   }
   if (state.useEscopolaminaParacetamolAlt) {
     base = base.replaceAll("Escopolamina + dipirona ---- 20 cps", "Escopolamina + paracetamol ---- 20 cps");
