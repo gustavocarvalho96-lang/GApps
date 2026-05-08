@@ -66,6 +66,7 @@
   </div>
 
   <script src="../GustavoPlantao_Portatil/GustavoPlantao_Portatil/app-data.js"></script>
+  <script src="../shared/lab-transcriber.js"></script>
   <script src="../GustavoPlantao_Portatil/GustavoPlantao_Portatil/app.js"></script>
   <script>
     (function () {
@@ -160,6 +161,60 @@
         assert(anamnese.snippets.psych && anamnese.snippets.psych.length >= 1, "Anamnese sem atalhos psiquiatricos em dados.");
         assert(reavaliacao.labTranscription === true && reavaliacao.labSources.length === 2, "Reavaliacao sem fontes de transcricao nos dados.");
         assert(receitaLivre.freeGroupsEnabled === true, "Receita livre sem marcador de grupos livres.");
+      });
+
+      add("Transcritor Campo Limpo reconhece exames principais", function () {
+        var sample = [
+          "Paciente: JOAO TESTE",
+          "Cadastro 08/05/2026",
+          "HEMOGRAMA COMPLETO Hemoglobina 13,2 g/dL Hematócrito 40 % Leucócitos 8200 Plaquetas 250000",
+          "CREATININA Resultado: 1,10 mg/dL",
+          "UREIA Resultado: 35 mg/dL",
+          "SÓDIO Resultado: 139 mmol/L",
+          "POTÁSSIO Resultado: 4,2 mmol/L",
+          "PROTEÍNA C REATIVA Resultado: 2,5 mg/dL",
+          "TROPONINA Resultado: 12 ng/L"
+        ].join("\\n");
+        var text = transcribeCampoLimpoLabs(sample);
+        assert(text.indexOf("JOAO TESTE") >= 0, "Paciente nao foi reconhecido.");
+        assert(text.indexOf("08/05/2026") >= 0, "Data nao foi reconhecida.");
+        assert(text.indexOf("hemograma") >= 0, "Hemograma nao foi reconhecido.");
+        assert(text.indexOf("creatinina 1,10 mg/dL") >= 0, "Creatinina nao foi reconhecida.");
+        assert(text.indexOf("troponina 12 ng/L") >= 0, "Troponina nao foi reconhecida.");
+      });
+
+      add("Transcritor Jundiai reconhece hemograma, plaquetas e troponina", function () {
+        var sample = [
+          "Paciente:",
+          "CLAUDEMIR TESTE",
+          "O.S.:",
+          "2385-67694-29438",
+          "-",
+          "04/05/2026 - 14:01:58",
+          "Hemograma Completo",
+          "Hemoglobina",
+          "5,1",
+          "g/dL",
+          "Hematócrito",
+          "16,4",
+          "%",
+          "Leucócitos",
+          "14,02",
+          "Plaquetas",
+          "477",
+          "Mil/mm3",
+          "Troponina",
+          "Resultado",
+          "48",
+          "ng/L",
+          "Problema ao visualizar"
+        ].join("\\n");
+        var text = transcribeJundiaiLabs(sample);
+        assert(text.indexOf("CLAUDEMIR TESTE") >= 0, "Paciente Jundiai nao foi reconhecido.");
+        assert(text.indexOf("04/05/2026") >= 0, "Data Jundiai nao foi reconhecida.");
+        assert(text.indexOf("Leuco 14020") >= 0, "Leucocitos Jundiai nao foram convertidos para valor absoluto.");
+        assert(text.indexOf("Plaq 477 mil") >= 0, "Plaquetas Jundiai nao ficaram em mil.");
+        assert(text.indexOf("troponina 48 ng/L") >= 0, "Troponina Jundiai nao foi reconhecida.");
       });
 
       tests.forEach(function (test) {
