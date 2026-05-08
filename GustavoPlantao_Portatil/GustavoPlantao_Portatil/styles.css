@@ -114,7 +114,7 @@ button {
 
 .app.scores-open {
   width: min(1560px, 100%);
-  grid-template-columns: 230px minmax(300px, 360px) 230px minmax(0, 1fr);
+  grid-template-columns: 230px 230px minmax(300px, 360px) minmax(0, 1fr);
 }
 
 .hidden {
