@@ -9,7 +9,6 @@ var state = {
   referralMode: "ambulatorial",
   anamneseGender: "feminino",
   editableText: "",
-  recipeSearch: "",
   labInput: "",
   labOutput: "",
   scores: {
@@ -99,15 +98,10 @@ function findProtocol(id) {
 
 function filtered() {
   var protocols = getProtocols();
-  var recipeTerm = state.recipeSearch.toLowerCase().trim();
-  function matches(item, term) {
-    if (!term) return true;
-    return [item.title, item.category, item.prescription, item.orientation, (item.tags || []).join(" ")].join(" ").toLowerCase().indexOf(term) >= 0;
-  }
   var quick = protocols.filter(function (item) { return quickOrder.indexOf(item.id) >= 0; }).sort(function (a, b) {
     return quickOrder.indexOf(a.id) - quickOrder.indexOf(b.id);
   });
-  var recipes = protocols.filter(function (item) { return quickOrder.indexOf(item.id) < 0 && matches(item, recipeTerm); }).sort(function (a, b) {
+  var recipes = protocols.filter(function (item) { return quickOrder.indexOf(item.id) < 0; }).sort(function (a, b) {
     return a.title.localeCompare(b.title, "pt-BR");
   });
   return { quick: quick, recipes: recipes, all: quick.concat(recipes) };
@@ -1356,17 +1350,9 @@ function boot() {
   }
   state.selectedId = protocols[0].id;
   state.editableText = getInitialText(protocols[0]);
-  var recipeSearch = el("recipeSearch");
-  if (recipeSearch) {
-    recipeSearch.oninput = function () {
-      state.recipeSearch = recipeSearch.value || "";
-      render();
-    };
-  }
   document.addEventListener("keydown", function (event) {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
-      if (recipeSearch) recipeSearch.focus();
     }
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
       if (state.selectedId === "reavaliacao" && event.target && event.target.className === "small") return;
