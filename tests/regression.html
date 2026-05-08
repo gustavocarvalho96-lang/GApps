@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Testes de regressao - Gustavo Plantao</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 28px;
+      background: #f7fafc;
+      color: #0f172a;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 24px;
+    }
+
+    #results {
+      display: grid;
+      gap: 10px;
+      max-width: 860px;
+    }
+
+    .test {
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #ffffff;
+    }
+
+    .pass {
+      border-left: 5px solid #16a34a;
+    }
+
+    .fail {
+      border-left: 5px solid #dc2626;
+    }
+
+    .name {
+      font-weight: 700;
+    }
+
+    .detail {
+      margin-top: 4px;
+      color: #475569;
+      font-size: 14px;
+    }
+
+    .hidden-fixture {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Testes de regressao - Gustavo Plantao</h1>
+  <div id="results"></div>
+
+  <div class="hidden-fixture">
+    <input id="search">
+    <div id="quickList"></div>
+    <div id="recipeList"></div>
+    <main id="content"></main>
+  </div>
+
+  <script src="../GustavoPlantao_Portatil/GustavoPlantao_Portatil/app-data.js"></script>
+  <script src="../GustavoPlantao_Portatil/GustavoPlantao_Portatil/app.js"></script>
+  <script>
+    (function () {
+      var results = document.getElementById("results");
+      var tests = [];
+
+      function add(name, fn) {
+        tests.push({ name: name, fn: fn });
+      }
+
+      function byId(id) {
+        return window.protocolsBase.find(function (protocol) {
+          return protocol.id === id;
+        });
+      }
+
+      function resetState() {
+        state.selectedOption = 0;
+        state.selectedAntibiotic = 0;
+        state.selectedOrientationOption = 0;
+        state.useParacetamolAlt = false;
+        state.useEscopolaminaParacetamolAlt = false;
+        state.useBisacodil = false;
+        state.useGastroCipro = false;
+      }
+
+      function assert(condition, message) {
+        if (!condition) throw new Error(message);
+      }
+
+      function show(name, ok, detail) {
+        var item = document.createElement("div");
+        item.className = "test " + (ok ? "pass" : "fail");
+        item.innerHTML = "<div class=\"name\">" + (ok ? "OK: " : "ERRO: ") + name + "</div>" +
+          "<div class=\"detail\">" + detail + "</div>";
+        results.appendChild(item);
+      }
+
+      add("Enxaqueca troca ergotamina/dipirona por paracetamol", function () {
+        resetState();
+        state.useParacetamolAlt = true;
+        var text = getPrescription(byId("enxaqueca"));
+        assert(text.indexOf("Paracetamol 500mg") >= 0, "Paracetamol nao entrou na receita.");
+        assert(text.toLowerCase().indexOf("diidroergotamina") < 0, "Medicamento com dipirona permaneceu.");
+      });
+
+      add("Dor aguda troca dipirona por paracetamol", function () {
+        resetState();
+        state.useParacetamolAlt = true;
+        var text = getPrescription(byId("lombalgia"));
+        assert(text.indexOf("Paracetamol 500mg") >= 0, "Paracetamol nao entrou na dor aguda.");
+        assert(text.indexOf("Dipirona 500mg") < 0, "Dipirona permaneceu na dor aguda.");
+      });
+
+      add("Dor aguda geral tem sinais de alarme gerais", function () {
+        resetState();
+        state.selectedOrientationOption = 1;
+        var text = getOrientation(byId("lombalgia"));
+        assert(text.indexOf("Dor intensa ou progressiva") >= 0, "Orientacao geral nao foi selecionada.");
+        assert(text.indexOf("dor no peito") >= 0 || text.indexOf("Dor no peito") >= 0, "Sinais gerais ficaram incompletos.");
+      });
+
+      add("Antibiotico da receita livre nao duplica Uso oral", function () {
+        resetState();
+        var firstAntibiotic = window.antibioticOptions[0].value;
+        var inserted = firstAntibiotic.replace(/^\s*Uso oral:\s*/i, "");
+        assert(inserted.indexOf("Uso oral:") !== 0, "Texto ainda comeca com Uso oral.");
+      });
+
+      tests.forEach(function (test) {
+        try {
+          test.fn();
+          show(test.name, true, "Passou.");
+        } catch (error) {
+          show(test.name, false, error.message);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

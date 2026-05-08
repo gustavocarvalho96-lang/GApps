@@ -220,6 +220,17 @@ const referralTemplates = [
   ["Urologia", "Urologia", "Litíase urinária / ITU recorrente / hematúria / sintomas urinários persistentes", "Paciente avaliado por queixa urinária/urológica, necessitando seguimento especializado para investigação e manejo definitivo.", "Urina tipo I, urocultura, função renal, ultrassom/tomografia e/ou exames disponíveis em anexo, se houver.", "Orientado hidratação se não houver restrição e retorno imediato se febre, calafrios, dor lombar/flancos, dor intensa, vômitos persistentes, anúria/redução importante da urina ou piora clínica."]
 ].map(([label, specialty, hypothesis, summary, exams, conduct]) => ({ label, specialty, hypothesis, summary, exams, conduct }));
 
+const defaultDipironaAllergyReplacements = [
+  ["Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor ou febre.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor ou febre."],
+  ["Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se febre ou dor.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se febre ou dor."],
+  ["Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor."],
+  ["Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h."]
+];
+
+const escopolaminaDipironaAllergyReplacements = [
+  ["Escopolamina + dipirona ---- 20 cps", "Escopolamina + paracetamol ---- 20 cps"]
+];
+
 const protocolsBase = [
   { id: "administrativo", title: "Administrativo", category: "Estrutura Clínica", prescription: "", orientation: "", tags: ["administrativo"] },
   {
@@ -354,7 +365,7 @@ Tomar 1 cp de 8/8h se náuseas/vômitos.
 Soro de reidratação ---- 2 envelopes
 Usar ao longo do dia.`,
     orientation: `- Hidratação oral rigorosa, fracionada ao longo do dia.
-- NÃO usar AINEs: evitar ibuprofeno, diclofenaco, cetoprofeno, naproxeno e AAS, salvo orientação médica.
+- NAO usar AINEs: evitar ibuprofeno, diclofenaco, cetoprofeno, naproxeno e AAS, salvo orientação médica.
 - Usar preferencialmente dipirona/paracetamol conforme prescrição.
 - Retornar para reavaliação conforme orientação, especialmente entre o 3º e 7º dia de sintomas.
 
@@ -760,6 +771,9 @@ SINAIS DE ALARME:
 - Cefaleia súbita e muito intensa, especialmente se for a pior da vida.
 - Fraqueza, dormência, alteração da fala, confusão, convulsão ou alteração visual persistente.
 - Febre, rigidez de nuca, dor após trauma, vômitos persistentes ou piora progressiva.`,
+    allergyReplacements: [
+      ["Mesilato de diidroergotamina 1mg + dipirona 350mg + cafeína 100mg ---- 12 cps\nTomar 1 cp no início da crise, podendo repetir de 8/8h se necessário.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor."]
+    ],
     tags: ["cefaleia", "fotofobia", "náusea"]
   },
   {
@@ -777,21 +791,21 @@ SINAIS DE ALARME:
 - Febre, perda de peso, dor após trauma importante, dor noturna progressiva ou ausência de melhora.`
     ,orientationOptions: [
       ["Dor lombar", `- Manter repouso relativo, evitando carregar peso e movimentos que piorem a dor.
-- Caminhadas leves e alongamentos suaves conforme tolerÃ¢ncia; evitar repouso absoluto prolongado.
-- Usar medicaÃ§Ãµes conforme prescrito e evitar dirigir se houver sonolÃªncia.
+- Caminhadas leves e alongamentos suaves conforme tolerância; evitar repouso absoluto prolongado.
+- Usar medicações conforme prescrito e evitar dirigir se houver sonolência.
 
 SINAIS DE ALARME:
-- Fraqueza nas pernas, dormÃªncia progressiva ou perda de sensibilidade em sela.
-- Perda de controle urinÃ¡rio/fecal ou retenÃ§Ã£o urinÃ¡ria.
-- Febre, perda de peso, dor apÃ³s trauma importante, dor noturna progressiva ou ausÃªncia de melhora.`],
-      ["Dor aguda geral", `- Manter repouso relativo e evitar esforÃ§os ou movimentos que piorem a dor.
-- Usar as medicaÃ§Ãµes conforme prescrito, evitando associar remÃ©dios por conta prÃ³pria.
-- Aplicar gelo ou calor local conforme melhor alÃ­vio e manter hidrataÃ§Ã£o adequada.
+- Fraqueza nas pernas, dormência progressiva ou perda de sensibilidade em sela.
+- Perda de controle urinário/fecal ou retenção urinária.
+- Febre, perda de peso, dor após trauma importante, dor noturna progressiva ou ausência de melhora.`],
+      ["Dor aguda geral", `- Manter repouso relativo e evitar esforços ou movimentos que piorem a dor.
+- Usar as medicações conforme prescrito, evitando associar remédios por conta própria.
+- Aplicar gelo ou calor local conforme melhor alívio e manter hidratação adequada.
 
 SINAIS DE ALARME:
-- Dor intensa ou progressiva, dor que impede atividades bÃ¡sicas ou desperta do sono.
-- Febre, vermelhidÃ£o/inchaÃ§o importante, deformidade, perda de forÃ§a ou perda de sensibilidade.
-- Dor no peito, falta de ar, desmaio, vÃ´mitos persistentes, piora do estado geral ou ausÃªncia de melhora.`]
+- Dor intensa ou progressiva, dor que impede atividades básicas ou desperta do sono.
+- Febre, vermelhidão/inchaço importante, deformidade, perda de força ou perda de sensibilidade.
+- Dor no peito, falta de ar, desmaio, vômitos persistentes, piora do estado geral ou ausência de melhora.`]
     ].map(([label, value]) => ({ label, value })),
     tags: ["lombalgia"],
     options: [
@@ -826,4 +840,6 @@ Tomar 1 cp de 8/8h se náuseas/vômitos.`]
 window.freeGroups = freeGroups;
 window.antibioticOptions = antibioticOptions;
 window.referralTemplates = referralTemplates;
+window.defaultDipironaAllergyReplacements = defaultDipironaAllergyReplacements;
+window.escopolaminaDipironaAllergyReplacements = escopolaminaDipironaAllergyReplacements;
 window.protocolsBase = protocolsBase;

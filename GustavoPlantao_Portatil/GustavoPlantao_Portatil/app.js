@@ -166,6 +166,13 @@ function buildReferralText(template, mode) {
     "Solicito avaliacao especializada e seguimento.";
 }
 
+function applyReplacements(text, replacements) {
+  (replacements || []).forEach(function (pair) {
+    text = text.replaceAll(pair[0], pair[1]);
+  });
+  return text;
+}
+
 function getPrescription(protocol) {
   if (!protocol) return "";
   if (isEditable(protocol.id)) return state.editableText;
@@ -178,16 +185,11 @@ function getPrescription(protocol) {
   if (protocol.id === "constipacao" && state.useBisacodil) base += protocol.optional || "";
   if (protocol.id === "gastroenterite" && state.useGastroCipro) base += protocol.optionalAntibiotic || "";
   if (state.useParacetamolAlt) {
-    base = base.replaceAll("Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor ou febre.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor ou febre.");
-    base = base.replaceAll("Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se febre ou dor.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se febre ou dor.");
-    base = base.replaceAll("Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor.");
-    base = base.replaceAll("Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h.");
-    if (protocol.id === "enxaqueca") {
-      base = base.replaceAll("Mesilato de diidroergotamina 1mg + dipirona 350mg + cafeína 100mg ---- 12 cps\nTomar 1 cp no início da crise, podendo repetir de 8/8h se necessário.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor.");
-    }
+    base = applyReplacements(base, window.defaultDipironaAllergyReplacements);
+    base = applyReplacements(base, protocol.allergyReplacements);
   }
   if (state.useEscopolaminaParacetamolAlt) {
-    base = base.replaceAll("Escopolamina + dipirona ---- 20 cps", "Escopolamina + paracetamol ---- 20 cps");
+    base = applyReplacements(base, window.escopolaminaDipironaAllergyReplacements);
   }
   return base;
 }
@@ -201,24 +203,6 @@ function finalText(protocol) {
 
 function getOrientation(protocol) {
   if (!protocol) return "";
-  if (protocol.id === "lombalgia" && protocol.orientationOptions && protocol.orientationOptions.length) {
-    if (state.selectedOrientationOption === 1) {
-      return "- Manter repouso relativo e evitar esforcos ou movimentos que piorem a dor.\n" +
-        "- Usar as medicacoes conforme prescrito, evitando associar remedios por conta propria.\n" +
-        "- Aplicar gelo ou calor local conforme melhor alivio e manter hidratacao adequada.\n\n" +
-        "SINAIS DE ALARME:\n" +
-        "- Dor intensa ou progressiva, dor que impede atividades basicas ou desperta do sono.\n" +
-        "- Febre, vermelhidao/inchaco importante, deformidade, perda de forca ou perda de sensibilidade.\n" +
-        "- Dor no peito, falta de ar, desmaio, vomitos persistentes, piora do estado geral ou ausencia de melhora.";
-    }
-    return "- Manter repouso relativo, evitando carregar peso e movimentos que piorem a dor.\n" +
-      "- Caminhadas leves e alongamentos suaves conforme tolerancia; evitar repouso absoluto prolongado.\n" +
-      "- Usar medicacoes conforme prescrito e evitar dirigir se houver sonolencia.\n\n" +
-      "SINAIS DE ALARME:\n" +
-      "- Fraqueza nas pernas, dormencia progressiva ou perda de sensibilidade em sela.\n" +
-      "- Perda de controle urinario/fecal ou retencao urinaria.\n" +
-      "- Febre, perda de peso, dor apos trauma importante, dor noturna progressiva ou ausencia de melhora.";
-  }
   if (protocol.orientationOptions && protocol.orientationOptions.length) {
     return (protocol.orientationOptions[state.selectedOrientationOption] || protocol.orientationOptions[0]).value || "";
   }
