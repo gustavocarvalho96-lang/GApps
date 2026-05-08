@@ -201,6 +201,24 @@ function finalText(protocol) {
 
 function getOrientation(protocol) {
   if (!protocol) return "";
+  if (protocol.id === "lombalgia" && protocol.orientationOptions && protocol.orientationOptions.length) {
+    if (state.selectedOrientationOption === 1) {
+      return "- Manter repouso relativo e evitar esforcos ou movimentos que piorem a dor.\n" +
+        "- Usar as medicacoes conforme prescrito, evitando associar remedios por conta propria.\n" +
+        "- Aplicar gelo ou calor local conforme melhor alivio e manter hidratacao adequada.\n\n" +
+        "SINAIS DE ALARME:\n" +
+        "- Dor intensa ou progressiva, dor que impede atividades basicas ou desperta do sono.\n" +
+        "- Febre, vermelhidao/inchaco importante, deformidade, perda de forca ou perda de sensibilidade.\n" +
+        "- Dor no peito, falta de ar, desmaio, vomitos persistentes, piora do estado geral ou ausencia de melhora.";
+    }
+    return "- Manter repouso relativo, evitando carregar peso e movimentos que piorem a dor.\n" +
+      "- Caminhadas leves e alongamentos suaves conforme tolerancia; evitar repouso absoluto prolongado.\n" +
+      "- Usar medicacoes conforme prescrito e evitar dirigir se houver sonolencia.\n\n" +
+      "SINAIS DE ALARME:\n" +
+      "- Fraqueza nas pernas, dormencia progressiva ou perda de sensibilidade em sela.\n" +
+      "- Perda de controle urinario/fecal ou retencao urinaria.\n" +
+      "- Febre, perda de peso, dor apos trauma importante, dor noturna progressiva ou ausencia de melhora.";
+  }
   if (protocol.orientationOptions && protocol.orientationOptions.length) {
     return (protocol.orientationOptions[state.selectedOrientationOption] || protocol.orientationOptions[0]).value || "";
   }
