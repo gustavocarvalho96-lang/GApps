@@ -552,6 +552,10 @@ textarea.template-editor {
   min-height: 420px;
 }
 
+textarea.anamnese-editor {
+  min-height: 680px;
+}
+
 .safety-strip {
   display: flex;
   flex-wrap: wrap;

@@ -255,7 +255,7 @@ function renderEditable(protocol, body) {
     body.appendChild(templateTitle);
   }
   var area = document.createElement("textarea");
-  area.className = protocol.labTranscription ? "template-editor" : "";
+  area.className = protocol.labTranscription ? "template-editor" : (protocol.id === "anamnese" ? "anamnese-editor" : "");
   area.value = state.editableText;
   area.oninput = function () { state.editableText = area.value; };
   body.appendChild(area);
