@@ -655,6 +655,48 @@ input[type="number"]:focus {
   padding: 12px;
 }
 
+.score-box.open {
+  border-color: rgba(15, 118, 110, .32);
+  box-shadow: 0 10px 22px rgba(15, 118, 110, .08);
+}
+
+.score-box-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.score-toggle {
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 850;
+  text-align: left;
+  padding: 6px 8px;
+}
+
+.score-toggle:hover {
+  background: #f3f6fa;
+  color: var(--accent-strong);
+}
+
+.score-summary {
+  max-width: 280px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .score-title {
   color: #172033;
   font-size: 13px;
@@ -793,6 +835,15 @@ input[type="number"]:focus {
 
   .lab-source-row {
     justify-content: flex-start;
+  }
+
+  .score-box-head {
+    grid-template-columns: 1fr;
+  }
+
+  .score-summary {
+    max-width: none;
+    width: fit-content;
   }
 }
 

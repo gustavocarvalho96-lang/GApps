@@ -135,10 +135,23 @@ function scoreSum(score, keys) {
 
 function renderSimpleScore(parent, config) {
   var score = ensureScore(config.id, config.defaults || {});
-  var box = div("score-box");
-  var title = div("score-title");
-  title.textContent = config.title;
-  box.appendChild(title);
+  var result = config.result(score);
+  var isOpen = !!state.scores.open[config.id];
+  var box = div("score-box" + (isOpen ? " open" : ""));
+  var head = div("score-box-head");
+  var toggle = textButton((isOpen ? "▼ " : "▶ ") + config.title, "score-toggle", function () {
+    state.scores.open[config.id] = !state.scores.open[config.id];
+    render();
+  });
+  var summary = div("score-summary");
+  summary.textContent = result.summary;
+  head.appendChild(toggle);
+  head.appendChild(summary);
+  box.appendChild(head);
+  if (!isOpen) {
+    parent.appendChild(box);
+    return;
+  }
   var grid = div("score-grid");
   config.fields.forEach(function (field) {
     if (field.type === "number") grid.appendChild(smallNumberField(config.id, field.label, field.key, field.placeholder));
@@ -146,7 +159,6 @@ function renderSimpleScore(parent, config) {
     if (field.type === "option") grid.appendChild(optionField(config.id, field.label, field.key, field.options));
   });
   box.appendChild(grid);
-  var result = config.result(score);
   var resultBox = div("score-result");
   resultBox.textContent = result.summary;
   box.appendChild(resultBox);
@@ -154,6 +166,23 @@ function renderSimpleScore(parent, config) {
     insertScoreLine(config.short, result.text);
     render();
   }));
+  parent.appendChild(box);
+}
+
+function renderCardioScore(parent, id, title, summary, renderBody) {
+  var isOpen = !!state.scores.open[id];
+  var box = div("score-box" + (isOpen ? " open" : ""));
+  var head = div("score-box-head");
+  var toggle = textButton((isOpen ? "▼ " : "▶ ") + title, "score-toggle", function () {
+    state.scores.open[id] = !state.scores.open[id];
+    render();
+  });
+  var summaryBox = div("score-summary");
+  summaryBox.textContent = summary;
+  head.appendChild(toggle);
+  head.appendChild(summaryBox);
+  box.appendChild(head);
+  if (isOpen) renderBody(box);
   parent.appendChild(box);
 }
 
@@ -216,10 +245,8 @@ function renderScorePanel(body) {
   panel.appendChild(tabs);
 
   if (state.scores.tab === "cardio") {
-  var heart = div("score-box");
-  var heartTitle = div("score-title");
-  heartTitle.textContent = "HEART";
-  heart.appendChild(heartTitle);
+  var heartData = heartResult();
+  renderCardioScore(panel, "heart", "HEART", heartData.score + "/10 - risco " + heartData.risk, function (heart) {
   var heartGrid = div("score-grid");
   heartGrid.appendChild(scoreField("Historia", selectInput(state.scores.heart.history, [["0", "0 - pouco/nada sugestiva"], ["1", "1 - moderada"], ["2", "2 - muito sugestiva"]], function (value) {
     state.scores.heart.history = Number(value);
@@ -242,19 +269,16 @@ function renderScorePanel(body) {
   })));
   heart.appendChild(heartGrid);
   var heartResultBox = div("score-result");
-  var heartData = heartResult();
   heartResultBox.textContent = heartData.score + "/10 - risco " + heartData.risk;
   heart.appendChild(heartResultBox);
   heart.appendChild(textButton("Inserir HEART", "text-btn primary-btn", function () {
     insertScoreLine("HEART", heartResult().text);
     render();
   }));
-  panel.appendChild(heart);
+  });
 
-  var grace = div("score-box");
-  var graceTitle = div("score-title");
-  graceTitle.textContent = "GRACE";
-  grace.appendChild(graceTitle);
+  var graceData = graceResult();
+  renderCardioScore(panel, "grace", "GRACE", graceData.score + " pts - risco " + graceData.risk, function (grace) {
   var graceGrid = div("score-grid");
   graceGrid.appendChild(scoreField("Idade", numberInput(state.scores.grace.age, "anos", function (value) {
     state.scores.grace.age = value;
@@ -286,14 +310,13 @@ function renderScorePanel(body) {
   })));
   grace.appendChild(graceGrid);
   var graceResultBox = div("score-result");
-  var graceData = graceResult();
   graceResultBox.textContent = graceData.score + " pts - risco " + graceData.risk;
   grace.appendChild(graceResultBox);
   grace.appendChild(textButton("Inserir GRACE", "text-btn primary-btn", function () {
     insertScoreLine("GRACE", graceResult().text);
     render();
   }));
-  panel.appendChild(grace);
+  });
   }
 
   scoreConfigsFor(state.scores.tab).forEach(function (config) {
