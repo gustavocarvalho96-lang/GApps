@@ -1626,7 +1626,10 @@ function renderFreeGroups(body) {
         ? ((window.antibioticOptions || []).map(function (o) { return [o.label, o.value]; }))
         : ((window.freeGroups && window.freeGroups[key]) || []);
       source.slice().sort(function (a, b) { return a[0].localeCompare(b[0], "pt-BR"); }).forEach(function (item) {
-        row.appendChild(dotButton(item[0], function () { addTextToEditable(item[0], item[1]); }));
+        row.appendChild(dotButton(item[0], function () {
+          var text = key === "antibiotics" ? item[1].replace(/^\s*Uso oral:\s*/i, "") : item[1];
+          addTextToEditable(item[0], text);
+        }));
       });
       content.appendChild(row);
     }
