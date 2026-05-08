@@ -105,16 +105,12 @@
 
     .card:hover,
     .card:focus-visible {
-      border-color: rgba(15, 118, 110, 0.36);
-      box-shadow: 0 24px 56px rgba(15, 34, 48, 0.13);
-      transform: translateY(-4px);
-      outline: none;
-    }
-
-    .card.primary {
       color: #ffffff;
       border-color: rgba(15, 118, 110, 0.1);
       background: linear-gradient(145deg, var(--accent) 0%, var(--accent-strong) 100%);
+      box-shadow: 0 24px 56px rgba(15, 34, 48, 0.13);
+      transform: translateY(-4px);
+      outline: none;
     }
 
     .icon {
@@ -129,7 +125,8 @@
       letter-spacing: 0;
     }
 
-    .primary .icon {
+    .card:hover .icon,
+    .card:focus-visible .icon {
       color: var(--accent-strong);
       background: #ffffff;
     }
@@ -149,7 +146,8 @@
       line-height: 1.5;
     }
 
-    .primary p {
+    .card:hover p,
+    .card:focus-visible p {
       color: rgba(255, 255, 255, 0.82);
     }
 
@@ -168,7 +166,8 @@
       font-weight: 800;
     }
 
-    .primary .action {
+    .card:hover .action,
+    .card:focus-visible .action {
       color: var(--accent-strong);
       background: #ffffff;
     }
@@ -212,7 +211,7 @@
     </header>
 
     <section class="grid" aria-label="Aplicativos disponíveis">
-      <a class="card primary" href="GustavoPlantao_Portatil/GustavoPlantao_Portatil/ReceitasMedicas_Portatil.html">
+      <a class="card" href="GustavoPlantao_Portatil/GustavoPlantao_Portatil/ReceitasMedicas_Portatil.html">
         <div>
           <div class="icon" aria-hidden="true">G</div>
           <h2>Plantão</h2>
