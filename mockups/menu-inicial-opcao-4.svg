@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760">
+  <rect width="1180" height="760" fill="#f6f8fb"/>
+  <text x="76" y="100" font-family="Arial, sans-serif" font-size="32" font-weight="900" fill="#102027">Projeto Codex</text>
+  <text x="76" y="130" font-family="Arial, sans-serif" font-size="15" fill="#667085">Dashboard inicial</text>
+  <rect x="76" y="182" width="1028" height="270" rx="24" fill="#0f766e"/>
+  <text x="126" y="270" font-family="Arial, sans-serif" font-size="42" font-weight="900" fill="#fff">Gustavo Plantão</text>
+  <text x="126" y="314" font-family="Arial, sans-serif" font-size="17" fill="#d8f3ed">App principal para receitas, reavaliações e textos clínicos.</text>
+  <rect x="126" y="362" width="150" height="46" rx="14" fill="#fff"/>
+  <text x="201" y="391" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="850" fill="#0f766e">Abrir agora</text>
+  <rect x="76" y="490" width="496" height="150" rx="22" fill="#fff" stroke="#dce4ef"/>
+  <text x="116" y="550" font-family="Arial, sans-serif" font-size="25" font-weight="850" fill="#102027">Transcritor de Exames</text>
+  <text x="116" y="582" font-family="Arial, sans-serif" font-size="14" fill="#667085">Campo Limpo e Jundiaí.</text>
+  <rect x="608" y="490" width="496" height="150" rx="22" fill="#fff" stroke="#dce4ef"/>
+  <text x="648" y="550" font-family="Arial, sans-serif" font-size="25" font-weight="850" fill="#102027">Fluxo UPA</text>
+  <text x="648" y="582" font-family="Arial, sans-serif" font-size="14" fill="#667085">Pacientes, consultórios e PNG.</text>
+  <text x="590" y="700" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#98a2b3">Opção 4 - dashboard com app principal em destaque</text>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset=".55" stop-color="#eef6f3"/>
+      <stop offset="1" stop-color="#eaf0f7"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#101828" flood-opacity=".12"/></filter>
+  </defs>
+  <rect width="1180" height="760" fill="url(#bg)"/>
+  <rect x="54" y="44" width="1072" height="76" rx="22" fill="#fff" stroke="#dce4ef"/>
+  <circle cx="96" cy="82" r="22" fill="#0f766e"/>
+  <text x="96" y="90" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="900" fill="#fff">C</text>
+  <text x="132" y="78" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="#102027">Projeto Codex</text>
+  <text x="132" y="100" font-family="Arial, sans-serif" font-size="12" fill="#667085">Plantão, exames e fluxo em um só lugar</text>
+  <g filter="url(#shadow)" font-family="Arial, sans-serif">
+    <rect x="92" y="210" width="300" height="330" rx="26" fill="#fff" stroke="#dce4ef"/>
+    <rect x="120" y="238" width="62" height="62" rx="20" fill="#e8f5f2"/>
+    <text x="151" y="278" text-anchor="middle" font-size="28" font-weight="900" fill="#0f766e">G</text>
+    <text x="120" y="356" font-size="26" font-weight="900" fill="#102027">Plantão</text>
+    <text x="120" y="390" font-size="14" fill="#667085">Receitas, anamnese e reavaliação.</text>
+    <rect x="120" y="464" width="134" height="42" rx="14" fill="#0f766e"/>
+    <text x="187" y="490" text-anchor="middle" font-size="14" font-weight="850" fill="#fff">Abrir</text>
+    <rect x="440" y="210" width="300" height="330" rx="26" fill="#fff" stroke="#dce4ef"/>
+    <rect x="468" y="238" width="62" height="62" rx="20" fill="#f1f5f9"/>
+    <text x="499" y="278" text-anchor="middle" font-size="28" font-weight="900" fill="#475467">E</text>
+    <text x="468" y="356" font-size="26" font-weight="900" fill="#102027">Exames</text>
+    <text x="468" y="390" font-size="14" fill="#667085">Transcrição rápida de laboratórios.</text>
+    <rect x="468" y="464" width="134" height="42" rx="14" fill="#f7f9fc" stroke="#d7e0ea"/>
+    <text x="535" y="490" text-anchor="middle" font-size="14" font-weight="850" fill="#344054">Abrir</text>
+    <rect x="788" y="210" width="300" height="330" rx="26" fill="#fff" stroke="#dce4ef"/>
+    <rect x="816" y="238" width="62" height="62" rx="20" fill="#eef2ff"/>
+    <text x="847" y="278" text-anchor="middle" font-size="28" font-weight="900" fill="#475467">F</text>
+    <text x="816" y="356" font-size="26" font-weight="900" fill="#102027">Fluxo</text>
+    <text x="816" y="390" font-size="14" fill="#667085">Distribuição e exportação da lista.</text>
+    <rect x="816" y="464" width="134" height="42" rx="14" fill="#f7f9fc" stroke="#d7e0ea"/>
+    <text x="883" y="490" text-anchor="middle" font-size="14" font-weight="850" fill="#344054">Abrir</text>
+  </g>
+  <text x="590" y="650" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#98a2b3">Opção 5 - visual moderno com cards e ícones</text>
+</svg>
