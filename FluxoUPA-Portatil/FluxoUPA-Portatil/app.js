@@ -466,8 +466,11 @@ const OCR_PASSES = [
         return canvas;
       }
       async function runOcrPass(imageSource, config, onStatus) {
-        if (!window.Tesseract) throw new Error("Tesseract nao carregou. Conecte a internet na primeira abertura ou use entrada manual.");
+        if (!window.Tesseract) throw new Error("Tesseract nao carregou. Reabra o app ou use entrada manual.");
         const result = await Tesseract.recognize(imageSource, "por+eng", {
+          workerPath: "vendor/worker.min.js",
+          corePath: "vendor/tesseract-core",
+          langPath: "vendor/tessdata",
           logger: (message) => {
             if (message.status === "recognizing text") onStatus(`${config.label}: ${Math.round((message.progress || 0) * 100)}%`);
           },
@@ -568,7 +571,7 @@ const OCR_PASSES = [
         }
         $("exportError").classList.add("hidden");
         try {
-          if (!window.html2canvas) throw new Error("html2canvas nao carregou. Conecte a internet na primeira abertura.");
+          if (!window.html2canvas) throw new Error("html2canvas nao carregou. Reabra o app.");
           const target = $("preview");
           await new Promise((resolve) => requestAnimationFrame(resolve));
           const rect = target.getBoundingClientRect();
