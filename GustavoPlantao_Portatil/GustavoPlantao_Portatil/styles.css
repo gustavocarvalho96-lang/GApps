@@ -108,7 +108,7 @@ button {
   margin: 0 auto;
   padding: 22px 28px 34px;
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: 250px 250px minmax(0, 1fr);
   gap: 18px;
 }
 
@@ -125,13 +125,21 @@ button {
   backdrop-filter: blur(14px);
 }
 
+.sidebar-quick {
+  border-left: 6px solid var(--accent);
+}
+
+.sidebar-recipes {
+  border-left: 6px solid #7a8798;
+}
+
 .sidebar-head {
-  padding: 14px 16px 6px;
+  padding: 16px 16px 4px;
 }
 
 .sidebar-title {
   color: var(--ink);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
 }
 
@@ -168,7 +176,7 @@ textarea:focus {
 }
 
 .list {
-  max-height: calc(100vh - 102px);
+  max-height: calc(100vh - 156px);
   overflow: auto;
   padding: 0 10px 14px;
 }

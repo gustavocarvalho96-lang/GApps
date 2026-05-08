@@ -9,7 +9,7 @@ var state = {
   referralMode: "ambulatorial",
   anamneseGender: "feminino",
   editableText: "",
-  search: "",
+  recipeSearch: "",
   labInput: "",
   labOutput: "",
   scores: {
@@ -99,26 +99,22 @@ function findProtocol(id) {
 
 function filtered() {
   var protocols = getProtocols();
-  var term = state.search.toLowerCase().trim();
-  var base = protocols.filter(function (item) {
+  var recipeTerm = state.recipeSearch.toLowerCase().trim();
+  function matches(item, term) {
     if (!term) return true;
     return [item.title, item.category, item.prescription, item.orientation, (item.tags || []).join(" ")].join(" ").toLowerCase().indexOf(term) >= 0;
-  });
-  var quick = base.filter(function (item) { return quickOrder.indexOf(item.id) >= 0; }).sort(function (a, b) {
+  }
+  var quick = protocols.filter(function (item) { return quickOrder.indexOf(item.id) >= 0; }).sort(function (a, b) {
     return quickOrder.indexOf(a.id) - quickOrder.indexOf(b.id);
   });
-  var recipes = base.filter(function (item) { return quickOrder.indexOf(item.id) < 0; }).sort(function (a, b) {
+  var recipes = protocols.filter(function (item) { return quickOrder.indexOf(item.id) < 0 && matches(item, recipeTerm); }).sort(function (a, b) {
     return a.title.localeCompare(b.title, "pt-BR");
   });
   return { quick: quick, recipes: recipes, all: quick.concat(recipes) };
 }
 
 function currentProtocol() {
-  var lists = filtered();
-  for (var i = 0; i < lists.all.length; i += 1) {
-    if (lists.all[i].id === state.selectedId) return lists.all[i];
-  }
-  return lists.all[0] || findProtocol(state.selectedId);
+  return findProtocol(state.selectedId);
 }
 
 function renderNav(containerId, items, selectedId, emptyText) {
@@ -1360,17 +1356,17 @@ function boot() {
   }
   state.selectedId = protocols[0].id;
   state.editableText = getInitialText(protocols[0]);
-  var search = el("search");
-  if (search) {
-    search.oninput = function () {
-      state.search = search.value || "";
+  var recipeSearch = el("recipeSearch");
+  if (recipeSearch) {
+    recipeSearch.oninput = function () {
+      state.recipeSearch = recipeSearch.value || "";
       render();
     };
   }
   document.addEventListener("keydown", function (event) {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
-      if (search) search.focus();
+      if (recipeSearch) recipeSearch.focus();
     }
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
       if (state.selectedId === "reavaliacao" && event.target && event.target.className === "small") return;

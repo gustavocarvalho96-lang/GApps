@@ -21,25 +21,24 @@
     </div>
   </header>
   <main class="app">
-    <aside class="sidebar">
-      <div class="search-box">
-        <input id="search" type="search" placeholder="Buscar topico, sintoma ou categoria" autocomplete="off">
+    <aside class="sidebar sidebar-quick">
+      <div class="sidebar-head">
+        <div class="sidebar-title">Ações rápidas</div>
       </div>
       <div class="list">
-        <details class="nav-group" open>
-          <summary class="group-toggle">
-            <span>ACOES RAPIDAS</span>
-            <span class="chevron">v</span>
-          </summary>
-          <div id="quickList"></div>
-        </details>
-        <details class="nav-group" open>
-          <summary class="group-toggle rest-title">
-            <span>RECEITAS</span>
-            <span class="chevron">v</span>
-          </summary>
-          <div id="recipeList"></div>
-        </details>
+        <div id="quickList"></div>
+      </div>
+    </aside>
+    <aside class="sidebar sidebar-recipes">
+      <div class="sidebar-head">
+        <div class="sidebar-title">Receitas</div>
+        <div class="sidebar-caption">Protocolos e prescrições por queixa.</div>
+      </div>
+      <div class="search-box">
+        <input id="recipeSearch" type="search" placeholder="Buscar receitas" autocomplete="off">
+      </div>
+      <div class="list">
+        <div id="recipeList"></div>
       </div>
     </aside>
     <section id="content" class="content"></section>
