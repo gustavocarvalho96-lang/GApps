@@ -211,15 +211,39 @@ function getOrientation(protocol) {
 
 function copyText(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).then(function () {
+      showToast("Copiado");
+    }).catch(function () {
+      fallbackCopyText(text);
+    });
   } else {
-    var area = document.createElement("textarea");
-    area.value = text;
-    document.body.appendChild(area);
-    area.select();
-    document.execCommand("copy");
-    document.body.removeChild(area);
+    fallbackCopyText(text);
   }
+}
+
+function fallbackCopyText(text) {
+  var area = document.createElement("textarea");
+  area.value = text;
+  document.body.appendChild(area);
+  area.select();
+  document.execCommand("copy");
+  document.body.removeChild(area);
+  showToast("Copiado");
+}
+
+function showToast(message) {
+  var toast = el("actionToast");
+  if (!toast) {
+    toast = div("action-toast");
+    toast.id = "actionToast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () {
+    toast.classList.remove("show");
+  }, 1200);
 }
 
 function addTextToEditable(label, text) {
@@ -996,9 +1020,11 @@ function insertLabOutputIntoReavaliacao() {
       text.slice(0, labsIndex + labsMarker.length).trimEnd() +
       "\n" + output + "\n\n" +
       text.slice(imageIndex).trimStart();
+    showToast("Exames inseridos");
     return;
   }
   state.editableText = text.trimEnd() + "\n\nEXAMES:\n" + output;
+  showToast("Exames inseridos");
 }
 
 function renderOptions(protocol, parent) {
@@ -1010,14 +1036,6 @@ function renderOptions(protocol, parent) {
       state.labOutput = "";
       render();
     }));
-    if (protocol.labSources) {
-      protocol.labSources.forEach(function (source) {
-        resetRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className, function () {
-          transcribeCurrentLabs(null, source.source);
-          render();
-        }));
-      });
-    }
     if (protocol.genderedTemplate) {
       resetRow.appendChild(textButton("Masculino", "text-btn" + (state.anamneseGender === "masculino" ? " active" : ""), function () {
         setAnamneseGender("masculino");
@@ -1199,11 +1217,27 @@ function renderFreeGroups(body) {
 function renderEditable(protocol, body) {
   if (protocol.freeGroupsEnabled) renderFreeGroups(body);
   if (protocol.labTranscription) {
-    var lab = div("panel stack");
+    var lab = div("panel stack reavaliacao-lab-panel");
+    var header = div("reavaliacao-panel-head");
+    var titleWrap = div("");
     var label = div("panel-title");
-    label.textContent = "Transcricao de exames laboratoriais";
+    label.textContent = "Exames laboratoriais";
+    var hint = div("panel-hint");
+    hint.textContent = "Cole o resultado bruto, escolha a origem e insira a transcricao no template.";
+    titleWrap.appendChild(label);
+    titleWrap.appendChild(hint);
+    var sourceRow = div("row lab-source-row");
+    (protocol.labSources || []).forEach(function (source) {
+      sourceRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className, function () {
+        transcribeCurrentLabs(input, source.source);
+        showToast("Transcrito: " + source.label);
+        render();
+      }));
+    });
+    header.appendChild(titleWrap);
+    header.appendChild(sourceRow);
     var input = document.createElement("textarea");
-    input.className = "small";
+    input.className = "small lab-input";
     input.placeholder = "Cole aqui o texto do exame";
     input.value = state.labInput || "";
     input.oninput = function () { state.labInput = input.value; };
@@ -1216,14 +1250,15 @@ function renderEditable(protocol, body) {
       }
     };
     var output = document.createElement("pre");
+    output.className = "lab-output";
     output.textContent = state.labOutput || "Cole o exame acima e clique em Transcrever exames.";
     var actions = div("row");
-    actions.appendChild(textButton("Copiar resultado", "text-btn", function () {
+    actions.appendChild(textButton("Copiar resultado", "text-btn primary-btn", function () {
       transcribeCurrentLabs(input);
       copyText(state.labOutput);
       render();
     }));
-    actions.appendChild(textButton("Inserir exames", "text-btn", function () {
+    actions.appendChild(textButton("Inserir no template", "text-btn", function () {
       transcribeCurrentLabs(input);
       insertLabOutputIntoReavaliacao();
       render();
@@ -1233,15 +1268,24 @@ function renderEditable(protocol, body) {
       state.labOutput = "";
       render();
     }));
-    lab.appendChild(label);
+    lab.appendChild(header);
     lab.appendChild(input);
     lab.appendChild(actions);
-    var preview = div("panel");
+    var preview = div("lab-preview");
+    var previewTitle = div("panel-title");
+    previewTitle.textContent = "Transcricao pronta";
+    preview.appendChild(previewTitle);
     preview.appendChild(output);
     lab.appendChild(preview);
     body.appendChild(lab);
   }
+  if (protocol.labTranscription) {
+    var templateTitle = div("panel-title template-title");
+    templateTitle.textContent = "Template de reavaliacao";
+    body.appendChild(templateTitle);
+  }
   var area = document.createElement("textarea");
+  area.className = protocol.labTranscription ? "template-editor" : "";
   area.value = state.editableText;
   area.oninput = function () { state.editableText = area.value; };
   body.appendChild(area);
