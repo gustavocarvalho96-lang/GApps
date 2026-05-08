@@ -240,9 +240,6 @@ function boot() {
   state.selectedId = initialProtocol.id;
   state.editableText = getInitialText(initialProtocol);
   document.addEventListener("keydown", function (event) {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-    }
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
       if (state.selectedId === "reavaliacao" && event.target && event.target.className === "small") return;
       event.preventDefault();
