@@ -1,5 +1,8 @@
 var input = document.getElementById("input");
 var output = document.getElementById("output");
+var campoLimpoBtn = document.getElementById("campoLimpoBtn");
+var jundiaiBtn = document.getElementById("jundiaiBtn");
+var activeSource = "campo-limpo";
 
 function showToast(message) {
   var toast = document.getElementById("actionToast");
@@ -17,14 +20,29 @@ function showToast(message) {
   }, 1600);
 }
 
-document.getElementById("campoLimpoBtn").onclick = function () {
+function updateSourceButtons() {
+  campoLimpoBtn.classList.toggle("active", activeSource === "campo-limpo");
+  jundiaiBtn.classList.toggle("active", activeSource === "jundiai");
+}
+
+function transcribeBySource(source) {
+  activeSource = source || activeSource;
+  updateSourceButtons();
+  if (activeSource === "jundiai") {
+    output.textContent = transcribeJundiaiLabs(input.value);
+    showToast("Transcrito: Jundiai");
+    return;
+  }
   output.textContent = transcribeCampoLimpoLabs(input.value);
   showToast("Transcrito: Campo Limpo");
+}
+
+campoLimpoBtn.onclick = function () {
+  transcribeBySource("campo-limpo");
 };
 
-document.getElementById("jundiaiBtn").onclick = function () {
-  output.textContent = transcribeJundiaiLabs(input.value);
-  showToast("Transcrito: Jundiai");
+jundiaiBtn.onclick = function () {
+  transcribeBySource("jundiai");
 };
 
 document.getElementById("copyBtn").onclick = function () {
@@ -57,7 +75,8 @@ document.getElementById("clearBtn").onclick = function () {
 document.addEventListener("keydown", function (event) {
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     event.preventDefault();
-    output.textContent = transcribeCampoLimpoLabs(input.value);
-    showToast("Transcrito: Campo Limpo");
+    transcribeBySource(activeSource);
   }
 });
+
+updateSourceButtons();
