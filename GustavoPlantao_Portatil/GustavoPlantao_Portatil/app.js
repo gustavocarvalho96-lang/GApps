@@ -1618,7 +1618,7 @@ function renderFreeGroups(body) {
   [["dor", "dor / febre"], ["gastro", "nausea / gastro"], ["resp", "alergia / respiratorio"], ["antibiotics", "antibioticos"], ["orientacoes", "orientacoes / sinais de alarme"]].forEach(function (group) {
     var key = group[0];
     var wrap = div("toggle-block");
-    wrap.appendChild(textButton((state.openGroups[key] ? "Ocultar " : "Mostrar ") + group[1], "text-btn", function () {
+    wrap.appendChild(textButton(group[1], "text-btn" + (state.openGroups[key] ? " active" : ""), function () {
       state.openGroups[key] = !state.openGroups[key];
       render();
     }));
