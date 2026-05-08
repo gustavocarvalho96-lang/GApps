@@ -135,6 +135,33 @@
         assert(inserted.indexOf("Uso oral:") !== 0, "Texto ainda comeca com Uso oral.");
       });
 
+      add("Adicionais de receita sao definidos nos dados", function () {
+        resetState();
+        var constipacao = byId("constipacao");
+        var gastro = byId("gastroenterite");
+        assert(constipacao.addOns && constipacao.addOns.length === 1, "Constipacao sem addOn cadastrado.");
+        assert(gastro.addOns && gastro.addOns.length === 1, "Gastroenterite sem addOn cadastrado.");
+        state[constipacao.addOns[0].stateKey] = true;
+        assert(getPrescription(constipacao).indexOf("Bisacodil 5mg") >= 0, "Bisacodil nao foi adicionado pela regra de dados.");
+        state[gastro.addOns[0].stateKey] = true;
+        assert(getPrescription(gastro).indexOf("Ciprofloxacino 500mg") >= 0, "Ciprofloxacino nao foi adicionado pela regra de dados.");
+      });
+
+      add("Atalhos administrativos e anamnese ficam em dados", function () {
+        resetState();
+        var administrativo = byId("administrativo");
+        var anamnese = byId("anamnese");
+        var reavaliacao = byId("reavaliacao");
+        var receitaLivre = byId("receita-livre");
+        assert(administrativo.snippets && administrativo.snippets.length >= 1, "Administrativo sem snippets.");
+        assert(anamnese.genderedTemplate === true, "Anamnese sem marcador de template por genero.");
+        assert(anamnese.snippets && anamnese.snippets.standardExam, "Anamnese sem exame padrao em dados.");
+        assert(anamnese.snippets.otoOro && anamnese.snippets.otoOro.length >= 1, "Anamnese sem atalhos Oto/Oro em dados.");
+        assert(anamnese.snippets.psych && anamnese.snippets.psych.length >= 1, "Anamnese sem atalhos psiquiatricos em dados.");
+        assert(reavaliacao.labTranscription === true && reavaliacao.labSources.length === 2, "Reavaliacao sem fontes de transcricao nos dados.");
+        assert(receitaLivre.freeGroupsEnabled === true, "Receita livre sem marcador de grupos livres.");
+      });
+
       tests.forEach(function (test) {
         try {
           test.fn();

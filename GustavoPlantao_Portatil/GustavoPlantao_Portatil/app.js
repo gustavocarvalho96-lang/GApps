@@ -68,9 +68,8 @@ function getProtocols() {
 
 function getInitialText(protocol) {
   if (!protocol) return "";
-  if (protocol.id === "administrativo") return "";
-  if (protocol.id === "encaminhamento") return buildReferralText(protocol.referralTemplates && protocol.referralTemplates[0], "ambulatorial");
-  if (protocol.id === "anamnese") return applyAnamneseGender(protocol.prescription || "", state.anamneseGender);
+  if (protocol.referralTemplates) return buildReferralText(protocol.referralTemplates && protocol.referralTemplates[0], "ambulatorial");
+  if (protocol.genderedTemplate) return applyAnamneseGender(protocol.prescription || "", state.anamneseGender);
   return protocol.prescription || "";
 }
 
@@ -177,13 +176,14 @@ function getPrescription(protocol) {
   if (!protocol) return "";
   if (isEditable(protocol.id)) return state.editableText;
   var base = protocol.prescription || "";
-  if (protocol.id === "antibioticos" && protocol.antibioticOptions) {
+  if (protocol.antibioticOptions) {
     base = (protocol.antibioticOptions[state.selectedAntibiotic] || protocol.antibioticOptions[0]).value || "";
   } else if (protocol.options && protocol.options.length) {
     base = (protocol.options[state.selectedOption] || protocol.options[0]).value || "";
   }
-  if (protocol.id === "constipacao" && state.useBisacodil) base += protocol.optional || "";
-  if (protocol.id === "gastroenterite" && state.useGastroCipro) base += protocol.optionalAntibiotic || "";
+  (protocol.addOns || []).forEach(function (addOn) {
+    if (state[addOn.stateKey]) base += addOn.text || "";
+  });
   if (state.useParacetamolAlt) {
     base = applyReplacements(base, window.defaultDipironaAllergyReplacements);
     base = applyReplacements(base, protocol.allergyReplacements);
@@ -1434,17 +1434,15 @@ function renderOptions(protocol, parent) {
       state.labOutput = "";
       render();
     }));
-    if (protocol.id === "reavaliacao") {
-      resetRow.appendChild(textButton("Campo Limpo", "text-btn lab-source-btn campo-limpo-btn", function () {
-        transcribeCurrentLabs(null, "campo-limpo");
-        render();
-      }));
-      resetRow.appendChild(textButton("Jundiai", "text-btn lab-source-btn jundiai-btn", function () {
-        transcribeCurrentLabs(null, "jundiai");
-        render();
-      }));
+    if (protocol.labSources) {
+      protocol.labSources.forEach(function (source) {
+        resetRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className, function () {
+          transcribeCurrentLabs(null, source.source);
+          render();
+        }));
+      });
     }
-    if (protocol.id === "anamnese") {
+    if (protocol.genderedTemplate) {
       resetRow.appendChild(textButton("Masculino", "text-btn" + (state.anamneseGender === "masculino" ? " active" : ""), function () {
         setAnamneseGender("masculino");
       }));
@@ -1454,42 +1452,23 @@ function renderOptions(protocol, parent) {
     }
     parent.appendChild(resetRow);
 
-    if (protocol.id === "anamnese") {
+    if (protocol.snippets && protocol.snippets.standardExam) {
       var otoOroBlock = div("section toggle-block");
       var anamneseButtons = div("row");
-      var standardExam = "Aparelho Pulmonar: MV Presente Bilateral Sem Ruidos Adventicios, Sem Sinais De Esforço Respiratório \n" +
-        "Aparelho CardioVascular: BRNF 2 Tempos Sem Sopros Audíveis \n" +
-        "Aparelho Abdominal: RHA Presente, Sem Defesa, Indolor À Palpação, DB Negativo, Giordano Negativo, Murphy Negativo\n" +
-        "NEURO: Glasgow 15, Pifr, Sem Sinais Meningeos, Sem Déficit Motor\n" +
-        "EXT: Sem Empastamento De Panturrilhas, Tec< 3 Segundos, Simétricas, Sem Edemas";
-      var psychExam = "Exame psíquico:\n" +
-        "Consciência/orientação: paciente consciente, orientado em tempo e espaço, vigil.\n" +
-        "Atitude/apresentação: colaborativo à entrevista, higiene e vestimenta adequadas.\n" +
-        "Fala: ritmo e volume habituais.\n" +
-        "Humor/afeto: humor eutímico, afeto congruente e reativo.\n" +
-        "Pensamento: curso e forma preservados, sem conteúdo delirante evidente.\n" +
-        "Sensopercepção: sem alterações sensoperceptivas observadas durante avaliação.\n" +
-        "Risco: nega ideação suicida, autoagressiva ou heteroagressiva no momento.\n" +
-        "Psicomotricidade: sem alterações grosseiras.\n" +
-        "Juízo/insight: juízo crítico e insight preservados.";
-      var psychAltExam = "Exame psíquico:\n" +
-        "Consciência/orientação: paciente vigil, porém parcialmente orientado em tempo e espaço.\n" +
-        "Atitude/apresentação: pouco colaborativo à entrevista, higiene prejudicada e vestimenta desalinhada.\n" +
-        "Fala: fala acelerada, com aumento do volume e difícil interrupção.\n" +
-        "Humor/afeto: humor irritável/ansioso, afeto lábil e pouco congruente.\n" +
-        "Pensamento: curso do pensamento desorganizado, com fuga de ideias e conteúdo persecutório.\n" +
-        "Sensopercepção: refere alterações sensoperceptivas, com alucinações auditivas no momento da avaliação.\n" +
-        "Risco: refere ideação autoagressiva/suicida, sem plano estruturado no momento; nega heteroagressividade.\n" +
-        "Psicomotricidade: agitação psicomotora, inquietação durante atendimento.\n" +
-        "Juízo/insight: juízo crítico prejudicado e insight reduzido.";
-      anamneseButtons.appendChild(textButton("Padrão", "text-btn" + ((state.editableText || "").indexOf(standardExam) >= 0 ? " active" : ""), function () {
+      var snippets = protocol.snippets || {};
+      var standardExam = snippets.standardExam && snippets.standardExam.text;
+      var psychSnippets = snippets.psych || [];
+      var psychActive = psychSnippets.some(function (item) {
+        return (state.editableText || "").indexOf(item[1]) >= 0;
+      });
+      anamneseButtons.appendChild(textButton((snippets.standardExam && snippets.standardExam.label) || "Padrão", "text-btn" + (standardExam && (state.editableText || "").indexOf(standardExam) >= 0 ? " active" : ""), function () {
         toggleAnamneseExam(standardExam);
       }));
       anamneseButtons.appendChild(textButton("Oto/Oro", "text-btn", function () {
         state.openGroups.otoOro = !state.openGroups.otoOro;
         render();
       }));
-      anamneseButtons.appendChild(textButton("Psiq", "text-btn" + (state.openGroups.psych || (state.editableText || "").indexOf(psychExam) >= 0 || (state.editableText || "").indexOf(psychAltExam) >= 0 ? " active" : ""), function () {
+      anamneseButtons.appendChild(textButton("Psiq", "text-btn" + (state.openGroups.psych || psychActive ? " active" : ""), function () {
         state.openGroups.psych = !state.openGroups.psych;
         render();
       }));
@@ -1500,12 +1479,7 @@ function renderOptions(protocol, parent) {
       otoOroBlock.appendChild(anamneseButtons);
       if (state.openGroups.otoOro) {
         var examRow = div("row");
-        [
-          ["Otoscopia normal", "Otoscopia: condutos auditivos pérvios, sem secreção. Membranas timpânicas íntegras, sem sinais flogísticos."],
-          ["Otoscopia alterada", "Otoscopia: conduto auditivo hiperemiado, com presença de secreção. Membrana timpânica hiperemiada."],
-          ["Oroscopia normal", "Oroscopia: orofaringe sem hiperemia, sem placas ou exsudato. Mucosa oral úmida, sem lesões aparentes."],
-          ["Oroscopia alterada", "Oroscopia: orofaringe hiperemiada, com placas/exsudato amigdaliano."]
-        ].forEach(function (item) {
+        (snippets.otoOro || []).forEach(function (item) {
           examRow.appendChild(textButton(item[0], "text-btn" + ((state.editableText || "").indexOf(item[1]) >= 0 ? " active" : ""), function () {
             toggleAnamneseExam(item[1]);
           }));
@@ -1514,12 +1488,11 @@ function renderOptions(protocol, parent) {
       }
       if (state.openGroups.psych) {
         var psychRow = div("row");
-        psychRow.appendChild(textButton("PsiqNor", "text-btn" + ((state.editableText || "").indexOf(psychExam) >= 0 ? " active" : ""), function () {
-          toggleAnamneseExam(psychExam);
-        }));
-        psychRow.appendChild(textButton("PsiqAlt", "text-btn" + ((state.editableText || "").indexOf(psychAltExam) >= 0 ? " active" : ""), function () {
-          toggleAnamneseExam(psychAltExam);
-        }));
+        psychSnippets.forEach(function (item) {
+          psychRow.appendChild(textButton(item[0], "text-btn" + ((state.editableText || "").indexOf(item[1]) >= 0 ? " active" : ""), function () {
+            toggleAnamneseExam(item[1]);
+          }));
+        });
         otoOroBlock.appendChild(psychRow);
       }
       if (state.openGroups.scores) renderScorePanel(otoOroBlock);
@@ -1527,16 +1500,9 @@ function renderOptions(protocol, parent) {
     }
   }
 
-  if (protocol.id === "administrativo") {
+  if (Array.isArray(protocol.snippets)) {
     var admin = div("section row");
-    [
-      ["Evasao", "PACIENTE NAO RESPONDEU AO CHAMADO 5X (CHAMADO VERBAL + SISTEMA). REALIZADO BUSCA ATIVA, NAO ENCONTRADO PACIENTE NA UNIDADE.\n."],
-      ["RX - Osso", "RAIO X SEM ALTERACOES EVIDENTES DE FRATURAS, ORIENTO RETORNO SE NAO HOUVER MELHORA OU APRESENTAR PIORA,\nAFIM DE EVIDENCIAR FRATURAS NAO VISTAS INICIALMENTE"],
-      ["Alta (colega)", "PACIENTE ATENDIDO E LIBERADO POR COLEGA.\nNAO TIVE CONTATO E NAO PRESTEI ASSISTENCIA AO PACIENTE.\nFECHO ATENDIMENTO PARA FINS BUROCRATICOS/ADMINISTRATIVOS."],
-      ["Encaminhado (colega)", "PACIENTE ATENDIDO POR COLEGA E ENCAMINHADO PARA O PRONTO SOCORRO HSVP.\nNAO TIVE CONTATO COM O PACIENTE E NAO PRESTEI ASSISTENCIA AO PACIENTE.\nFECHO ATENDIMENTO PARA FINS BUROCRATICOS/ADMINISTRATIVOS."],
-      ["Verbal (colega)", "ATENDIMENTO REALIZADO E FINALIZADO VERBALMENTE POR COLEGA.\nFECHO ATENDIMENTO NO SISTEMA PARA FINS ADMINISTRATIVOS/OPERACIONAIS.\nNAO PRESTEI ASSISTENCIA E NAO TIVE NENHUM CONTATO COM O PACIENTE EM QUESTAO"],
-      ["Conduta padrao", "1 - ORIENTO USO CORRETO DAS MEDICACOES E MEDIDAS GERAIS CONFORME HIPOTESE CLINICA.\n2 - ORIENTO RETORNO IMEDIATO EM CASO DE FALTA DE AR, DOR NO PEITO, DESMAIO, CONFUSAO MENTAL, FEBRE PERSISTENTE, DOR INTENSA/PROGRESSIVA, VOMITOS PERSISTENTES, SANGRAMENTO, PIORA DO ESTADO GERAL OU QUALQUER SINAL DE ALARME.\n3 - ORIENTO ACOMPANHAMENTO AMBULATORIAL REGULAR E REAVALIACAO SE NAO HOUVER MELHORA NO PRAZO ORIENTADO."]
-    ].forEach(function (item) {
+    (protocol.snippets || []).forEach(function (item) {
       admin.appendChild(dotButton(item[0], function () {
         state.editableText = item[1];
         render();
@@ -1545,7 +1511,7 @@ function renderOptions(protocol, parent) {
     parent.appendChild(admin);
   }
 
-  if (protocol.id === "antibioticos" && protocol.antibioticOptions) {
+  if (protocol.antibioticOptions) {
     var row = div("section row");
     protocol.antibioticOptions.forEach(function (opt, index) {
       row.appendChild(dotButton(opt.label, function () {
@@ -1575,7 +1541,7 @@ function renderOptions(protocol, parent) {
     });
     parent.appendChild(orientationRow);
   }
-  if (protocol.id === "encaminhamento" && protocol.referralTemplates) {
+  if (protocol.referralTemplates) {
     var refs = div("section stack");
     var r1 = div("row");
     protocol.referralTemplates.forEach(function (template, index) {
@@ -1597,22 +1563,14 @@ function renderOptions(protocol, parent) {
     refs.appendChild(r2);
     parent.appendChild(refs);
   }
-  if (protocol.id === "constipacao") {
-    var constipacao = div("section row");
-    constipacao.appendChild(textButton(state.useBisacodil ? "Remover bisacodil" : "+ bisacodil", "text-btn" + (state.useBisacodil ? " active" : ""), function () {
-      state.useBisacodil = !state.useBisacodil;
+  (protocol.addOns || []).forEach(function (addOn) {
+    var row = div("section row");
+    row.appendChild(textButton(state[addOn.stateKey] ? addOn.removeLabel : addOn.addLabel, "text-btn" + (state[addOn.stateKey] ? " active" : ""), function () {
+      state[addOn.stateKey] = !state[addOn.stateKey];
       render();
     }));
-    parent.appendChild(constipacao);
-  }
-  if (protocol.id === "gastroenterite") {
-    var gastro = div("section row");
-    gastro.appendChild(textButton(state.useGastroCipro ? "Remover ciprofloxacino" : "+ ciprofloxacino", "text-btn" + (state.useGastroCipro ? " active" : ""), function () {
-      state.useGastroCipro = !state.useGastroCipro;
-      render();
-    }));
-    parent.appendChild(gastro);
-  }
+    parent.appendChild(row);
+  });
   var currentPrescription = getPrescription(protocol);
   var hasStandaloneDipirona = /dipirona/i.test(currentPrescription.replace(/Escopolamina \+ dipirona/gi, ""));
   if (!isEditable(protocol.id) && (hasStandaloneDipirona || state.useParacetamolAlt)) {
@@ -1663,8 +1621,8 @@ function renderFreeGroups(body) {
 }
 
 function renderEditable(protocol, body) {
-  if (protocol.id === "receita-livre") renderFreeGroups(body);
-  if (protocol.id === "reavaliacao") {
+  if (protocol.freeGroupsEnabled) renderFreeGroups(body);
+  if (protocol.labTranscription) {
     var lab = div("panel stack");
     var label = div("panel-title");
     label.textContent = "Transcricao de exames laboratoriais";
