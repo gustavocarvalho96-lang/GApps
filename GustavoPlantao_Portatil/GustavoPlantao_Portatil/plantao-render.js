@@ -88,7 +88,6 @@ function renderOptions(protocol, parent) {
         });
         otoOroBlock.appendChild(psychRow);
       }
-      if (state.openGroups.scores) renderScorePanel(otoOroBlock);
       parent.appendChild(otoOroBlock);
     }
   }
@@ -314,11 +313,24 @@ function renderProtocol(protocol) {
   content.appendChild(card);
 }
 
+function renderScoreSidebar() {
+  var app = document.querySelector(".app");
+  var sidebar = el("scoreSidebar");
+  var content = el("scorePanelContent");
+  if (!sidebar || !content) return;
+  content.innerHTML = "";
+  var shouldShow = !!state.openGroups.scores;
+  sidebar.classList.toggle("hidden", !shouldShow);
+  if (app) app.classList.toggle("scores-open", shouldShow);
+  if (shouldShow) renderScorePanel(content);
+}
+
 function render() {
   var lists = filtered();
   var protocol = currentProtocol();
   if (protocol) state.selectedId = protocol.id;
   renderNav("quickList", lists.quick, state.selectedId, "Nenhuma acao rapida.");
   renderNav("recipeList", lists.recipes, state.selectedId, "Nenhuma receita encontrada.");
+  renderScoreSidebar();
   renderProtocol(protocol);
 }

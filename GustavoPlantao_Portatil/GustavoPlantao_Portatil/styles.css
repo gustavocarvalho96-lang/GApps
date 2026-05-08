@@ -112,6 +112,15 @@ button {
   gap: 18px;
 }
 
+.app.scores-open {
+  width: min(1560px, 100%);
+  grid-template-columns: 230px minmax(300px, 360px) 230px minmax(0, 1fr);
+}
+
+.hidden {
+  display: none !important;
+}
+
 .sidebar {
   align-self: start;
   position: sticky;
@@ -131,6 +140,10 @@ button {
 
 .sidebar-recipes {
   border-left: 6px solid #7a8798;
+}
+
+.sidebar-scores {
+  border-left: 6px solid #0ea5a0;
 }
 
 .sidebar-head {
@@ -159,6 +172,21 @@ textarea:focus {
 }
 
 .list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.score-sidebar-content {
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  padding: 10px;
+}
+
+.score-sidebar-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.score-sidebar-content::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: #cbd5e1;
 }
@@ -640,6 +668,35 @@ input[type="number"]:focus {
   background: #fbfcfe;
 }
 
+.score-sidebar-content .score-panel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 6px;
+}
+
+.score-sidebar-content .score-tabs {
+  gap: 6px;
+}
+
+.score-sidebar-content .score-tabs .text-btn {
+  padding: 7px 9px;
+  font-size: 12px;
+}
+
+.score-sidebar-content .score-box {
+  padding: 10px;
+}
+
+.score-sidebar-content .score-grid {
+  grid-template-columns: 1fr;
+}
+
+.score-sidebar-content .score-summary {
+  max-width: none;
+  width: fit-content;
+}
+
 .score-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -818,6 +875,11 @@ input[type="number"]:focus {
     padding: 16px;
   }
 
+  .app.scores-open {
+    width: min(1360px, 100%);
+    grid-template-columns: 1fr;
+  }
+
   .sidebar {
     position: static;
     max-height: none;
@@ -825,6 +887,10 @@ input[type="number"]:focus {
 
   .list {
     max-height: 360px;
+  }
+
+  .score-sidebar-content {
+    max-height: 460px;
   }
 
   .header {
