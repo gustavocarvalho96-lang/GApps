@@ -1599,7 +1599,7 @@ function renderOptions(protocol, parent) {
   }
   if (!isEditable(protocol.id) && (/escopolamina \+ dipirona/i.test(currentPrescription) || state.useEscopolaminaParacetamolAlt)) {
     var trocaEscopolamina = div("section row");
-    trocaEscopolamina.appendChild(textButton(state.useEscopolaminaParacetamolAlt ? "Voltar para escopolamina + dipirona" : "Trocar escopolamina + dipirona por escopolamina + paracetamol", "text-btn" + (state.useEscopolaminaParacetamolAlt ? " active" : ""), function () {
+    trocaEscopolamina.appendChild(textButton(state.useEscopolaminaParacetamolAlt ? "Voltar para escopolamina + dipirona" : "Alergia a dipirona", "text-btn" + (state.useEscopolaminaParacetamolAlt ? " active" : ""), function () {
       state.useEscopolaminaParacetamolAlt = !state.useEscopolaminaParacetamolAlt;
       render();
     }));
