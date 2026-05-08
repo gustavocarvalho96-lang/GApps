@@ -775,7 +775,25 @@ SINAIS DE ALARME:
 - Fraqueza nas pernas, dormência progressiva ou perda de sensibilidade em sela.
 - Perda de controle urinário/fecal ou retenção urinária.
 - Febre, perda de peso, dor após trauma importante, dor noturna progressiva ou ausência de melhora.`
-    ,tags: ["lombalgia"],
+    ,orientationOptions: [
+      ["Dor lombar", `- Manter repouso relativo, evitando carregar peso e movimentos que piorem a dor.
+- Caminhadas leves e alongamentos suaves conforme tolerÃ¢ncia; evitar repouso absoluto prolongado.
+- Usar medicaÃ§Ãµes conforme prescrito e evitar dirigir se houver sonolÃªncia.
+
+SINAIS DE ALARME:
+- Fraqueza nas pernas, dormÃªncia progressiva ou perda de sensibilidade em sela.
+- Perda de controle urinÃ¡rio/fecal ou retenÃ§Ã£o urinÃ¡ria.
+- Febre, perda de peso, dor apÃ³s trauma importante, dor noturna progressiva ou ausÃªncia de melhora.`],
+      ["Dor aguda geral", `- Manter repouso relativo e evitar esforÃ§os ou movimentos que piorem a dor.
+- Usar as medicaÃ§Ãµes conforme prescrito, evitando associar remÃ©dios por conta prÃ³pria.
+- Aplicar gelo ou calor local conforme melhor alÃ­vio e manter hidrataÃ§Ã£o adequada.
+
+SINAIS DE ALARME:
+- Dor intensa ou progressiva, dor que impede atividades bÃ¡sicas ou desperta do sono.
+- Febre, vermelhidÃ£o/inchaÃ§o importante, deformidade, perda de forÃ§a ou perda de sensibilidade.
+- Dor no peito, falta de ar, desmaio, vÃ´mitos persistentes, piora do estado geral ou ausÃªncia de melhora.`]
+    ].map(([label, value]) => ({ label, value })),
+    tags: ["lombalgia"],
     options: [
       ["AINE + Dipirona + Ciclobenzaprina", `Uso oral:
 Diclofenaco 50mg ---- 15 cps

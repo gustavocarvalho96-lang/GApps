@@ -3,6 +3,7 @@ var editableIds = ["administrativo", "anamnese", "reavaliacao", "encaminhamento"
 var state = {
   selectedId: "administrativo",
   selectedOption: 0,
+  selectedOrientationOption: 0,
   selectedAntibiotic: 0,
   selectedReferral: 0,
   referralMode: "ambulatorial",
@@ -76,6 +77,7 @@ function getInitialText(protocol) {
 function selectProtocol(id) {
   state.selectedId = id;
   state.selectedOption = 0;
+  state.selectedOrientationOption = 0;
   state.selectedAntibiotic = 0;
   state.selectedReferral = 0;
   state.referralMode = "ambulatorial";
@@ -193,7 +195,16 @@ function getPrescription(protocol) {
 function finalText(protocol) {
   var prescription = getPrescription(protocol);
   if (isEditable(protocol.id)) return prescription;
-  return prescription + (protocol.orientation ? "\n\nORIENTACOES\n" + protocol.orientation : "");
+  var orientation = getOrientation(protocol);
+  return prescription + (orientation ? "\n\nORIENTACOES\n" + orientation : "");
+}
+
+function getOrientation(protocol) {
+  if (!protocol) return "";
+  if (protocol.orientationOptions && protocol.orientationOptions.length) {
+    return (protocol.orientationOptions[state.selectedOrientationOption] || protocol.orientationOptions[0]).value || "";
+  }
+  return protocol.orientation || "";
 }
 
 function copyText(text) {
@@ -1552,6 +1563,16 @@ function renderOptions(protocol, parent) {
     });
     parent.appendChild(row2);
   }
+  if (protocol.orientationOptions && protocol.orientationOptions.length) {
+    var orientationRow = div("section row");
+    protocol.orientationOptions.forEach(function (opt, index) {
+      orientationRow.appendChild(dotButton(opt.label, function () {
+        state.selectedOrientationOption = index;
+        render();
+      }, index === state.selectedOrientationOption));
+    });
+    parent.appendChild(orientationRow);
+  }
   if (protocol.id === "encaminhamento" && protocol.referralTemplates) {
     var refs = div("section stack");
     var r1 = div("row");
@@ -1726,12 +1747,13 @@ function renderProtocol(protocol) {
     panel.appendChild(t);
     panel.appendChild(pre);
     body.appendChild(panel);
-    if (protocol.orientation) {
+    var orientation = getOrientation(protocol);
+    if (orientation) {
       var orient = div("panel");
       var ot = div("panel-title");
       ot.textContent = "Orientacoes";
       var op = document.createElement("pre");
-      op.textContent = protocol.orientation;
+      op.textContent = orientation;
       orient.appendChild(ot);
       orient.appendChild(op);
       body.appendChild(orient);
