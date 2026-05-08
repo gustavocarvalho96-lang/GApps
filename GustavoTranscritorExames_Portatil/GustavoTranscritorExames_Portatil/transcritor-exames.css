@@ -173,6 +173,30 @@ pre {
   overflow: auto;
 }
 
+.action-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
+  padding: 12px 16px;
+  border: 1px solid rgba(15, 118, 110, .22);
+  border-radius: 999px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 16px 34px rgba(15, 118, 110, .22);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.action-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (max-width: 860px) {
   .hero {
     align-items: flex-start;
@@ -185,5 +209,10 @@ pre {
 
   textarea, pre {
     min-height: 360px;
+  }
+
+  .action-toast {
+    right: 16px;
+    bottom: 16px;
   }
 }

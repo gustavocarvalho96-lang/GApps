@@ -42,6 +42,22 @@ const OCR_PASSES = [
         $(id).innerHTML = html;
       };
 
+      function showToast(message) {
+        let toast = $("actionToast");
+        if (!toast) {
+          toast = document.createElement("div");
+          toast.id = "actionToast";
+          toast.className = "action-toast";
+          document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 1600);
+      }
+
       function normalizeText(value) {
         return (value || "").replace(/\u00A0/g, " ").replace(/[|\\/_*~=`^]+/g, " ").replace(/[“”"'´`]+/g, " ").replace(/[\[\]{}<>]+/g, " ").replace(/[,:;]+/g, " ").replace(/\s+/g, " ").trim();
       }
@@ -540,10 +556,16 @@ const OCR_PASSES = [
       $("clearBtn").onclick = () => {
         Object.assign(state, { rawInput: "", uploadPreview: "", generatedImageDataUrl: "", ocrLog: "", verificationResults: [], verificationPreview: "", verificationDebug: { baselineNames: [], detectedNames: [], matchedNames: [] }, verificationBase: [], pasteTarget: "main", ocrStatus: "Lista limpa." });
         render();
+        showToast("Lista limpa");
       };
       $("exportBtn").onclick = async () => {
         const data = getComputedData();
-        if (!data.assigned.length) { $("exportError").textContent = "Nao ha pacientes suficientes para gerar o PNG."; $("exportError").classList.remove("hidden"); return; }
+        if (!data.assigned.length) {
+          $("exportError").textContent = "Nao ha pacientes suficientes para gerar o PNG.";
+          $("exportError").classList.remove("hidden");
+          showToast("Sem pacientes para gerar PNG");
+          return;
+        }
         $("exportError").classList.add("hidden");
         try {
           if (!window.html2canvas) throw new Error("html2canvas nao carregou. Conecte a internet na primeira abertura.");
@@ -553,9 +575,11 @@ const OCR_PASSES = [
           const canvas = await html2canvas(target, { backgroundColor: "#f4f7fb", scale: 2, useCORS: true, allowTaint: true, logging: false, width: Math.ceil(rect.width), height: Math.ceil(rect.height) });
           state.generatedImageDataUrl = canvas.toDataURL("image/png");
           render();
+          showToast("PNG gerado");
         } catch (error) {
           $("exportError").textContent = error instanceof Error ? error.message : "Falha ao gerar o PNG.";
           $("exportError").classList.remove("hidden");
+          showToast("Falha ao gerar PNG");
         }
       };
       $("copyBtn").onclick = async () => {
@@ -564,10 +588,15 @@ const OCR_PASSES = [
           const blob = await (await fetch(state.generatedImageDataUrl)).blob();
           await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
           state.ocrStatus = "PNG copiado.";
+          showToast("PNG copiado");
         } catch {
           state.ocrStatus = "Copia bloqueada pelo navegador. Use o botao Baixar PNG.";
+          showToast("Copia bloqueada");
         }
         render();
+      };
+      $("downloadLink").onclick = () => {
+        showToast("Download iniciado");
       };
       window.addEventListener("paste", async (event) => {
         const items = Array.from(event.clipboardData?.items || []);
