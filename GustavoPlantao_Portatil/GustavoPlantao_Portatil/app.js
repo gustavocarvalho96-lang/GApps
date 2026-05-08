@@ -1612,9 +1612,6 @@ function renderOptions(protocol, parent) {
 
 function renderFreeGroups(body) {
   var box = div("stack free-groups");
-  var title = div("mini-title");
-  title.textContent = "RECEITA LIVRE RAPIDA";
-  box.appendChild(title);
   var tabs = div("free-topic-row");
   var content = div("free-topic-content");
   [["dor", "Dor/Febre"], ["gastro", "Nausea/Gastro"], ["resp", "Alergia/Respiratorio"], ["antibiotics", "Antibioticos"], ["orientacoes", "Orientacoes/Sinais de Alarme"]].forEach(function (group) {
