@@ -38,6 +38,24 @@
       .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
       .toolbar-left, .toolbar-center { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
       .toolbar-center { flex: 1 1 260px; justify-content: center; }
+      .home-link {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--panel-soft);
+        color: var(--green);
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .home-link:hover {
+        border-color: var(--green-line);
+        background: var(--green-soft);
+      }
       .grid { display: grid; grid-template-columns: minmax(380px, 500px) minmax(0, 1fr); gap: 24px; align-items: start; }
       .left { padding: 24px; }
       .right { padding: 20px; }

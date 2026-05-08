@@ -89,6 +89,28 @@ h1 {
   background: #0b5f59;
 }
 
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 39px;
+  padding: 9px 12px;
+  border: 1px solid #d9e1ec;
+  border-radius: 999px;
+  background: #fff;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(15, 118, 110, .08);
+}
+
+.home-link:hover {
+  border-color: rgba(15, 118, 110, .28);
+  background: #e8f7f3;
+  color: #0b5f59;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -201,6 +223,10 @@ pre {
   .hero {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .home-link {
+    align-self: stretch;
   }
 
   .workspace {
