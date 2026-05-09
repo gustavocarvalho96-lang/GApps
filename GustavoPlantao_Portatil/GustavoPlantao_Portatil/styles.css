@@ -57,33 +57,52 @@ button {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: #0f766e;
-  color: #fff;
+  background: #ffffff;
+  border: 2px solid #0f766e;
+  color: #0f766e;
   font-weight: 800;
-  box-shadow: 0 12px 24px rgba(15, 118, 110, .25);
+  box-shadow: 0 10px 22px rgba(15, 118, 110, .16);
 }
 
 .brand-mark svg {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   fill: none;
-  stroke-width: 5;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.brand-mark .logo-g {
-  stroke: #ffffff;
+.brand-mark .logo-shadow {
+  stroke: #0f766e;
+  stroke-width: 6.6;
 }
 
-.brand-mark .logo-scope {
+.brand-mark .logo-tube {
   stroke: #2563eb;
+  stroke-width: 3.4;
+}
+
+.brand-mark .logo-ear-line {
+  stroke: #2563eb;
+  stroke-width: 3.4;
+}
+
+.brand-mark .logo-ear {
+  fill: #2563eb;
+  stroke: #ffffff;
+  stroke-width: 1.5;
 }
 
 .brand-mark .logo-chest {
   fill: #ef4444;
   stroke: #ffffff;
-  stroke-width: 3;
+  stroke-width: 1.4;
+}
+
+.brand-mark .logo-chest-ring {
+  fill: #0f172a;
+  stroke: #ffffff;
+  stroke-width: 1.4;
 }
 
 .brand-name {
