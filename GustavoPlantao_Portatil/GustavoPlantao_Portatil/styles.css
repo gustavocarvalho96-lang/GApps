@@ -76,33 +76,6 @@ button {
   font-size: 12px;
 }
 
-.topbar-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .82);
-  padding: 8px 12px;
-  color: var(--muted);
-  font-size: 12px;
-  box-shadow: 0 8px 25px rgba(29, 41, 57, .06);
-}
-
-.topbar-status span::before {
-  content: "";
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #12b76a;
-  margin-right: 7px;
-}
-
-.topbar-status strong {
-  color: var(--ink);
-}
-
 .app {
   width: min(1360px, 100%);
   margin: 0 auto;
@@ -938,11 +911,6 @@ input[type="number"]:focus {
 @media (max-width: 620px) {
   .topbar {
     flex-direction: column;
-  }
-
-  .topbar-status {
-    align-self: stretch;
-    justify-content: space-between;
   }
 
   .header,
