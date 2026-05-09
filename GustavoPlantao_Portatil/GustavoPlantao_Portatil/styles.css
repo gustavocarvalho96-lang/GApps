@@ -688,13 +688,21 @@ input[type="number"]:focus {
   padding: 10px;
 }
 
+.score-sidebar-content .score-box-head {
+  grid-template-columns: 1fr;
+  gap: 6px;
+  align-items: start;
+}
+
 .score-sidebar-content .score-grid {
   grid-template-columns: 1fr;
 }
 
 .score-sidebar-content .score-summary {
   max-width: none;
-  width: fit-content;
+  width: 100%;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .score-tabs {
@@ -734,6 +742,8 @@ input[type="number"]:focus {
   font-weight: 850;
   text-align: left;
   padding: 6px 8px;
+  line-height: 1.25;
+  white-space: normal;
 }
 
 .score-toggle:hover {
