@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pendências do Plantão</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-labelledby="app-title">
+        <div>
+          <p class="eyebrow">Controle rápido</p>
+          <h1 id="app-title">Pendências do Plantão</h1>
+          <p class="current-clock">Horário do computador: <strong id="current-clock">--:--</strong></p>
+          <div class="nav-row">
+            <a class="nav-button" href="cards.html">Ver cards de pendências</a>
+          </div>
+          <div class="form-actions top-actions">
+            <span class="save-status" id="save-status">Salvo neste computador</span>
+            <button class="ghost-button" type="button" id="save-button">Salvar agora</button>
+            <button class="ghost-button" type="button" id="clear-done-button">Limpar completos</button>
+            <button class="danger-ghost-button" type="button" id="clear-all-button">Encerrar plantão</button>
+          </div>
+        </div>
+        <div class="shift-summary" aria-label="Resumo das pendências">
+          <span><strong id="open-count">0</strong> abertas</span>
+          <span><strong id="late-count">0</strong> cards completos</span>
+          <span><strong id="done-count">0</strong> itens feitos</span>
+        </div>
+        <a class="home-link" href="../index.html">Início</a>
+      </section>
+
+      <div class="workspace-layout form-only">
+      <section class="entry-band" aria-labelledby="form-title">
+        <form id="task-form" class="task-form">
+          <div class="form-header">
+            <h2 id="form-title">Nova pendência</h2>
+          </div>
+
+          <div class="form-section">
+            <div class="section-label">
+              <h3>Dados do paciente</h3>
+            </div>
+            <div class="patient-grid">
+              <label>
+                <span>Paciente</span>
+                <input id="patient-input" name="patient" type="text" placeholder="Ex.: Leito 12 - Maria S." autocomplete="off" required>
+              </label>
+
+              <label>
+                <span>Hipótese diagnóstica <small>HD</small></span>
+                <input id="diagnosis-input" name="diagnosis" type="text" placeholder="Ex.: SCA? sepse? TEP?">
+              </label>
+            </div>
+          </div>
+
+          <div class="pending-section">
+            <div class="pending-section-header">
+              <h3>Solicitações deste paciente</h3>
+              <button class="ghost-button" type="button" id="add-item-button">Adicionar outra</button>
+            </div>
+
+            <div id="pending-items" class="pending-items">
+              <article class="pending-item">
+                <div class="pending-item-header">
+                  <strong>Pendência 1</strong>
+                  <button class="ghost-button remove-item-button" type="button">Remover</button>
+                </div>
+
+                <label>
+                  <span>Solicitação</span>
+                  <textarea name="task" rows="3" placeholder="Ex.: Checar troponina às 18h e reavaliar dor torácica" required></textarea>
+                </label>
+
+                <div class="form-grid">
+                  <label>
+                    <span>Tipo</span>
+                    <select name="type">
+                      <option>Exame</option>
+                      <option>Reavaliação</option>
+                      <option>Medicação</option>
+                      <option>Interconsulta</option>
+                      <option>Alta / transferência</option>
+                      <option>Outro</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Prioridade</span>
+                    <select name="priority">
+                      <option value="alta">Alta</option>
+                      <option value="media" selected>Média</option>
+                      <option value="baixa">Baixa</option>
+                    </select>
+                  </label>
+
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="section-label">
+              <h3>Observação</h3>
+            </div>
+            <label>
+              <span>Detalhe opcional</span>
+              <input id="note-input" name="note" type="text" placeholder="Opcional: contato, conduta combinada, detalhe do exame">
+            </label>
+          </div>
+
+          <div class="submit-bar">
+            <button class="primary-button" type="submit">Adicionar pendência(s)</button>
+          </div>
+        </form>
+      </section>
+
+      </div>
+    </main>
+
+    <template id="pending-item-template">
+      <article class="pending-item">
+        <div class="pending-item-header">
+          <strong></strong>
+          <button class="ghost-button remove-item-button" type="button">Remover</button>
+        </div>
+
+        <label>
+          <span>Solicitação</span>
+          <textarea name="task" rows="3" placeholder="Ex.: Checar resultado do exame, reavaliar dor, repetir gasometria" required></textarea>
+        </label>
+
+        <div class="form-grid">
+          <label>
+            <span>Tipo</span>
+            <select name="type">
+              <option>Exame</option>
+              <option>Reavaliação</option>
+              <option>Medicação</option>
+              <option>Interconsulta</option>
+              <option>Alta / transferência</option>
+              <option>Outro</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Prioridade</span>
+            <select name="priority">
+              <option value="alta">Alta</option>
+              <option value="media" selected>Média</option>
+              <option value="baixa">Baixa</option>
+            </select>
+          </label>
+
+        </div>
+      </article>
+    </template>
+
+    <template id="task-template">
+      <article class="task-card">
+        <div class="task-main">
+          <div class="task-title-row">
+            <h3></h3>
+            <span class="created-time"></span>
+            <span class="diagnosis-pill"></span>
+            <span class="priority-pill"></span>
+          </div>
+          <p class="task-description"></p>
+          <div class="subtask-list"></div>
+          <div class="task-meta"></div>
+          <p class="task-note"></p>
+        </div>
+        <div class="task-actions">
+          <button class="delete-button" type="button" aria-label="Excluir pendência">Excluir</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

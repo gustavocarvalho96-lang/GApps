@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cards de Pendências</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="cards-page">
+    <main class="app-shell">
+      <section class="topbar" aria-labelledby="app-title">
+        <div>
+          <p class="eyebrow">Acompanhamento</p>
+          <h1 id="app-title">Cards de Pendências</h1>
+          <p class="current-clock">Horário do computador: <strong id="current-clock">--:--</strong></p>
+          <div class="nav-row">
+            <a class="nav-button" href="index.html">Cadastrar pendências</a>
+          </div>
+        </div>
+        <div class="shift-summary" aria-label="Resumo das pendências">
+          <span><strong id="open-count">0</strong> abertas</span>
+          <span><strong id="late-count">0</strong> cards completos</span>
+          <span><strong id="done-count">0</strong> itens feitos</span>
+        </div>
+        <a class="home-link" href="../index.html">Início</a>
+      </section>
+
+      <section class="controls" aria-label="Filtros e busca">
+        <label class="search-box">
+          <span>Buscar</span>
+          <input id="search-input" type="search" placeholder="Paciente, leito, HD, exame ou observação">
+        </label>
+
+        <div class="filter-group" role="tablist" aria-label="Status">
+          <button class="filter-button is-active" type="button" data-filter="open">Pendentes</button>
+          <button class="filter-button" type="button" data-filter="all">Todas</button>
+          <button class="filter-button" type="button" data-filter="done">Completas</button>
+        </div>
+      </section>
+
+      <section class="list-area" aria-labelledby="list-title">
+        <div class="list-header">
+          <h2 id="list-title">Cards pendentes</h2>
+          <p id="list-context">Cards permanecem até você limpar ou excluir.</p>
+        </div>
+
+        <div id="task-list" class="task-list" aria-live="polite"></div>
+
+        <div id="empty-state" class="empty-state" hidden>
+          <h3>Nenhuma pendência por aqui</h3>
+          <p>Cadastre um paciente na tela inicial ou ajuste a busca/filtro.</p>
+        </div>
+      </section>
+    </main>
+
+    <template id="task-template">
+      <article class="task-card">
+        <div class="task-main">
+          <div class="task-title-row">
+            <h3></h3>
+            <span class="created-time"></span>
+            <span class="diagnosis-pill"></span>
+            <span class="priority-pill"></span>
+            <div class="task-actions">
+              <button class="options-button" type="button" aria-expanded="false">Opções</button>
+              <div class="card-options-menu" hidden>
+                <button class="add-subtask-button" type="button">Adicionar pendência</button>
+                <button class="edit-card-button" type="button">Editar paciente</button>
+                <button class="delete-button" type="button" aria-label="Excluir card">Excluir card</button>
+              </div>
+            </div>
+          </div>
+          <p class="task-description"></p>
+          <div class="subtask-list"></div>
+          <div class="task-meta"></div>
+          <p class="task-note"></p>
+        </div>
+        <form class="card-edit-form" hidden>
+          <div class="patient-grid">
+            <label>
+              <span>Paciente</span>
+              <input name="patient" type="text" required>
+            </label>
+            <label>
+              <span>Hipótese diagnóstica <small>HD</small></span>
+              <input name="diagnosis" type="text">
+            </label>
+          </div>
+          <label>
+            <span>Observação</span>
+            <input name="note" type="text">
+          </label>
+          <div class="inline-actions">
+            <button class="primary-button" type="submit">Salvar paciente</button>
+            <button class="ghost-button cancel-card-edit-button" type="button">Cancelar</button>
+          </div>
+        </form>
+        <form class="card-add-form" hidden>
+          <label>
+            <span>Nova solicitação</span>
+            <textarea name="task" rows="2" placeholder="Ex.: Solicitar segunda amostra" required></textarea>
+          </label>
+          <div class="form-grid">
+            <label>
+              <span>Tipo</span>
+              <select name="type">
+                <option>Exame</option>
+                <option>Reavaliação</option>
+                <option>Medicação</option>
+                <option>Interconsulta</option>
+                <option>Alta / transferência</option>
+                <option>Outro</option>
+              </select>
+            </label>
+            <label>
+              <span>Prioridade</span>
+              <select name="priority">
+                <option value="alta">Alta</option>
+                <option value="media" selected>Média</option>
+                <option value="baixa">Baixa</option>
+              </select>
+            </label>
+          </div>
+          <div class="inline-actions">
+            <button class="primary-button" type="submit">Salvar pendência</button>
+            <button class="ghost-button cancel-subtask-button" type="button">Cancelar</button>
+          </div>
+        </form>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
