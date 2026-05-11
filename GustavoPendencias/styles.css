@@ -250,6 +250,10 @@ h2 {
   margin-top: 8px;
 }
 
+.backup-file-input {
+  display: none;
+}
+
 .save-status {
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -374,7 +378,7 @@ textarea:focus {
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 
@@ -496,18 +500,6 @@ textarea:focus {
   padding: 14px;
 }
 
-.task-card.priority-alta {
-  border-left-color: var(--danger);
-}
-
-.task-card.priority-media {
-  border-left-color: var(--warning);
-}
-
-.task-card.priority-baixa {
-  border-left-color: var(--success);
-}
-
 .task-card.is-late {
   background: #fff8f6;
 }
@@ -534,8 +526,7 @@ textarea:focus {
 
 .task-title-row > h3,
 .task-title-row > .created-time,
-.task-title-row > .diagnosis-pill,
-.task-title-row > .priority-pill {
+.task-title-row > .diagnosis-pill {
   grid-column: 1;
 }
 
@@ -563,21 +554,6 @@ textarea:focus {
   font-weight: 800;
   max-width: 100%;
   overflow-wrap: anywhere;
-}
-
-.priority-pill {
-  border-radius: 999px;
-  padding: 3px 7px;
-  background: var(--surface-soft);
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.task-card.is-done .priority-pill {
-  background: #dff1e7;
-  color: var(--success);
 }
 
 .task-description {
@@ -853,11 +829,6 @@ textarea:focus {
 
 .cards-page .created-time,
 .cards-page .diagnosis-pill,
-.cards-page .priority-pill {
-  font-size: 0.66rem;
-  padding: 2px 5px;
-}
-
 .cards-page .subtask-content small {
   font-size: 0.58rem;
 }

@@ -13,7 +13,6 @@
           <div class="app-brand">
             <img class="app-brand-logo" src="../shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
             <div>
-          <p class="eyebrow">Controle rápido</p>
           <h1 id="app-title">Pendencias</h1>
             </div>
           </div>
@@ -24,6 +23,12 @@
           <div class="form-actions top-actions">
             <span class="save-status" id="save-status">Salvo neste computador</span>
             <button class="ghost-button" type="button" id="save-button">Salvar agora</button>
+            <button class="ghost-button" type="button" id="export-button">Exportar</button>
+            <button class="ghost-button" type="button" id="import-button">Importar</button>
+            <button class="ghost-button" type="button" id="copy-backup-button">Copiar backup</button>
+            <button class="ghost-button" type="button" id="restore-backup-button">Restaurar backup</button>
+            <button class="ghost-button" type="button" id="restore-date-button">Restaurar data</button>
+            <input class="backup-file-input" id="import-file-input" type="file" accept="application/json,.json">
             <button class="ghost-button" type="button" id="clear-done-button">Limpar completos</button>
             <button class="danger-ghost-button" type="button" id="clear-all-button">Encerrar plantão</button>
           </div>
@@ -91,28 +96,9 @@
                     </select>
                   </label>
 
-                  <label>
-                    <span>Prioridade</span>
-                    <select name="priority">
-                      <option value="alta">Alta</option>
-                      <option value="media" selected>Média</option>
-                      <option value="baixa">Baixa</option>
-                    </select>
-                  </label>
-
                 </div>
               </article>
             </div>
-          </div>
-
-          <div class="form-section">
-            <div class="section-label">
-              <h3>Observação</h3>
-            </div>
-            <label>
-              <span>Detalhe opcional</span>
-              <input id="note-input" name="note" type="text" placeholder="Opcional: contato, conduta combinada, detalhe do exame">
-            </label>
           </div>
 
           <div class="submit-bar">
@@ -149,15 +135,6 @@
             </select>
           </label>
 
-          <label>
-            <span>Prioridade</span>
-            <select name="priority">
-              <option value="alta">Alta</option>
-              <option value="media" selected>Média</option>
-              <option value="baixa">Baixa</option>
-            </select>
-          </label>
-
         </div>
       </article>
     </template>
@@ -169,7 +146,6 @@
             <h3></h3>
             <span class="created-time"></span>
             <span class="diagnosis-pill"></span>
-            <span class="priority-pill"></span>
           </div>
           <p class="task-description"></p>
           <div class="subtask-list"></div>

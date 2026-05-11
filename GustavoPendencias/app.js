@@ -1,4 +1,7 @@
 const STORAGE_KEY = "pendencias-plantao-v1";
+const BACKUP_INDEX_KEY = "pendencias-plantao-backup-index-v1";
+const BACKUP_PREFIX = "pendencias-plantao-backup-";
+const BACKUP_VERSION = 1;
 
 const form = document.querySelector("#task-form");
 const taskList = document.querySelector("#task-list");
@@ -14,6 +17,12 @@ const listContext = document.querySelector("#list-context");
 const clearDoneButton = document.querySelector("#clear-done-button");
 const clearAllButton = document.querySelector("#clear-all-button");
 const saveButton = document.querySelector("#save-button");
+const exportButton = document.querySelector("#export-button");
+const importButton = document.querySelector("#import-button");
+const importFileInput = document.querySelector("#import-file-input");
+const copyBackupButton = document.querySelector("#copy-backup-button");
+const restoreBackupButton = document.querySelector("#restore-backup-button");
+const restoreDateButton = document.querySelector("#restore-date-button");
 const saveStatus = document.querySelector("#save-status");
 const currentClock = document.querySelector("#current-clock");
 const openCount = document.querySelector("#open-count");
@@ -96,6 +105,50 @@ saveButton?.addEventListener("click", () => {
   render();
 });
 
+exportButton?.addEventListener("click", () => {
+  exportBackupFile();
+});
+
+importButton?.addEventListener("click", () => {
+  importFileInput?.click();
+});
+
+importFileInput?.addEventListener("change", async () => {
+  const file = importFileInput.files?.[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    restoreBackupText(text, "Backup importado");
+  } catch {
+    window.alert("Não foi possível importar este arquivo de backup.");
+  } finally {
+    importFileInput.value = "";
+  }
+});
+
+copyBackupButton?.addEventListener("click", async () => {
+  const backupText = createBackupText();
+
+  try {
+    await copyText(backupText);
+    showSaveStatus("Backup copiado");
+  } catch {
+    window.prompt("Copie o backup abaixo:", backupText);
+  }
+});
+
+restoreBackupButton?.addEventListener("click", () => {
+  const backupText = window.prompt("Cole aqui o backup copiado ou o conteúdo do arquivo JSON:");
+  if (!backupText) return;
+
+  restoreBackupText(backupText, "Backup restaurado");
+});
+
+restoreDateButton?.addEventListener("click", () => {
+  restoreDatedBackup();
+});
+
 taskList?.addEventListener("click", (event) => {
   const action = event.target.closest("button");
   const checkbox = event.target.closest(".subtask-checkbox");
@@ -163,7 +216,6 @@ taskList?.addEventListener("click", (event) => {
 
     editForm.elements.task.value = task.description || "";
     editForm.elements.type.value = task.type || "Exame";
-    editForm.elements.priority.value = task.priority || "media";
     editForm.hidden = false;
     editForm.elements.task.focus();
     return;
@@ -264,7 +316,6 @@ taskList?.addEventListener("submit", (event) => {
         ...task,
         description,
         type: data.get("type"),
-        priority: data.get("priority"),
       };
     });
 
@@ -287,7 +338,6 @@ taskList?.addEventListener("submit", (event) => {
     diagnosis: mainTask.diagnosis || "",
     description,
     type: data.get("type"),
-    priority: data.get("priority"),
     note: mainTask.note || "",
     done: false,
     createdAt: new Date().toISOString(),
@@ -312,10 +362,8 @@ function render() {
     const mainTask = group.tasks[0];
     const isComplete = group.tasks.every((task) => task.done);
     const isPartiallyDone = group.tasks.some((task) => task.done) && !isComplete;
-    const priority = getGroupPriority(group.tasks);
     const card = template.content.firstElementChild.cloneNode(true);
     card.dataset.groupId = group.id;
-    card.classList.add(`priority-${priority}`);
     card.classList.toggle("is-done", isComplete);
     card.classList.toggle("is-partial", isPartiallyDone);
 
@@ -324,7 +372,6 @@ function render() {
     const diagnosisPill = card.querySelector(".diagnosis-pill");
     diagnosisPill.textContent = mainTask.diagnosis ? `HD: ${mainTask.diagnosis}` : "";
     diagnosisPill.hidden = !mainTask.diagnosis;
-    card.querySelector(".priority-pill").textContent = isComplete ? "Completo" : priorityLabel(priority);
     card.querySelector(".task-description").hidden = true;
     card.querySelector(".subtask-list").replaceChildren(...buildSubtasks(group.tasks));
     card.querySelector(".task-meta").replaceChildren();
@@ -349,7 +396,6 @@ function getPendingItemData(patient, diagnosis, note) {
       diagnosis,
       description: clean(item.querySelector('[name="task"]').value),
       type: item.querySelector('[name="type"]').value,
-      priority: item.querySelector('[name="priority"]').value,
       note,
       done: false,
       createdAt: new Date(now + index).toISOString(),
@@ -387,7 +433,7 @@ function getVisibleGroups() {
       const isComplete = group.tasks.every((task) => task.done);
       const haystack = normalize(
         group.tasks
-          .map((task) => [task.patient, task.diagnosis, task.description, task.type, task.priority, task.note].join(" "))
+          .map((task) => [task.patient, task.diagnosis, task.description, task.type, task.note].join(" "))
           .join(" ")
       );
 
@@ -425,27 +471,12 @@ function sortGroups(a, b) {
 
   if (aComplete !== bComplete) return aComplete ? 1 : -1;
 
-  const priorityDiff = priorityRank(getGroupPriority(a.tasks)) - priorityRank(getGroupPriority(b.tasks));
-  if (priorityDiff !== 0) return priorityDiff;
-
   return new Date(b.tasks[0].createdAt) - new Date(a.tasks[0].createdAt);
 }
 
 function sortTasks(a, b) {
   if (a.done !== b.done) return a.done ? 1 : -1;
-  const priorityOrder = { alta: 0, media: 1, baixa: 2 };
-  const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
-  if (priorityDiff !== 0) return priorityDiff;
   return new Date(b.createdAt) - new Date(a.createdAt);
-}
-
-function getGroupPriority(taskItems) {
-  return [...taskItems].sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority))[0]?.priority || "baixa";
-}
-
-function priorityRank(priority) {
-  const priorityOrder = { alta: 0, media: 1, baixa: 2 };
-  return priorityOrder[priority] ?? 3;
 }
 
 function updateCounters() {
@@ -537,14 +568,6 @@ function buildSubtasks(taskItems) {
             <option>Outro</option>
           </select>
         </label>
-        <label>
-          <span>Prioridade</span>
-          <select name="priority">
-            <option value="alta">Alta</option>
-            <option value="media">Média</option>
-            <option value="baixa">Baixa</option>
-          </select>
-        </label>
       </div>
       <div class="inline-actions">
         <button class="primary-button" type="submit">Salvar solicitação</button>
@@ -568,15 +591,6 @@ function buildGroupMeta(taskItems) {
     span.textContent = text;
     return span;
   });
-}
-
-function priorityLabel(priority) {
-  const labels = {
-    alta: "Alta",
-    media: "Média",
-    baixa: "Baixa",
-  };
-  return labels[priority] || priority;
 }
 
 function updateClock() {
@@ -617,7 +631,135 @@ function loadTasks() {
 
 function saveTasks(message = "Salvo neste computador") {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  saveDatedBackup();
   showSaveStatus(message);
+}
+
+function createBackupPayload() {
+  return {
+    app: "GPendencias",
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    tasks,
+  };
+}
+
+function createBackupText() {
+  return JSON.stringify(createBackupPayload(), null, 2);
+}
+
+function exportBackupFile() {
+  const text = createBackupText();
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `gpendencias-backup-${todayKey()}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  showSaveStatus("Backup exportado");
+}
+
+function restoreBackupText(text, message) {
+  let payload;
+
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    window.alert("Backup inválido. Cole o texto completo do backup ou importe um arquivo JSON válido.");
+    return;
+  }
+
+  const restoredTasks = Array.isArray(payload) ? payload : payload?.tasks;
+  if (!Array.isArray(restoredTasks)) {
+    window.alert("Backup inválido. Não encontrei a lista de cards.");
+    return;
+  }
+
+  const confirmed = window.confirm("Restaurar este backup vai substituir os cards atuais neste navegador. Continuar?");
+  if (!confirmed) return;
+
+  tasks = restoredTasks;
+  saveTasks(message);
+  render();
+}
+
+function saveDatedBackup() {
+  if (tasks.length === 0) return;
+
+  try {
+    const dateKey = todayKey();
+    const backupKey = `${BACKUP_PREFIX}${dateKey}`;
+    const payload = createBackupPayload();
+    localStorage.setItem(backupKey, JSON.stringify(payload));
+
+    const dates = loadBackupDates();
+    if (!dates.includes(dateKey)) {
+      dates.unshift(dateKey);
+      dates.sort((a, b) => b.localeCompare(a));
+      localStorage.setItem(BACKUP_INDEX_KEY, JSON.stringify(dates));
+    }
+  } catch {
+    // O backup datado é uma proteção extra; o salvamento principal já aconteceu.
+  }
+}
+
+function loadBackupDates() {
+  try {
+    const dates = JSON.parse(localStorage.getItem(BACKUP_INDEX_KEY));
+    return Array.isArray(dates) ? dates.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function restoreDatedBackup() {
+  const dates = loadBackupDates();
+  if (dates.length === 0) {
+    window.alert("Ainda não existe backup datado salvo neste navegador.");
+    return;
+  }
+
+  const selectedDate = window.prompt(`Digite a data para restaurar:\n\n${dates.join("\n")}`);
+  if (!selectedDate) return;
+
+  const dateKey = selectedDate.trim();
+  const backupText = localStorage.getItem(`${BACKUP_PREFIX}${dateKey}`);
+  if (!backupText) {
+    window.alert("Não encontrei backup para esta data.");
+    return;
+  }
+
+  restoreBackupText(backupText, `Backup de ${dateKey} restaurado`);
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.append(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+
+  if (!copied) throw new Error("copy failed");
+}
+
+function todayKey() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function showSaveStatus(message) {
@@ -636,4 +778,5 @@ function showSaveStatus(message) {
 updatePendingItemControls();
 updateClock();
 setInterval(updateClock, 30000);
+saveDatedBackup();
 render();
