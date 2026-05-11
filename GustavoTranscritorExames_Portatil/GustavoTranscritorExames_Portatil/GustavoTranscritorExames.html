@@ -35,15 +35,18 @@
         <div class="panel-head">
           <h2>Resultado transcrito</h2>
           <div class="button-row">
-            <button id="campoLimpoBtn" class="source-btn campo-limpo-btn" type="button">Campo Limpo</button>
-            <button id="jundiaiBtn" class="source-btn jundiai-btn" type="button">Jundiai</button>
+            <button id="autoBtn" class="source-btn auto-btn" type="button">Auto</button>
+            <button id="campoLimpoBtn" class="source-btn campo-limpo-btn manual-source-hidden" type="button">Campo Limpo</button>
+            <button id="jundiaiBtn" class="source-btn jundiai-btn manual-source-hidden" type="button">Jundiai</button>
           </div>
         </div>
+        <div id="detectedSource" class="detected-source">Origem: aguardando exame</div>
         <pre id="output">Cole o exame ao lado e clique em Transcrever exames.</pre>
       </div>
     </section>
   </main>
   <script src="../../shared/lab-transcriber.js"></script>
+  <script src="../../shared/lab-transcriber-auto.js"></script>
   <script src="transcritor-exames.js"></script>
 </body>
 </html>

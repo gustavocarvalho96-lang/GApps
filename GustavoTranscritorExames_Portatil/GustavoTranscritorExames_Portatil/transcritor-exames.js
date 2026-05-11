@@ -1,8 +1,10 @@
 var input = document.getElementById("input");
 var output = document.getElementById("output");
+var autoBtn = document.getElementById("autoBtn");
 var campoLimpoBtn = document.getElementById("campoLimpoBtn");
 var jundiaiBtn = document.getElementById("jundiaiBtn");
-var activeSource = "campo-limpo";
+var detectedSource = document.getElementById("detectedSource");
+var activeSource = "auto";
 
 function showToast(message) {
   var toast = document.getElementById("actionToast");
@@ -21,21 +23,39 @@ function showToast(message) {
 }
 
 function updateSourceButtons() {
+  autoBtn.classList.toggle("active", activeSource === "auto");
   campoLimpoBtn.classList.toggle("active", activeSource === "campo-limpo");
   jundiaiBtn.classList.toggle("active", activeSource === "jundiai");
+}
+
+function setDetectedSource(label) {
+  detectedSource.textContent = "Origem: " + label;
 }
 
 function transcribeBySource(source) {
   activeSource = source || activeSource;
   updateSourceButtons();
+  if (activeSource === "auto") {
+    var result = transcribeAutomaticLabs(input.value);
+    output.textContent = result.output;
+    setDetectedSource(result.label);
+    showToast("Transcrito: " + result.label);
+    return;
+  }
   if (activeSource === "jundiai") {
     output.textContent = transcribeJundiaiLabs(input.value);
+    setDetectedSource("Jundiai");
     showToast("Transcrito: Jundiai");
     return;
   }
   output.textContent = transcribeCampoLimpoLabs(input.value);
+  setDetectedSource("Campo Limpo");
   showToast("Transcrito: Campo Limpo");
 }
+
+autoBtn.onclick = function () {
+  transcribeBySource("auto");
+};
 
 campoLimpoBtn.onclick = function () {
   transcribeBySource("campo-limpo");
@@ -68,6 +88,7 @@ document.getElementById("copyBtn").onclick = function () {
 document.getElementById("clearBtn").onclick = function () {
   input.value = "";
   output.textContent = "Cole o exame ao lado e clique em Transcrever exames.";
+  setDetectedSource("Aguardando exame");
   input.focus();
   showToast("Campos limpos");
 };

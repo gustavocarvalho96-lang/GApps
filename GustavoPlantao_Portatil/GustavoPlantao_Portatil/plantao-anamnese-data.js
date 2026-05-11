@@ -62,6 +62,7 @@ EXT: Sem Empastamento De Panturrilhas, Tec< 3 Segundos, Simétricas, Sem Edemas
     category: "Estrutura Clínica",
     labTranscription: true,
     labSources: [
+      { label: "Auto", source: "auto", className: "auto-btn" },
       { label: "Campo Limpo", source: "campo-limpo", className: "campo-limpo-btn" },
       { label: "Jundiai", source: "jundiai", className: "jundiai-btn" }
     ],

@@ -1,10 +1,18 @@
 function transcribeCurrentLabs(input, source) {
   state.labInput = input ? input.value : state.labInput;
-  state.labSource = source || state.labSource || "campo-limpo";
+  state.labSource = source || state.labSource || "auto";
+  if (state.labSource === "auto") {
+    var result = transcribeAutomaticLabs(state.labInput);
+    state.labDetectedSource = result.label;
+    state.labOutput = result.output;
+    return;
+  }
+  state.labDetectedSource = state.labSource === "jundiai" ? "Jundiai" : "Campo Limpo";
   state.labOutput = state.labSource === "jundiai" ? transcribeJundiaiLabs(state.labInput) : transcribeCampoLimpoLabs(state.labInput);
 }
 
 function labSourceLabel() {
+  if (state.labSource === "auto") return "Auto: " + (state.labDetectedSource || "aguardando detecção");
   return state.labSource === "jundiai" ? "Jundiai" : "Campo Limpo";
 }
 

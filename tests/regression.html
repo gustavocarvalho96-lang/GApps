@@ -163,7 +163,7 @@
         assert(anamnese.snippets && anamnese.snippets.standardExam, "Anamnese sem exame padrao em dados.");
         assert(anamnese.snippets.otoOro && anamnese.snippets.otoOro.length >= 1, "Anamnese sem atalhos Oto/Oro em dados.");
         assert(anamnese.snippets.psych && anamnese.snippets.psych.length >= 1, "Anamnese sem atalhos psiquiatricos em dados.");
-        assert(reavaliacao.labTranscription === true && reavaliacao.labSources.length === 2, "Reavaliacao sem fontes de transcricao nos dados.");
+        assert(reavaliacao.labTranscription === true && reavaliacao.labSources.length === 3, "Reavaliacao sem fontes de transcricao nos dados.");
         assert(receitaLivre.freeGroupsEnabled === true, "Receita livre sem marcador de grupos livres.");
       });
 

@@ -5,24 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Validação - Transcrição automática</title>
   <style>
-    body { margin: 0; padding: 28px; background: #f7fafc; color: #0f172a; font-family: Arial, sans-serif; }
-    h1 { margin: 0 0 16px; font-size: 24px; }
+    :root {
+      color-scheme: light;
+      font-family: Arial, sans-serif;
+      --bg: #f7fafc;
+      --panel: #ffffff;
+      --line: #d7dee8;
+      --text: #0f172a;
+      --muted: #64748b;
+      --green: #16a34a;
+      --blue: #2563eb;
+      --red: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 28px; background: var(--bg); color: var(--text); }
+    h1 { margin: 0; font-size: 24px; }
+    h2 { margin: 0; font-size: 16px; }
+    button, textarea { font: inherit; }
+    .page { display: grid; gap: 18px; max-width: 1180px; margin: 0 auto; }
+    .header { display: grid; gap: 6px; }
+    .hint { color: var(--muted); font-size: 13px; }
+    .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+    .panel { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); overflow: hidden; }
+    .panel-head { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #edf1f6; }
+    textarea, pre { width: 100%; min-height: 420px; margin: 0; border: 0; outline: none; padding: 14px; color: #243147; font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
+    textarea { resize: vertical; }
+    pre { background: #fbfcfe; overflow: auto; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .btn { border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; color: #334155; padding: 9px 12px; font-weight: 700; cursor: pointer; }
+    .btn:hover { background: #f1f5f9; }
+    .primary { border-color: rgba(37, 99, 235, .28); background: var(--blue); color: #fff; }
+    .primary:hover { background: #1d4ed8; }
+    .badge { display: inline-flex; align-items: center; min-height: 34px; border-radius: 999px; padding: 7px 11px; background: #eef2ff; color: #3730a3; font-size: 13px; font-weight: 800; }
     #results { display: grid; gap: 10px; max-width: 860px; }
-    .test { border: 1px solid #d7dee8; border-radius: 8px; padding: 12px 14px; background: #fff; }
-    .pass { border-left: 5px solid #16a34a; }
-    .fail { border-left: 5px solid #dc2626; }
+    .test { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--panel); }
+    .pass { border-left: 5px solid var(--green); }
+    .fail { border-left: 5px solid var(--red); }
     .name { font-weight: 700; }
     .detail { margin-top: 4px; color: #475569; font-size: 14px; white-space: pre-wrap; }
+    @media (max-width: 860px) {
+      body { padding: 18px; }
+      .workspace { grid-template-columns: 1fr; }
+      textarea, pre { min-height: 300px; }
+    }
   </style>
 </head>
 <body>
-  <h1>Validação - Transcrição automática</h1>
-  <div id="results"></div>
+  <main class="page">
+    <header class="header">
+      <h1>Validação - Transcrição automática</h1>
+      <div class="hint">Bancada experimental separada. Nada aqui altera o app principal.</div>
+    </header>
+
+    <section class="workspace">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Exame original</h2>
+          <button id="clearBtn" class="btn" type="button">Limpar</button>
+        </div>
+        <textarea id="input" placeholder="Cole aqui o texto bruto do exame"></textarea>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Resultado automático</h2>
+          <div class="actions">
+            <span id="detectedBadge" class="badge">Aguardando exame</span>
+            <button id="transcribeBtn" class="btn primary" type="button">Transcrever automático</button>
+            <button id="copyBtn" class="btn" type="button">Copiar</button>
+          </div>
+        </div>
+        <pre id="output">Cole um exame ao lado e clique em Transcrever automático.</pre>
+      </div>
+    </section>
+
+    <section class="panel" style="padding: 14px;">
+      <h2 style="margin-bottom: 10px;">Testes internos</h2>
+      <div id="results"></div>
+    </section>
+  </main>
 
   <script src="../shared/lab-transcriber.js"></script>
   <script src="../shared/lab-transcriber-auto.js"></script>
   <script>
     (function () {
+      var input = document.getElementById("input");
+      var output = document.getElementById("output");
+      var badge = document.getElementById("detectedBadge");
+
+      function runManualTranscription() {
+        var result = transcribeAutomaticLabs(input.value);
+        badge.textContent = "Detectado: " + result.label;
+        output.textContent = result.output || "Não consegui transcrever esse texto ainda.";
+      }
+
+      document.getElementById("transcribeBtn").onclick = runManualTranscription;
+      document.getElementById("clearBtn").onclick = function () {
+        input.value = "";
+        output.textContent = "Cole um exame ao lado e clique em Transcrever automático.";
+        badge.textContent = "Aguardando exame";
+        input.focus();
+      };
+      document.getElementById("copyBtn").onclick = function () {
+        var text = output.textContent || "";
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text);
+      };
+      input.onkeydown = function (event) {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          event.preventDefault();
+          runManualTranscription();
+        }
+      };
+
       var results = document.getElementById("results");
       var tests = [];
 
@@ -70,6 +164,66 @@
         var result = transcribeAutomaticLabs(sample);
         assert(result.source === "jundiai", "Fonte detectada: " + result.source);
         assert(result.output.indexOf("creatinina 0,92 mg/dL") >= 0, result.output);
+      });
+
+      add("Detecta Jundiai PDF", function () {
+        var sample = [
+          "Hemograma Completo",
+          "Material: Sangue total (EDTA) Coleta: 07/05/2026 - 06:38:07",
+          "Hemoglobina 14,8 g/dL 12,0 - 15,0 g/dL",
+          "Hematócrito 43,9 % 36,0 - 46,0 %",
+          "Plaquetas 125 Mil/mm3 150 - 400 Mil/mm3",
+          "Leucócitos 14,21 4,5 - 11,0",
+          "Pedido : 8025005308 ( 6948038*2806158 ) O.S.: 2384-67697-2051 Data Entrada: 07/05/2026 - 06:30:12",
+          "Paciente : RUTE MARIA DE CARVALHO SILVA CNS :",
+          "Convênio: Hosp. São Vicente de Paulo Jundiaí - LaboUnidade : Pronto Atendimento - Hosp. São Vicente de Paulo Página: 1/8",
+          "Tempo e atividade Protrombina",
+          "Tempo 14,0 segundos",
+          "RNI 1,24",
+          "Ureia, sérica",
+          "Resultado 48,0 mg/dL",
+          "Dosagem sérica de Creatinina",
+          "Creatinina 1,10 mg/dL",
+          "Sódio",
+          "Resultado 141 mmol/L",
+          "Potássio",
+          "Resultado 3,2 mmol/L",
+          "Bilirrubinas",
+          "Bilirrubina Total 0,85 mg/dL",
+          "Bilirrubina Direta 0,30 mg/dL",
+          "Bilirrubina Indireta 0,55 mg/dL",
+          "TGO/AST",
+          "Resultado 38 U/L",
+          "TGP/ALT",
+          "Resultado 29 U/L",
+          "Gama Glutamil Transferase - GGT",
+          "Resultado 34 U/L",
+          "Fosfatase Alcalina",
+          "Resultado 130 U/L",
+          "Amilase",
+          "Resultado 84 U/L",
+          "Urina I",
+          "Proteína + + +",
+          "Leucócitos 31.200 /mL Até 20.000 /mL",
+          "Hemácias 24.900 /mL Até 20.000 /mL",
+          "Bactérias Inferior a 1,0 /mL Inferior a 1,0 /mL"
+        ].join("\n");
+        var result = transcribeAutomaticLabs(sample);
+        assert(result.source === "jundiai-pdf", "Fonte detectada: " + result.source);
+        assert(result.output.indexOf("RUTE MARIA DE CARVALHO SILVA") >= 0, result.output);
+        assert(result.output.indexOf("hemograma (Hb 14,8 g/dL; Ht 43,9 %; Leuco 14210; Plaq 125 mil)") >= 0, result.output);
+        assert(result.output.indexOf("Coagulograma (TAP = 14,0 segundos; RNI = 1,24)") >= 0, result.output);
+        assert(result.output.indexOf("ureia 48,0 mg/dL") >= 0, result.output);
+        assert(result.output.indexOf("creatinina 1,10 mg/dL") >= 0, result.output);
+        assert(result.output.indexOf("sodio 141 mmol/L") >= 0, result.output);
+        assert(result.output.indexOf("potassio 3,2 mmol/L") >= 0, result.output);
+        assert(result.output.indexOf("BT 0,85 mg/dL (BI = 0,55 mg/dL; BD = 0,30 mg/dL)") >= 0, result.output);
+        assert(result.output.indexOf("TGO 38 U/L") >= 0, result.output);
+        assert(result.output.indexOf("TGP 29 U/L") >= 0, result.output);
+        assert(result.output.indexOf("GGT 34 U/L") >= 0, result.output);
+        assert(result.output.indexOf("FA 130 U/L") >= 0, result.output);
+        assert(result.output.indexOf("amilase 84 U/L") >= 0, result.output);
+        assert(result.output.indexOf("urina tipo I") >= 0, result.output);
       });
 
       tests.forEach(function (test) {

@@ -11,7 +11,8 @@ var state = {
   editableText: "",
   labInput: "",
   labOutput: "",
-  labSource: "campo-limpo",
+  labSource: "auto",
+  labDetectedSource: "",
   scores: {
     heart: { history: 0, ecg: 0, age: "", riskFactors: 0, troponin: 0 },
     grace: { age: "", heartRate: "", systolicBp: "", creatinine: "", killip: 1, arrest: 0, stDeviation: 0, markers: 0 },

@@ -192,14 +192,15 @@ function renderEditable(protocol, body) {
     var label = div("panel-title");
     label.textContent = "Exames laboratoriais";
     var hint = div("panel-hint");
-    hint.textContent = "Cole o resultado bruto, escolha a origem e insira a transcricao no template.";
+    hint.textContent = "Cole o resultado bruto; use Auto para detectar a origem ou escolha manualmente.";
     titleWrap.appendChild(label);
     titleWrap.appendChild(hint);
     var sourceRow = div("row lab-source-row");
     (protocol.labSources || []).forEach(function (source) {
-      sourceRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className + (state.labSource === source.source ? " active" : ""), function () {
+      var hiddenClass = source.source === "auto" ? "" : " manual-source-hidden";
+      sourceRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className + hiddenClass + (state.labSource === source.source ? " active" : ""), function () {
         transcribeCurrentLabs(input, source.source);
-        showToast("Transcrito: " + source.label);
+        showToast("Transcrito: " + labSourceLabel());
         render();
       }));
     });
@@ -222,6 +223,8 @@ function renderEditable(protocol, body) {
     var output = document.createElement("pre");
     output.className = "lab-output";
     output.textContent = state.labOutput || "Cole o exame acima e clique em Transcrever exames.";
+    var sourceBadge = div("lab-detected-source");
+    sourceBadge.textContent = "Origem: " + (state.labDetectedSource || (state.labSource === "auto" ? "aguardando detecção" : labSourceLabel()));
     var actions = div("row");
     actions.appendChild(textButton("Copiar resultado", "text-btn primary-btn", function () {
       transcribeCurrentLabs(input);
@@ -245,6 +248,7 @@ function renderEditable(protocol, body) {
     var previewTitle = div("panel-title");
     previewTitle.textContent = "Transcricao pronta";
     preview.appendChild(previewTitle);
+    preview.appendChild(sourceBadge);
     preview.appendChild(output);
     lab.appendChild(preview);
     body.appendChild(lab);
