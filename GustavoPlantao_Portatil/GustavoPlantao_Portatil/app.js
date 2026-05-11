@@ -1,5 +1,5 @@
-var quickOrder = ["anamnese", "reavaliacao", "encaminhamento", "antibioticos", "receita-livre", "administrativo"];
-var editableIds = ["administrativo", "anamnese", "reavaliacao", "encaminhamento", "receita-livre"];
+var quickOrder = ["anamnese", "reavaliacao", "internacao", "encaminhamento", "antibioticos", "receita-livre", "administrativo"];
+var editableIds = ["administrativo", "anamnese", "reavaliacao", "internacao", "encaminhamento", "receita-livre"];
 var state = {
   selectedId: "administrativo",
   selectedOption: 0,

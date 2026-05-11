@@ -157,6 +157,7 @@
         var administrativo = byId("administrativo");
         var anamnese = byId("anamnese");
         var reavaliacao = byId("reavaliacao");
+        var internacao = byId("internacao");
         var receitaLivre = byId("receita-livre");
         assert(administrativo.snippets && administrativo.snippets.length >= 1, "Administrativo sem snippets.");
         assert(anamnese.genderedTemplate === true, "Anamnese sem marcador de template por genero.");
@@ -164,6 +165,7 @@
         assert(anamnese.snippets.otoOro && anamnese.snippets.otoOro.length >= 1, "Anamnese sem atalhos Oto/Oro em dados.");
         assert(anamnese.snippets.psych && anamnese.snippets.psych.length >= 1, "Anamnese sem atalhos psiquiatricos em dados.");
         assert(reavaliacao.labTranscription === true && reavaliacao.labSources.length === 3, "Reavaliacao sem fontes de transcricao nos dados.");
+        assert(internacao && internacao.prescription.indexOf("#Internação - Enfermaria#") >= 0, "Internacao sem template cadastrado.");
         assert(receitaLivre.freeGroupsEnabled === true, "Receita livre sem marcador de grupos livres.");
       });
 

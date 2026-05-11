@@ -80,5 +80,30 @@ Reavalio paciente em consultório, paciente estável hemodinamicamente (PA // FC
 3 - Oriento acompanhamento ambulatorial regular e reavaliação se não houver melhora no prazo orientado.`,
     orientation: "",
     tags: ["reavaliação", "alta", "exames"]
+  },
+  {
+    id: "internacao",
+    title: "Internação",
+    category: "Estrutura Clínica",
+    prescription: `#Internação - Enfermaria#
+--> Dia de internação : 
+--> HD: 
+--> ATB:
+. 
+--> HMA : 
+--> AP:
+--> MUC: 
+. 
+Exame fisico:
+Exame laboratoriais: 
+Exame imagem: 
+
+-->Conduta:
+1 - Internação na enfermaria 
+2 - Suporte clinico
+3 - Antibioticoterapia 
+4 - Hidratação parcimoniosa`,
+    orientation: "",
+    tags: ["internacao", "enfermaria", "admissao"]
   }
 ];
