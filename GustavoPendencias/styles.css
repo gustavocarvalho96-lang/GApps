@@ -53,6 +53,20 @@ button {
   padding-right: 84px;
 }
 
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.app-brand-logo {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  display: block;
+  object-fit: contain;
+}
+
 .eyebrow {
   margin: 0 0 4px;
   color: var(--accent);
@@ -70,9 +84,11 @@ p {
 
 h1 {
   margin-bottom: 0;
-  font-size: clamp(1.55rem, 2.2vw, 2.05rem);
-  line-height: 1.05;
+  font-size: 23px;
+  line-height: 1;
+  font-weight: 900;
   letter-spacing: 0;
+  transform: translateX(-3px);
 }
 
 .current-clock {
