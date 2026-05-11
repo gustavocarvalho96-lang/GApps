@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Validação - Transcrição automática</title>
+  <style>
+    body { margin: 0; padding: 28px; background: #f7fafc; color: #0f172a; font-family: Arial, sans-serif; }
+    h1 { margin: 0 0 16px; font-size: 24px; }
+    #results { display: grid; gap: 10px; max-width: 860px; }
+    .test { border: 1px solid #d7dee8; border-radius: 8px; padding: 12px 14px; background: #fff; }
+    .pass { border-left: 5px solid #16a34a; }
+    .fail { border-left: 5px solid #dc2626; }
+    .name { font-weight: 700; }
+    .detail { margin-top: 4px; color: #475569; font-size: 14px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Validação - Transcrição automática</h1>
+  <div id="results"></div>
+
+  <script src="../shared/lab-transcriber.js"></script>
+  <script src="../shared/lab-transcriber-auto.js"></script>
+  <script>
+    (function () {
+      var results = document.getElementById("results");
+      var tests = [];
+
+      function add(name, fn) {
+        tests.push({ name: name, fn: fn });
+      }
+
+      function assert(condition, message) {
+        if (!condition) throw new Error(message);
+      }
+
+      function show(name, ok, detail) {
+        var item = document.createElement("div");
+        item.className = "test " + (ok ? "pass" : "fail");
+        item.innerHTML = "<div class=\"name\">" + (ok ? "OK: " : "ERRO: ") + name + "</div>" +
+          "<div class=\"detail\">" + detail + "</div>";
+        results.appendChild(item);
+      }
+
+      add("Detecta Campo Limpo", function () {
+        var sample = [
+          "Paciente: JOAO TESTE",
+          "Cadastro 08/05/2026",
+          "CREATININA Resultado: 1,10 mg/dL"
+        ].join("\n");
+        var result = transcribeAutomaticLabs(sample);
+        assert(result.source === "campo-limpo", "Fonte detectada: " + result.source);
+        assert(result.output.indexOf("creatinina 1,10 mg/dL") >= 0, result.output);
+      });
+
+      add("Detecta Jundiai", function () {
+        var sample = [
+          "Paciente:",
+          "MARIA TESTE",
+          "O.S.:",
+          "2385-11111-22222",
+          "-",
+          "11/05/2026 - 10:30:00",
+          "Dosagem sérica de Creatinina",
+          "Creatinina",
+          "0,92",
+          "mg/dL",
+          "Problema ao visualizar"
+        ].join("\n");
+        var result = transcribeAutomaticLabs(sample);
+        assert(result.source === "jundiai", "Fonte detectada: " + result.source);
+        assert(result.output.indexOf("creatinina 0,92 mg/dL") >= 0, result.output);
+      });
+
+      tests.forEach(function (test) {
+        try {
+          test.fn();
+          show(test.name, true, "Passou.");
+        } catch (error) {
+          show(test.name, false, error.message);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
