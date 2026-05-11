@@ -254,6 +254,40 @@ h2 {
   display: none;
 }
 
+.backup-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.backup-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 190px;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgba(23, 33, 27, 0.12);
+  padding: 6px;
+}
+
+.backup-menu-panel[hidden] {
+  display: none;
+}
+
+.backup-menu-panel .ghost-button {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  text-align: left;
+}
+
 .save-status {
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -895,6 +929,20 @@ textarea:focus {
   .save-status {
     flex: 1 1 auto;
     text-align: center;
+  }
+
+  .backup-menu {
+    width: 100%;
+  }
+
+  .backup-menu-button {
+    width: 100%;
+  }
+
+  .backup-menu-panel {
+    left: 0;
+    right: 0;
+    min-width: 0;
   }
 
   .entry-band,

@@ -22,13 +22,18 @@
           </div>
           <div class="form-actions top-actions">
             <span class="save-status" id="save-status">Salvo neste computador</span>
-            <button class="ghost-button" type="button" id="save-button">Salvar agora</button>
-            <button class="ghost-button" type="button" id="export-button">Exportar</button>
-            <button class="ghost-button" type="button" id="import-button">Importar</button>
-            <button class="ghost-button" type="button" id="copy-backup-button">Copiar backup</button>
-            <button class="ghost-button" type="button" id="restore-backup-button">Restaurar backup</button>
-            <button class="ghost-button" type="button" id="restore-date-button">Restaurar data</button>
-            <input class="backup-file-input" id="import-file-input" type="file" accept="application/json,.json">
+            <div class="backup-menu">
+              <button class="ghost-button backup-menu-button" type="button" id="backup-menu-button" aria-expanded="false">Backup</button>
+              <div class="backup-menu-panel" id="backup-menu-panel" hidden>
+                <button class="ghost-button" type="button" id="save-button">Salvar agora</button>
+                <button class="ghost-button" type="button" id="export-button">Exportar</button>
+                <button class="ghost-button" type="button" id="import-button">Importar</button>
+                <button class="ghost-button" type="button" id="copy-backup-button">Copiar backup</button>
+                <button class="ghost-button" type="button" id="restore-backup-button">Restaurar backup</button>
+                <button class="ghost-button" type="button" id="restore-date-button">Restaurar data</button>
+              </div>
+              <input class="backup-file-input" id="import-file-input" type="file" accept="application/json,.json">
+            </div>
           </div>
         </div>
         <div class="shift-summary" aria-label="Resumo das pendências">

@@ -17,6 +17,8 @@ const listContext = document.querySelector("#list-context");
 const clearDoneButton = document.querySelector("#clear-done-button");
 const clearAllButton = document.querySelector("#clear-all-button");
 const saveButton = document.querySelector("#save-button");
+const backupMenuButton = document.querySelector("#backup-menu-button");
+const backupMenuPanel = document.querySelector("#backup-menu-panel");
 const exportButton = document.querySelector("#export-button");
 const importButton = document.querySelector("#import-button");
 const importFileInput = document.querySelector("#import-file-input");
@@ -101,15 +103,18 @@ clearAllButton?.addEventListener("click", () => {
 });
 
 saveButton?.addEventListener("click", () => {
+  closeBackupMenu();
   saveTasks("Tudo salvo neste computador");
   render();
 });
 
 exportButton?.addEventListener("click", () => {
+  closeBackupMenu();
   exportBackupFile();
 });
 
 importButton?.addEventListener("click", () => {
+  closeBackupMenu();
   importFileInput?.click();
 });
 
@@ -128,6 +133,7 @@ importFileInput?.addEventListener("change", async () => {
 });
 
 copyBackupButton?.addEventListener("click", async () => {
+  closeBackupMenu();
   const backupText = createBackupText();
 
   try {
@@ -139,6 +145,7 @@ copyBackupButton?.addEventListener("click", async () => {
 });
 
 restoreBackupButton?.addEventListener("click", () => {
+  closeBackupMenu();
   const backupText = window.prompt("Cole aqui o backup copiado ou o conteúdo do arquivo JSON:");
   if (!backupText) return;
 
@@ -146,7 +153,25 @@ restoreBackupButton?.addEventListener("click", () => {
 });
 
 restoreDateButton?.addEventListener("click", () => {
+  closeBackupMenu();
   restoreDatedBackup();
+});
+
+backupMenuButton?.addEventListener("click", () => {
+  const isOpening = backupMenuPanel.hidden;
+  backupMenuPanel.hidden = !isOpening;
+  backupMenuButton.setAttribute("aria-expanded", String(isOpening));
+});
+
+document.addEventListener("click", (event) => {
+  if (!backupMenuPanel || backupMenuPanel.hidden) return;
+  if (event.target.closest(".backup-menu")) return;
+
+  closeBackupMenu();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeBackupMenu();
 });
 
 taskList?.addEventListener("click", (event) => {
@@ -752,6 +777,13 @@ async function copyText(text) {
   textarea.remove();
 
   if (!copied) throw new Error("copy failed");
+}
+
+function closeBackupMenu() {
+  if (!backupMenuPanel || !backupMenuButton) return;
+
+  backupMenuPanel.hidden = true;
+  backupMenuButton.setAttribute("aria-expanded", "false");
 }
 
 function todayKey() {
