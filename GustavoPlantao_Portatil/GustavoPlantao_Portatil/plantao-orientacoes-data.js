@@ -11,7 +11,7 @@ Tomar 1 cp de 8/8h por até 3 dias.`],
     ["Paracetamol", `Paracetamol 500mg ---- 20 cps
 Tomar 1 cp de 6/6h se dor ou febre.`],
     ["Paracetamol + codeina", `Paracetamol + codeína 500/30mg ---- 10 cps
-Tomar 1 cp de 8/8h se dor moderada a forte.`],
+Tomar 1 cp de 8/8h se dor forte, ou se dor não melhorar com outras medicações.`],
     ["Tramadol", `Tramadol 50mg ---- 10 cps
 Tomar 1 cp de 6/6h se dor forte.`]
   ],

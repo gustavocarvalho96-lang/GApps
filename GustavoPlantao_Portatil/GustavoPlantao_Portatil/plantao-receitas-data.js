@@ -81,7 +81,7 @@ Diclofenaco 50mg ---- 6 cps
 Tomar 1 cp de 12/12h por até 3 dias.
 
 Paracetamol + codeína 500/30mg ---- 10 cps
-Tomar 1 cp de 8/8h se dor forte.
+Tomar 1 cp de 8/8h se dor forte, ou se dor não melhorar com outras medicações.
 
 Tansulosina 0,4mg ---- 10 cps
 Tomar 1 cp à noite por 10 dias.`,
@@ -383,7 +383,7 @@ Dipirona 500mg ---- 20 cps
 Tomar 1 cp de 6/6h se dor.
 
 Paracetamol + codeína 500/30mg ---- 10 cps
-Tomar 1 cp de 8/8h se dor moderada a forte.
+Tomar 1 cp de 8/8h se dor forte, ou se dor não melhorar com outras medicações.
 
 Gabapentina 300mg ---- 30 cps
 Tomar 1 cp à noite, podendo aumentar conforme dor.
@@ -399,7 +399,7 @@ Dipirona 500mg ---- 20 cps
 Tomar 1 cp de 6/6h se dor.
 
 Paracetamol + codeína 500/30mg ---- 10 cps
-Tomar 1 cp de 8/8h se dor moderada a forte.
+Tomar 1 cp de 8/8h se dor forte, ou se dor não melhorar com outras medicações.
 
 Gabapentina 300mg ---- 30 cps
 Tomar 1 cp à noite, podendo aumentar conforme dor.
@@ -446,7 +446,7 @@ Tomar 15 ml (uma colher de sopa) de 12/12h.
 Uso local:
 Lidocaína + corticoide (pomada retal) ---- 1 tubo
 Aplicar em região anal afetada 3x/dia até melhora; após, manter 1x/dia.`,
-    orientation: `- Banho de assento com água morna por 10-15 minutos, 2-3x/dia.
+    orientation: `- Banho de assento com água morna por 15 minutos, 3x ao dia.
 - Dieta rica em fibras e aumento da ingesta hídrica se não houver restrição.
 - Evitar esforço evacuatório e longos períodos no vaso sanitário.
 
@@ -495,7 +495,7 @@ Tomar 1 cp de 8/8h se náuseas/vômitos.
 
 Domperidona 10mg ---- 30 cps
 Tomar 1 cp antes das refeições.`,
-    orientation: `- Evitar deitar por 2-3h após refeições e elevar cabeceira se refluxo noturno.
+    orientation: `- Evitar deitar por 3h após refeições e elevar cabeceira se refluxo noturno.
 - Evitar álcool, cigarro, café, refrigerantes, frituras e alimentos que piorem sintomas.
 - Preferir refeições menores e mais leves.
 
@@ -602,7 +602,7 @@ Ciclobenzaprina 5mg ---- 10 cps
 Tomar 1 cp à noite.`],
       ["Paracetamol + Codeína", `Uso oral:
 Paracetamol + codeína 500/30mg ---- 10 cps
-Tomar 1 cp de 8/8h se dor.
+Tomar 1 cp de 8/8h se dor forte, ou se dor não melhorar com outras medicações.
 
 Dipirona 500mg ---- 20 cps
 Tomar 1 cp de 6/6h se dor.

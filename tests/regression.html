@@ -221,6 +221,44 @@
         assert(text.indexOf("troponina 48 ng/L") >= 0, "Troponina Jundiai nao foi reconhecida.");
       });
 
+      add("Transcritor Jundiai reconhece enzimas hepaticas", function () {
+        var sample = [
+          "Paciente:",
+          "MARIA TESTE",
+          "O.S.:",
+          "2385-11111-22222",
+          "-",
+          "11/05/2026 - 10:30:00",
+          "Fosfatase Alcalina",
+          "Resultado",
+          "121",
+          "U/L",
+          "Amilase",
+          "Resultado",
+          "73",
+          "U/L",
+          "Gama GT",
+          "Resultado",
+          "86",
+          "U/L",
+          "Transaminase Glutâmica Oxalacética",
+          "Resultado",
+          "44",
+          "U/L",
+          "Transaminase Glutâmica Pirúvica",
+          "Resultado",
+          "59",
+          "U/L",
+          "Problema ao visualizar"
+        ].join("\\n");
+        var text = transcribeJundiaiLabs(sample);
+        assert(text.indexOf("FA 121 U/L") >= 0, "Fosfatase alcalina Jundiai nao foi reconhecida.");
+        assert(text.indexOf("amilase 73 U/L") >= 0, "Amilase Jundiai nao foi reconhecida.");
+        assert(text.indexOf("GGT 86 U/L") >= 0, "Gama GT Jundiai nao foi reconhecida.");
+        assert(text.indexOf("TGO 44 U/L") >= 0, "TGO Jundiai nao foi reconhecida.");
+        assert(text.indexOf("TGP 59 U/L") >= 0, "TGP Jundiai nao foi reconhecida.");
+      });
+
       tests.forEach(function (test) {
         try {
           test.fn();

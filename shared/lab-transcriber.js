@@ -279,7 +279,7 @@ function jundiaiValueAfter(lines, labels) {
 }
 
 function jundiaiLooksLikeUnit(value) {
-  return /^(?:g\/dL|mg\/dL|mmol\/L|ng\/L|pg\/mL|mL\/min\/1,73 m2|Mil\/mm3|10\^6\/mm3|\/mL|%|segundos?)$/i.test(normalizeText(value));
+  return /^(?:g\/dL|mg\/dL|mmol\/L|U\/L|UI\/L|ng\/L|pg\/mL|mL\/min\/1,73 m2|Mil\/mm3|10\^6\/mm3|\/mL|%|segundos?)$/i.test(normalizeText(value));
 }
 
 function jundiaiValueWithUnitAfter(lines, labels) {
@@ -343,7 +343,10 @@ function transcribeJundiaiLabs(rawText) {
     "Hemograma Completo", "Tempo e atividade Protrombina", "TTPA - Tempo de Tromboplastina Parcial Ativada",
     "Ureia, sérica", "Dosagem sérica de Creatinina", "Sódio", "Potássio", "Magnésio", "Bilirrubinas",
     "Proteína C Reativa - PCR", "Troponina", "Troponina I", "Troponina T", "Urina I", "Cálcio Ionizado",
-    "Dosagem de Lactato", "Problema ao visualizar"
+    "Dosagem de Lactato", "Amilase", "Amilase Sérica", "Fosfatase Alcalina", "Gama GT", "Gama-Glutamil Transferase", "Gama Glutamil Transferase",
+    "Transaminase Glutamica Oxalacetica", "Transaminase Glutâmica Oxalacética", "TGO", "AST",
+    "Transaminase Glutamica Piruvica", "Transaminase Glutâmica Pirúvica", "TGP", "ALT",
+    "Problema ao visualizar"
   ];
   var items = [];
   function push(item) {
@@ -383,7 +386,12 @@ function transcribeJundiaiLabs(rawText) {
     [["Potássio"], "potassio", ["Resultado"]],
     [["Magnésio"], "magnesio", ["Resultado"]],
     [["Proteína C Reativa - PCR"], "PCR", ["Resultado"]],
-    [["Troponina", "Troponina I", "Troponina T"], "troponina", ["Resultado"]]
+    [["Troponina", "Troponina I", "Troponina T"], "troponina", ["Resultado"]],
+    [["Amilase", "Amilase Sérica"], "amilase", ["Resultado"]],
+    [["Fosfatase Alcalina"], "FA", ["Resultado"]],
+    [["Gama GT", "Gama-Glutamil Transferase", "Gama Glutamil Transferase"], "GGT", ["Resultado"]],
+    [["Transaminase Glutamica Oxalacetica", "Transaminase Glutâmica Oxalacética", "TGO", "AST"], "TGO", ["Resultado"]],
+    [["Transaminase Glutamica Piruvica", "Transaminase Glutâmica Pirúvica", "TGP", "ALT"], "TGP", ["Resultado"]]
   ].forEach(function (config) {
     var section = jundiaiSection(lines, config[0], examHeaders);
     var value = jundiaiValueWithUnitAfter(section, config[2]);
