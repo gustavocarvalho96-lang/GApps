@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GustavoApps</title>
+  <title>GApps</title>
   <style>
     :root {
       color-scheme: light;
@@ -64,19 +64,20 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(240px, 1fr));
-      gap: 22px;
-      margin-top: clamp(34px, 6vw, 64px);
+      grid-template-columns: repeat(2, minmax(160px, 220px));
+      justify-content: center;
+      gap: 12px;
+      margin-top: clamp(24px, 4vw, 38px);
     }
 
     .card {
       display: grid;
-      min-height: 168px;
+      min-height: 92px;
       place-items: center;
-      padding: 30px 24px;
+      padding: 16px 14px;
       border: 1px solid var(--line);
-      border-top: 6px solid var(--accent);
-      border-radius: 20px;
+      border-top: 4px solid var(--accent);
+      border-radius: 14px;
       color: inherit;
       background: rgba(255, 255, 255, 0.94);
       box-shadow: var(--shadow);
@@ -106,7 +107,7 @@
     .card h2 {
       margin: 0;
       text-align: center;
-      font-size: clamp(1.35rem, 2.1vw, 1.9rem);
+      font-size: clamp(1.05rem, 1.45vw, 1.3rem);
       line-height: 1.04;
       letter-spacing: 0;
       overflow-wrap: anywhere;
@@ -129,17 +130,17 @@
       }
 
       .card {
-        min-height: 118px;
-        border-radius: 20px;
+        min-height: 82px;
+        border-radius: 14px;
       }
     }
   </style>
 </head>
 <body>
   <main class="app">
-    <header class="topbar" aria-label="GustavoApps">
+    <header class="topbar" aria-label="GApps">
       <img class="brand-logo" src="shared/logo-stethoscope-c.png" alt="">
-      <h1 class="brand-title">GustavoApps</h1>
+      <h1 class="brand-title">GApps</h1>
     </header>
 
     <section class="grid" aria-label="Aplicativos disponíveis">
