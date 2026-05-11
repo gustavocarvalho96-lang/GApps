@@ -41,6 +41,7 @@ const OCR_PASSES = [
       const setHtml = (id, html) => {
         $(id).innerHTML = html;
       };
+      const appAssetUrl = (path) => new URL(path, window.location.href).href;
 
       function showToast(message) {
         let toast = $("actionToast");
@@ -468,9 +469,10 @@ const OCR_PASSES = [
       async function runOcrPass(imageSource, config, onStatus) {
         if (!window.Tesseract) throw new Error("Tesseract nao carregou. Reabra o app ou use entrada manual.");
         const result = await Tesseract.recognize(imageSource, "por+eng", {
-          workerPath: "vendor/worker.min.js",
-          corePath: "vendor/tesseract-core",
-          langPath: "vendor/tessdata",
+          workerPath: appAssetUrl("vendor/worker.min.js"),
+          corePath: appAssetUrl("vendor/tesseract-core"),
+          langPath: appAssetUrl("vendor/tessdata"),
+          workerBlobURL: false,
           logger: (message) => {
             if (message.status === "recognizing text") onStatus(`${config.label}: ${Math.round((message.progress || 0) * 100)}%`);
           },

@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+*.png binary
+*.wasm binary
+*.gz binary
