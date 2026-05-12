@@ -303,7 +303,7 @@ const OCR_PASSES = [
                 ${state.uploadPreview ? `<img class="upload-preview" src="${safeImageSrc(state.uploadPreview)}" alt="Upload" />` : ""}
               </div>` : ""}</div>`;
           }
-          return `<div class="section"><div class="section-head">${collapseButton(state.showExtractedPatients, "Pacientes extraídos", "Nome;Idade;Oncológico;Odonto;Confiança OCR;Fast Track", "toggleExtracted")}${moveButtons("extracted")}</div>${state.showExtractedPatients ? `<textarea id="rawInput" class="input" rows="14">${escapeHtml(state.rawInput)}</textarea>` : ""}</div>`;
+          return "";
         }).join("");
         setHtml("leftSections", sections);
       }

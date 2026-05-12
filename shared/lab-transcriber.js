@@ -233,12 +233,17 @@ function jundiaiLines(rawText) {
   return String(rawText || "").split(/\r?\n/).map(normalizeText).filter(Boolean);
 }
 
+function jundiaiMatchesLabel(line, label) {
+  var escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp("(^|[^a-z0-9-])" + escaped + "($|[^a-z0-9-])", "i").test(line);
+}
+
 function jundiaiSection(lines, startLabels, endLabels) {
   var startIndex = -1;
   for (var i = 0; i < lines.length; i += 1) {
     var line = jundiaiSearchText(lines[i]);
     for (var j = 0; j < startLabels.length; j += 1) {
-      if (line === jundiaiSearchText(startLabels[j]) || line.indexOf(jundiaiSearchText(startLabels[j])) >= 0) {
+      if (jundiaiMatchesLabel(line, jundiaiSearchText(startLabels[j]))) {
         startIndex = i;
         break;
       }
@@ -250,7 +255,8 @@ function jundiaiSection(lines, startLabels, endLabels) {
   for (var k = startIndex + 1; k < lines.length; k += 1) {
     var next = jundiaiSearchText(lines[k]);
     for (var m = 0; m < endLabels.length; m += 1) {
-      if (next === jundiaiSearchText(endLabels[m]) || next.indexOf(jundiaiSearchText(endLabels[m])) >= 0) {
+      var endLabel = jundiaiSearchText(endLabels[m]);
+      if (next === endLabel || next.indexOf(endLabel + " ") === 0 || next.indexOf(endLabel + "/") === 0) {
         endIndex = k;
         return lines.slice(startIndex, endIndex);
       }
@@ -304,7 +310,7 @@ function jundiaiValueWithUnitAfter(lines, labels) {
 function jundiaiHemogramLeuco(value) {
   var number = normalizeText(value).match(/\d+(?:[,.]\d+)?/);
   if (!number) return value;
-  return String(Math.round(parseFloat(number[0].replace(".", "").replace(",", ".")) * 1000));
+  return String(Math.round(parseFloat(number[0].replace(".", "").replace(",", ".")) * 1000)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 function jundiaiHemogramPlaquetas(value) {

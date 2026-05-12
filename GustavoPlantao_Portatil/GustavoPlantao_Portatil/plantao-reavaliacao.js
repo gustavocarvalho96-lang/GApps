@@ -1,6 +1,6 @@
 function transcribeCurrentLabs(input, source) {
   state.labInput = input ? input.value : state.labInput;
-  state.labSource = source || state.labSource || "auto";
+  state.labSource = source || "auto";
   if (state.labSource === "auto") {
     var result = transcribeAutomaticLabs(state.labInput);
     state.labDetectedSource = result.label;
@@ -17,7 +17,8 @@ function labSourceLabel() {
 }
 
 function insertLabOutputIntoReavaliacao() {
-  var output = state.labOutput || transcribeLabs(state.labInput);
+  if (!state.labOutput && state.labInput) transcribeCurrentLabs(null, "auto");
+  var output = state.labOutput || "";
   state.labOutput = output;
   if (!output) return;
   var text = state.editableText || "";
@@ -26,9 +27,12 @@ function insertLabOutputIntoReavaliacao() {
   var labsIndex = text.indexOf(labsMarker);
   var imageIndex = text.indexOf(imageMarker);
   if (labsIndex >= 0 && imageIndex > labsIndex) {
+    var beforeLabs = text.slice(0, labsIndex + labsMarker.length).trimEnd();
+    var existingLabs = text.slice(labsIndex + labsMarker.length, imageIndex).trim();
+    var labsText = existingLabs ? existingLabs + "\n" + output : output;
     state.editableText =
-      text.slice(0, labsIndex + labsMarker.length).trimEnd() +
-      "\n" + output + "\n\n" +
+      beforeLabs +
+      "\n" + labsText + "\n\n" +
       text.slice(imageIndex).trimStart();
     showToast("Exames inseridos");
     return;

@@ -232,7 +232,7 @@ function renderEditable(protocol, body) {
       render();
     }));
     actions.appendChild(textButton("Inserir no template", "text-btn", function () {
-      transcribeCurrentLabs(input);
+      state.labInput = input.value;
       insertLabOutputIntoReavaliacao();
       render();
     }));

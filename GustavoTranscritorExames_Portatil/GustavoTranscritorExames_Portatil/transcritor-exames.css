@@ -20,12 +20,16 @@ button, textarea {
 
 button {
   border: 1px solid #d9e1ec;
-  border-radius: 10px;
+  border-radius: 999px;
   background: #fff;
   color: #344054;
-  padding: 9px 12px;
-  font-weight: 700;
+  min-height: 38px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
   cursor: pointer;
+  box-shadow: 0 6px 14px rgba(15, 34, 48, .06);
 }
 
 button:hover {
@@ -35,15 +39,21 @@ button:hover {
 .app {
   width: min(1180px, 100%);
   margin: 0 auto;
-  padding: 24px;
+  padding: 22px;
 }
 
 .hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 12px;
+  min-height: 64px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid #d9e1ec;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 14px 34px rgba(29, 41, 57, .08);
 }
 
 .brand {
@@ -75,7 +85,7 @@ h1, h2, p {
 }
 
 h1 {
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0;
@@ -92,7 +102,7 @@ h1 {
   border-color: rgba(15, 118, 110, .25);
   background: #0f766e;
   color: #fff;
-  box-shadow: 0 12px 24px rgba(15, 118, 110, .20);
+  box-shadow: 0 8px 18px rgba(15, 118, 110, .16);
 }
 
 .primary:hover {
@@ -102,25 +112,25 @@ h1 {
 .workspace {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: 14px;
 }
 
 .panel {
   min-width: 0;
   border: 1px solid #d9e1ec;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #fff;
-  box-shadow: 0 16px 40px rgba(29, 41, 57, .09);
+  box-shadow: 0 12px 30px rgba(29, 41, 57, .075);
   overflow: hidden;
 }
 
 .panel-head {
-  min-height: 58px;
+  min-height: 50px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 11px 14px;
   border-bottom: 1px solid #edf1f6;
 }
 
@@ -135,86 +145,107 @@ h1 {
   justify-content: flex-end;
 }
 
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.toolbar-actions .home-link {
+  align-self: auto;
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1;
+}
+
 .manual-source-hidden {
   display: none;
 }
 
 .source-btn {
-  border-color: rgba(15, 118, 110, .18);
-  background: linear-gradient(180deg, #ffffff 0%, #f1fbf8 100%);
-  color: #0f766e;
-  box-shadow: 0 8px 18px rgba(15, 118, 110, .10);
+  border-color: #d9e1ec;
+  background: #fff;
+  color: #344054;
+  box-shadow: 0 6px 14px rgba(15, 34, 48, .06);
 }
 
 .source-btn:hover {
-  border-color: rgba(15, 118, 110, .30);
-  background: #e8f7f3;
-  color: #0b5f59;
+  border-color: rgba(15, 118, 110, .24);
+  background: #f3f6fa;
+  color: #243147;
 }
 
 .source-btn.active {
   border-color: rgba(15, 118, 110, .34);
   background: #0f766e;
   color: #fff;
-  box-shadow: 0 10px 22px rgba(15, 118, 110, .18);
+  box-shadow: 0 8px 18px rgba(15, 118, 110, .16);
 }
 
 .auto-btn {
-  border-color: rgba(124, 58, 237, .20);
-  background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
-  color: #6d28d9;
-  box-shadow: 0 8px 18px rgba(124, 58, 237, .10);
+  border-color: #d9e1ec;
+  background: #fff;
+  color: #344054;
+  box-shadow: 0 6px 14px rgba(15, 34, 48, .06);
 }
 
 .auto-btn:hover {
-  border-color: rgba(124, 58, 237, .34);
-  background: #ede9fe;
-  color: #5b21b6;
+  border-color: rgba(109, 40, 217, .24);
+  background: #f3f6fa;
+  color: #243147;
 }
 
 .auto-btn.active {
   border-color: rgba(109, 40, 217, .38);
   background: #6d28d9;
   color: #fff;
-  box-shadow: 0 10px 22px rgba(124, 58, 237, .18);
+  box-shadow: 0 8px 18px rgba(124, 58, 237, .16);
 }
 
 .detected-source {
-  padding: 10px 16px;
-  border-bottom: 1px solid #edf1f6;
-  background: #fbfcfe;
-  color: #475569;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid rgba(109, 40, 217, .14);
+  border-radius: 999px;
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .jundiai-btn {
-  border-color: rgba(59, 130, 246, .20);
-  background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
-  color: #1d4ed8;
-  box-shadow: 0 8px 18px rgba(59, 130, 246, .10);
+  border-color: #d9e1ec;
+  background: #fff;
+  color: #344054;
+  box-shadow: 0 6px 14px rgba(15, 34, 48, .06);
 }
 
 .jundiai-btn:hover {
-  border-color: rgba(59, 130, 246, .34);
-  background: #dbeafe;
-  color: #1e40af;
+  border-color: rgba(37, 99, 235, .24);
+  background: #f3f6fa;
+  color: #243147;
 }
 
 .jundiai-btn.active {
   border-color: rgba(29, 78, 216, .38);
   background: #1d4ed8;
   color: #fff;
-  box-shadow: 0 10px 22px rgba(59, 130, 246, .18);
+  box-shadow: 0 8px 18px rgba(59, 130, 246, .16);
 }
 
 textarea, pre {
   width: 100%;
-  min-height: 620px;
+  min-height: 360px;
   margin: 0;
   border: 0;
   outline: none;
-  padding: 16px;
+  padding: 14px;
   color: #243147;
   font-size: 14px;
   line-height: 1.55;
@@ -236,12 +267,17 @@ pre {
     flex-direction: column;
   }
 
+  .toolbar-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .workspace {
     grid-template-columns: 1fr;
   }
 
   textarea, pre {
-    min-height: 360px;
+    min-height: 280px;
   }
 
 }
