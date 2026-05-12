@@ -17,11 +17,9 @@
             </div>
           </div>
           <p class="current-clock">Horário do computador: <strong id="current-clock">--:--</strong></p>
-          <div class="nav-row">
-            <a class="nav-button" href="cards.html">Ver cards de pendências</a>
-          </div>
           <div class="form-actions top-actions">
             <span class="save-status" id="save-status">Salvo neste computador</span>
+            <button class="ghost-button" type="button" id="toggle-form-button" aria-expanded="true">Fechar cadastro</button>
             <div class="backup-menu">
               <button class="ghost-button backup-menu-button" type="button" id="backup-menu-button" aria-expanded="false">Backup</button>
               <div class="backup-menu-panel" id="backup-menu-panel" hidden>
@@ -60,12 +58,12 @@
             <div class="patient-grid">
               <label>
                 <span>Paciente</span>
-                <input id="patient-input" name="patient" type="text" placeholder="Ex.: Leito 12 - Maria S." autocomplete="off" required>
+                <input id="patient-input" name="patient" type="text" placeholder="Paciente ou leito" autocomplete="off" required>
               </label>
 
               <label>
                 <span>Hipótese diagnóstica <small>HD</small></span>
-                <input id="diagnosis-input" name="diagnosis" type="text" placeholder="Ex.: SCA? sepse? TEP?">
+                <input id="diagnosis-input" name="diagnosis" type="text" placeholder="Hipótese diagnóstica">
               </label>
             </div>
           </div>
@@ -73,43 +71,69 @@
           <div class="pending-section">
             <div class="pending-section-header">
               <h3>Solicitações deste paciente</h3>
-              <button class="ghost-button" type="button" id="add-item-button">Adicionar outra</button>
             </div>
 
             <div id="pending-items" class="pending-items">
               <article class="pending-item">
                 <div class="pending-item-header">
                   <strong>Pendência 1</strong>
+                  <label class="inline-type-field">
+                    <span>Tipo</span>
+                    <select name="type">
+                      <option>Exame</option>
+                      <option>Reavalia&ccedil;&atilde;o</option>
+                      <option>Medica&ccedil;&atilde;o</option>
+                      <option>Interconsulta</option>
+                      <option>Alta / transfer&ecirc;ncia</option>
+                      <option>Outro</option>
+                    </select>
+                  </label>
                   <button class="ghost-button remove-item-button" type="button">Remover</button>
                 </div>
 
                 <label>
                   <span>Solicitação</span>
-                  <textarea name="task" rows="3" placeholder="Ex.: Checar troponina às 18h e reavaliar dor torácica" required></textarea>
+                  <textarea name="task" rows="3" placeholder="Solicitação pendente" required></textarea>
                 </label>
 
-                <div class="form-grid">
-                  <label>
-                    <span>Tipo</span>
-                    <select name="type">
-                      <option>Exame</option>
-                      <option>Reavaliação</option>
-                      <option>Medicação</option>
-                      <option>Interconsulta</option>
-                      <option>Alta / transferência</option>
-                      <option>Outro</option>
-                    </select>
-                  </label>
-
-                </div>
               </article>
             </div>
           </div>
 
           <div class="submit-bar">
+            <button class="ghost-button" type="button" id="add-item-button">Adicionar outra</button>
             <button class="primary-button" type="submit">Adicionar pendência(s)</button>
           </div>
         </form>
+      </section>
+
+      <section class="cards-workspace">
+        <section class="controls" aria-label="Filtros e busca">
+          <label class="search-box hidden-search">
+            <span>Buscar</span>
+            <input id="search-input" type="search" placeholder="Paciente, leito, HD, exame ou observação">
+          </label>
+
+          <div class="filter-group" role="tablist" aria-label="Status">
+            <button class="filter-button is-active" type="button" data-filter="open">Pendentes</button>
+            <button class="filter-button" type="button" data-filter="all">Todas</button>
+            <button class="filter-button" type="button" data-filter="done">Completas</button>
+          </div>
+        </section>
+
+        <section class="list-area" aria-labelledby="list-title">
+          <div class="list-header">
+            <h2 id="list-title">Cards pendentes</h2>
+            <p id="list-context">Cards permanecem até você limpar ou excluir.</p>
+          </div>
+
+          <div id="task-list" class="task-list" aria-live="polite"></div>
+
+          <div id="empty-state" class="empty-state" hidden>
+            <h3>Nenhuma pendência por aqui</h3>
+            <p>Cadastre um paciente ou ajuste a busca/filtro.</p>
+          </div>
+        </section>
       </section>
 
       </div>
@@ -119,28 +143,25 @@
       <article class="pending-item">
         <div class="pending-item-header">
           <strong></strong>
+          <label class="inline-type-field">
+            <span>Tipo</span>
+            <select name="type">
+              <option>Exame</option>
+              <option>Reavalia&ccedil;&atilde;o</option>
+              <option>Medica&ccedil;&atilde;o</option>
+              <option>Interconsulta</option>
+              <option>Alta / transfer&ecirc;ncia</option>
+              <option>Outro</option>
+            </select>
+          </label>
           <button class="ghost-button remove-item-button" type="button">Remover</button>
         </div>
 
         <label>
           <span>Solicitação</span>
-          <textarea name="task" rows="3" placeholder="Ex.: Checar resultado do exame, reavaliar dor, repetir gasometria" required></textarea>
+          <textarea name="task" rows="3" placeholder="Solicitação pendente" required></textarea>
         </label>
 
-        <div class="form-grid">
-          <label>
-            <span>Tipo</span>
-            <select name="type">
-              <option>Exame</option>
-              <option>Reavaliação</option>
-              <option>Medicação</option>
-              <option>Interconsulta</option>
-              <option>Alta / transferência</option>
-              <option>Outro</option>
-            </select>
-          </label>
-
-        </div>
       </article>
     </template>
 
@@ -151,15 +172,63 @@
             <h3></h3>
             <span class="created-time"></span>
             <span class="diagnosis-pill"></span>
+            <div class="task-actions">
+              <button class="options-button" type="button" aria-expanded="false">Opções</button>
+              <div class="card-options-menu" hidden>
+                <button class="add-subtask-button" type="button">Adicionar pendência</button>
+                <button class="edit-card-button" type="button">Editar paciente</button>
+                <button class="delete-button" type="button" aria-label="Excluir card">Excluir card</button>
+              </div>
+            </div>
           </div>
           <p class="task-description"></p>
           <div class="subtask-list"></div>
           <div class="task-meta"></div>
           <p class="task-note"></p>
         </div>
-        <div class="task-actions">
-          <button class="delete-button" type="button" aria-label="Excluir pendência">Excluir</button>
-        </div>
+        <form class="card-edit-form" hidden>
+          <div class="patient-grid">
+            <label>
+              <span>Paciente</span>
+              <input name="patient" type="text" required>
+            </label>
+            <label>
+              <span>Hipótese diagnóstica <small>HD</small></span>
+              <input name="diagnosis" type="text">
+            </label>
+          </div>
+          <label>
+            <span>Observação</span>
+            <input name="note" type="text">
+          </label>
+          <div class="inline-actions">
+            <button class="primary-button" type="submit">Salvar paciente</button>
+            <button class="ghost-button cancel-card-edit-button" type="button">Cancelar</button>
+          </div>
+        </form>
+        <form class="card-add-form" hidden>
+          <label>
+            <span>Nova solicitação</span>
+            <textarea name="task" rows="2" placeholder="Solicitação pendente" required></textarea>
+          </label>
+          <div class="form-grid">
+            <label>
+              <span>Tipo</span>
+              <select name="type">
+                <option>Exame</option>
+                <option>Reavalia&ccedil;&atilde;o</option>
+                <option>Medica&ccedil;&atilde;o</option>
+                <option>Interconsulta</option>
+                <option>Alta / transfer&ecirc;ncia</option>
+                <option>Outro</option>
+              </select>
+            </label>
+          </div>
+          <div class="inline-actions">
+            <button class="primary-button" type="submit">Salvar pendência</button>
+            <button class="ghost-button cancel-subtask-button" type="button">Cancelar</button>
+          </div>
+        </form>
       </article>
     </template>
 

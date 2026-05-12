@@ -30,6 +30,8 @@ const currentClock = document.querySelector("#current-clock");
 const openCount = document.querySelector("#open-count");
 const lateCount = document.querySelector("#late-count");
 const doneCount = document.querySelector("#done-count");
+const toggleFormButton = document.querySelector("#toggle-form-button");
+const workspaceLayout = document.querySelector(".workspace-layout");
 
 let tasks = loadTasks();
 let activeFilter = "open";
@@ -161,6 +163,12 @@ backupMenuButton?.addEventListener("click", () => {
   const isOpening = backupMenuPanel.hidden;
   backupMenuPanel.hidden = !isOpening;
   backupMenuButton.setAttribute("aria-expanded", String(isOpening));
+});
+
+toggleFormButton?.addEventListener("click", () => {
+  const isClosed = workspaceLayout.classList.toggle("is-form-closed");
+  toggleFormButton.textContent = isClosed ? "Abrir cadastro" : "Fechar cadastro";
+  toggleFormButton.setAttribute("aria-expanded", String(!isClosed));
 });
 
 document.addEventListener("click", (event) => {
