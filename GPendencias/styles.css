@@ -835,11 +835,13 @@ textarea:focus {
 
 .card-add-form {
   display: grid;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 4px 6px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 6px;
   background: #f8faf8;
-  padding: 12px;
+  padding: 5px;
 }
 
 .card-add-form[hidden],
@@ -924,8 +926,52 @@ textarea:focus {
   font-size: 0.7rem;
 }
 
+.card-add-form > label {
+  grid-column: 1 / -1;
+}
+
+.card-add-form label {
+  min-width: 0;
+}
+
+.card-add-form label span {
+  display: none;
+}
+
 .card-add-form textarea {
-  min-height: 72px;
+  min-height: 32px;
+  max-height: 58px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.card-add-form select {
+  min-height: 28px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+}
+
+.card-add-form .form-grid {
+  grid-column: 1;
+  gap: 0;
+  max-width: 132px;
+}
+
+.card-add-form .inline-actions {
+  grid-column: 2;
+  grid-template-columns: auto auto;
+  gap: 4px;
+}
+
+.card-add-form .inline-actions .primary-button,
+.card-add-form .inline-actions .ghost-button {
+  min-height: 28px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  font-size: 0.7rem;
 }
 
 .inline-actions {
@@ -1234,6 +1280,10 @@ textarea:focus {
   }
 
   .subtask-edit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .card-add-form {
     grid-template-columns: 1fr;
   }
 
