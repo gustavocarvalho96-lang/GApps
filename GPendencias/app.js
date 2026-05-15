@@ -420,10 +420,20 @@ function render() {
     card.classList.toggle("is-partial", isPartiallyDone);
 
     card.querySelector("h3").textContent = mainTask.patient;
-    card.querySelector(".created-time").textContent = formatTime(mainTask.createdAt);
+    card.querySelector(".created-time").hidden = true;
     const diagnosisPill = card.querySelector(".diagnosis-pill");
-    diagnosisPill.textContent = mainTask.diagnosis ? `HD: ${mainTask.diagnosis}` : "";
-    diagnosisPill.hidden = !mainTask.diagnosis;
+    diagnosisPill.replaceChildren();
+    const timeSpan = document.createElement("span");
+    timeSpan.className = "diagnosis-time";
+    timeSpan.textContent = formatTime(mainTask.createdAt);
+    diagnosisPill.append(timeSpan);
+    if (mainTask.diagnosis) {
+      const hdSpan = document.createElement("span");
+      hdSpan.className = "diagnosis-hd";
+      hdSpan.textContent = `HD: ${mainTask.diagnosis}`;
+      diagnosisPill.append(hdSpan);
+    }
+    diagnosisPill.hidden = false;
     card.querySelector(".task-description").hidden = true;
     card.querySelector(".subtask-list").replaceChildren(...buildSubtasks(group.tasks));
     card.querySelector(".task-meta").replaceChildren();

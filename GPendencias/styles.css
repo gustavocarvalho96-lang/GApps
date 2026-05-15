@@ -737,7 +737,7 @@ textarea:focus {
 
 .task-title-row > .task-actions {
   grid-column: 2;
-  grid-row: 1 / span 4;
+  grid-row: 1 / span 2;
   align-self: start;
 }
 
@@ -751,14 +751,32 @@ textarea:focus {
 }
 
 .diagnosis-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
   border-radius: 999px;
-  background: #fff3d8;
-  color: #74510d;
+  background: #eef3ee;
+  color: var(--muted);
   padding: 3px 7px;
   font-size: 0.76rem;
   font-weight: 800;
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.diagnosis-hd {
+  border-radius: 999px;
+  background: #fff3d8;
+  color: #74510d;
+  padding: 1px 5px;
+}
+
+.diagnosis-time {
+  border-radius: 999px;
+  background: #dff3ee;
+  color: var(--accent-strong);
+  padding: 1px 5px;
 }
 
 .task-description {
@@ -1071,6 +1089,7 @@ textarea:focus {
 
 .subtask-content strong {
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .subtask-content small {
