@@ -33,6 +33,7 @@ function renderOptions(protocol, parent) {
       state.editableText = getInitialText(protocol);
       state.labInput = "";
       state.labOutput = "";
+      saveAnamneseDraft("Anamnese salva");
       render();
     }));
     if (protocol.genderedTemplate) {
@@ -273,7 +274,10 @@ function renderEditable(protocol, body) {
   var area = document.createElement("textarea");
   area.className = protocol.labTranscription ? "template-editor" : (protocol.id === "anamnese" ? "anamnese-editor" : "");
   area.value = state.editableText;
-  area.oninput = function () { state.editableText = area.value; };
+  area.oninput = function () {
+    state.editableText = area.value;
+    saveAnamneseDraft("Anamnese salva");
+  };
   body.appendChild(area);
 }
 

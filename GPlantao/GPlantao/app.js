@@ -1,5 +1,6 @@
 var quickOrder = ["anamnese", "reavaliacao", "internacao", "encaminhamento", "antibioticos", "receita-livre", "administrativo"];
 var editableIds = ["administrativo", "anamnese", "reavaliacao", "internacao", "encaminhamento", "receita-livre"];
+var ANAMNESE_STORAGE_KEY = "gplantao-anamnese-draft-v1";
 var state = {
   selectedId: "administrativo",
   selectedOption: 0,
@@ -75,6 +76,34 @@ function getInitialText(protocol) {
   return protocol.prescription || "";
 }
 
+function loadAnamneseDraft(protocol) {
+  var fallback = getInitialText(protocol);
+  try {
+    var stored = localStorage.getItem(ANAMNESE_STORAGE_KEY);
+    if (!stored) return fallback;
+    var payload = JSON.parse(stored);
+    if (payload && (payload.gender === "masculino" || payload.gender === "feminino")) {
+      state.anamneseGender = payload.gender;
+    }
+    return payload && typeof payload.text === "string" ? payload.text : fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function saveAnamneseDraft(message) {
+  if (state.selectedId !== "anamnese") return;
+  try {
+    localStorage.setItem(ANAMNESE_STORAGE_KEY, JSON.stringify({
+      text: state.editableText || "",
+      gender: state.anamneseGender,
+      savedAt: new Date().toISOString()
+    }));
+  } catch (error) {
+    // Autosave silencioso: se o navegador bloquear o storage, a anamnese segue em memoria.
+  }
+}
+
 function selectProtocol(id) {
   state.selectedId = id;
   state.selectedOption = 0;
@@ -87,7 +116,7 @@ function selectProtocol(id) {
   state.useGastroCipro = false;
   state.openGroups = { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, otoOro: false, psych: false, scores: false };
   var protocol = findProtocol(id);
-  state.editableText = getInitialText(protocol);
+  state.editableText = protocol && protocol.id === "anamnese" ? loadAnamneseDraft(protocol) : getInitialText(protocol);
   render();
 }
 
@@ -181,6 +210,7 @@ function addTextToEditable(label, text) {
   } else {
     state.editableText = state.editableText.trimEnd() + "\n\n" + text;
   }
+  saveAnamneseDraft("Anamnese salva");
   render();
 }
 
@@ -214,6 +244,7 @@ function applyAnamneseGender(text, gender) {
 function setAnamneseGender(gender) {
   state.anamneseGender = gender;
   state.editableText = applyAnamneseGender(state.editableText || getInitialText(findProtocol("anamnese")), gender);
+  saveAnamneseDraft("Anamnese salva");
   render();
 }
 
@@ -230,6 +261,7 @@ function toggleAnamneseExam(text) {
       state.editableText = current.trimEnd() + "\n" + text;
     }
   }
+  saveAnamneseDraft("Anamnese salva");
   render();
 }
 
@@ -241,7 +273,7 @@ function boot() {
   }
   var initialProtocol = findProtocol("anamnese") || protocols[0];
   state.selectedId = initialProtocol.id;
-  state.editableText = getInitialText(initialProtocol);
+  state.editableText = initialProtocol.id === "anamnese" ? loadAnamneseDraft(initialProtocol) : getInitialText(initialProtocol);
   document.addEventListener("keydown", function (event) {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
       if (state.selectedId === "reavaliacao" && event.target && event.target.className === "small") return;
