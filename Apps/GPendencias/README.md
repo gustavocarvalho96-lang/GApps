@@ -1,10 +1,10 @@
-﻿# PendÃªncias do PlantÃ£o
+�# Pendências do Plantão
 
-App local para registrar pacientes com exames, reavaliaÃ§Ãµes e outras pendÃªncias do plantÃ£o.
+App local para registrar pacientes com exames, reavaliações e outras pendências do plantão.
 
-No cadastro, vocÃª pode adicionar vÃ¡rias pendÃªncias para o mesmo paciente antes de salvar.
-Cada pendÃªncia recebe automaticamente o horÃ¡rio de cadastro usando o relÃ³gio do computador.
-NÃ£o hÃ¡ campo de prazo/horÃ¡rio limite, para se adequar melhor ao fluxo do pronto-socorro.
+No cadastro, você pode adicionar várias pendências para o mesmo paciente antes de salvar.
+Cada pendência recebe automaticamente o horário de cadastro usando o relógio do computador.
+Não há campo de prazo/horário limite, para se adequar melhor ao fluxo do pronto-socorro.
 
 ## Como abrir
 
@@ -20,12 +20,12 @@ Depois abra:
 http://localhost:5173
 ```
 
-Use `GPendencias.html` para cadastrar pendÃªncias e `cards.html` para acompanhar os cards com mais espaÃ§o:
+Use `GPendencias.html` para cadastrar pendências e `cards.html` para acompanhar os cards com mais espaço:
 
 ```text
 http://localhost:5173/cards.html
 ```
 
-Na tela de cards, cada paciente tem o botÃ£o "Adicionar pendÃªncia" para incluir novos pedidos no mesmo card, como uma segunda amostra.
+Na tela de cards, cada paciente tem o botão "Adicionar pendência" para incluir novos pedidos no mesmo card, como uma segunda amostra.
 
-Os dados ficam salvos automaticamente no prÃ³prio navegador deste computador. Ao fechar e abrir a pÃ¡gina de novo, as pendÃªncias continuam lÃ¡, exceto as que forem excluÃ­das ou limpas pelo botÃ£o "Limpar feitas".
+Os dados ficam salvos automaticamente no próprio navegador deste computador. Ao fechar e abrir a página de novo, as pendências continuam lá, exceto as que forem excluídas ou limpas pelo botão "Limpar feitas".
