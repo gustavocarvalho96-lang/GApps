@@ -6,7 +6,7 @@ Como abrir:
 3. Se preferir, abra index.html direto no navegador.
 
 Como levar para outro computador:
-Copie a pasta FluxoUPA-Portatil inteira para um pendrive ou compacte em .zip.
+Copie a pasta GFluxo inteira para um pendrive ou compacte em .zip.
 
 Observacao importante:
 O app nao precisa instalar nada. A leitura automatica de imagem usa html2canvas, tesseract.js,
