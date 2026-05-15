@@ -3,9 +3,9 @@ GustavoPlantão
 Como usar:
 1. Abra o arquivo "Abrir App Portatil.bat".
 2. O lancador tenta abrir em uma janela de app pelo Edge ou Chrome.
-3. Se preferir, abra diretamente "ReceitasMedicas_Portatil.html" no navegador.
+3. Se preferir, abra diretamente "GPlantao.html" no navegador.
 4. Para levar em pendrive, copie a pasta inteira mantendo estes arquivos juntos:
-   - ReceitasMedicas_Portatil.html
+   - GPlantao.html
    - styles.css
    - app-data.js
    - app.js

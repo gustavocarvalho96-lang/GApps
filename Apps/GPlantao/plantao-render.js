@@ -184,8 +184,36 @@ function renderOptions(protocol, parent) {
   }
 }
 
+function renderCollapsibleSections(protocol, body) {
+  var sections = protocol.collapsibleSections || [];
+  if (!sections.length) return;
+  var box = div("stack free-groups");
+  var tabs = div("free-topic-row");
+  var content = div("free-topic-content");
+  sections.forEach(function (section) {
+    var key = section.key;
+    tabs.appendChild(textButton(section.label, "text-btn free-topic-btn" + (state.openGroups[key] ? " active" : ""), function () {
+      state.openGroups[key] = !state.openGroups[key];
+      render();
+    }));
+    if (state.openGroups[key]) {
+      var row = div("row");
+      (section.items || []).forEach(function (item) {
+        row.appendChild(dotButton(item[0], function () {
+          addTextToEditable(item[0], item[1]);
+        }));
+      });
+      content.appendChild(row);
+    }
+  });
+  box.appendChild(tabs);
+  if (content.children.length) box.appendChild(content);
+  body.appendChild(box);
+}
+
 function renderEditable(protocol, body) {
   if (protocol.freeGroupsEnabled) renderFreeGroups(body);
+  if (protocol.collapsibleSections) renderCollapsibleSections(protocol, body);
   if (protocol.labTranscription) {
     var lab = div("panel stack reavaliacao-lab-panel");
     var header = div("reavaliacao-panel-head");
@@ -345,11 +373,31 @@ function renderScoreSidebar() {
   if (shouldShow) renderScorePanel(content);
 }
 
+function renderAtestaditeSidebar(items) {
+  var app = document.querySelector(".app");
+  var sidebar = el("atestaditeSidebar");
+  var body = el("atestaditeMenuBody");
+  var visibilityToggle = el("atestaditeSidebarToggle");
+  if (!sidebar || !body) return;
+  sidebar.classList.toggle("hidden", !state.atestaditeSidebarVisible);
+  if (app) app.classList.toggle("atestadite-hidden", !state.atestaditeSidebarVisible);
+  if (visibilityToggle) {
+    visibilityToggle.textContent = "Atestadite";
+    visibilityToggle.setAttribute("aria-expanded", state.atestaditeSidebarVisible ? "true" : "false");
+    visibilityToggle.onclick = function () {
+      state.atestaditeSidebarVisible = !state.atestaditeSidebarVisible;
+      render();
+    };
+  }
+  if (body) body.innerHTML = "";
+}
+
 function render() {
   var lists = filtered();
   var protocol = currentProtocol();
   if (protocol) state.selectedId = protocol.id;
   renderNav("quickList", lists.quick, state.selectedId, "Nenhuma acao rapida.");
+  renderAtestaditeSidebar(lists.atestadite);
   renderNav("recipeList", lists.recipes, state.selectedId, "Nenhuma receita encontrada.");
   renderScoreSidebar();
   renderProtocol(protocol);

@@ -13,7 +13,7 @@ const types = {
 
 createServer((request, response) => {
   const url = new URL(request.url || "/", `http://${request.headers.host}`);
-  const requestedPath = url.pathname === "/" ? "/index.html" : url.pathname;
+  const requestedPath = url.pathname === "/" ? "/GPendencias.html" : url.pathname;
   const filePath = normalize(join(root, decodeURIComponent(requestedPath)));
 
   if (!filePath.startsWith(root) || !existsSync(filePath)) {

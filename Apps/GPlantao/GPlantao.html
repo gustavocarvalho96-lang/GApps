@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
@@ -17,7 +17,10 @@
         <div class="brand-name">Plantão</div>
       </div>
     </div>
-    <a class="home-link" href="../../index.html">Menu</a>
+    <div class="topbar-actions">
+      <button id="atestaditeSidebarToggle" class="sidebar-visibility-toggle" type="button" aria-expanded="true">Atestadite</button>
+      <a class="home-link" href="../../menu.html">Menu</a>
+    </div>
   </header>
   <main class="app">
     <aside class="sidebar sidebar-quick">
@@ -34,6 +37,14 @@
       </div>
       <div class="list">
         <div id="recipeList"></div>
+      </div>
+    </aside>
+    <aside id="atestaditeSidebar" class="sidebar sidebar-atestadite">
+      <div class="sidebar-head">
+        <div class="sidebar-title">Atestadite</div>
+      </div>
+      <div id="atestaditeMenuBody" class="list">
+        <div id="atestaditeList"></div>
       </div>
     </aside>
     <aside id="scoreSidebar" class="sidebar sidebar-scores hidden">

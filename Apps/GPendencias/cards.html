@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8">
@@ -11,14 +11,14 @@
       <section class="topbar" aria-labelledby="app-title">
         <div>
           <div class="app-brand">
-            <img class="app-brand-logo" src="../shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
+            <img class="app-brand-logo" src="../../shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
             <div>
           <h1 id="app-title">Pendencias</h1>
             </div>
           </div>
-          <p class="current-clock">Horário do computador: <strong id="current-clock">--:--</strong></p>
+          <p class="current-clock">HorÃ¡rio do computador: <strong id="current-clock">--:--</strong></p>
           <div class="nav-row">
-            <a class="nav-button" href="index.html">Cadastrar pendências</a>
+            <a class="nav-button" href="GPendencias.html">Cadastrar pendÃªncias</a>
           </div>
           <div class="form-actions top-actions">
             <span class="save-status" id="save-status">Salvo neste computador</span>
@@ -36,17 +36,17 @@
             </div>
           </div>
         </div>
-        <div class="shift-summary" aria-label="Resumo das pendências">
+        <div class="shift-summary" aria-label="Resumo das pendÃªncias">
           <span><strong id="open-count">0</strong> Pendentes</span>
           <span><strong id="late-count">0</strong> Completos</span>
         </div>
-        <a class="home-link" href="../index.html">Menu</a>
+        <a class="home-link" href="../../menu.html">Menu</a>
       </section>
 
       <section class="controls" aria-label="Filtros e busca">
         <label class="search-box">
           <span>Buscar</span>
-          <input id="search-input" type="search" placeholder="Paciente, leito, HD, exame ou observação">
+          <input id="search-input" type="search" placeholder="Paciente, leito, HD, exame ou observaÃ§Ã£o">
         </label>
 
         <div class="filter-group" role="tablist" aria-label="Status">
@@ -59,7 +59,7 @@
       <section class="list-area" aria-labelledby="list-title">
         <div class="list-header">
           <h2 id="list-title">Pacientes pendentes</h2>
-          <p id="list-context">Cards permanecem até você limpar ou excluir.</p>
+          <p id="list-context">Cards permanecem atÃ© vocÃª limpar ou excluir.</p>
         </div>
 
         <div id="task-list" class="task-list" aria-live="polite"></div>
@@ -76,9 +76,9 @@
             <span class="created-time"></span>
             <span class="diagnosis-pill"></span>
             <div class="task-actions">
-              <button class="options-button" type="button" aria-expanded="false">Opções</button>
+              <button class="options-button" type="button" aria-expanded="false">OpÃ§Ãµes</button>
               <div class="card-options-menu" hidden>
-                <button class="add-subtask-button" type="button">Adicionar pendência</button>
+                <button class="add-subtask-button" type="button">Adicionar pendÃªncia</button>
                 <button class="edit-card-button" type="button">Editar paciente</button>
                 <button class="delete-button" type="button" aria-label="Excluir card">Excluir card</button>
               </div>
@@ -96,12 +96,12 @@
               <input name="patient" type="text" required>
             </label>
             <label>
-              <span>Hipótese diagnóstica <small>HD</small></span>
+              <span>HipÃ³tese diagnÃ³stica <small>HD</small></span>
               <input name="diagnosis" type="text">
             </label>
           </div>
           <label>
-            <span>Observação</span>
+            <span>ObservaÃ§Ã£o</span>
             <input name="note" type="text">
           </label>
           <div class="inline-actions">
@@ -111,7 +111,7 @@
         </form>
         <form class="card-add-form" hidden>
           <label>
-            <span>Nova solicitação</span>
+            <span>Nova solicitaÃ§Ã£o</span>
             <textarea name="task" rows="2" placeholder="Ex.: Solicitar segunda amostra" required></textarea>
           </label>
           <div class="form-grid">
@@ -119,16 +119,16 @@
               <span>Tipo</span>
               <select name="type">
                 <option>Exame</option>
-                <option>Reavaliação</option>
-                <option>Medicação</option>
+                <option>ReavaliaÃ§Ã£o</option>
+                <option>MedicaÃ§Ã£o</option>
                 <option>Interconsulta</option>
-                <option>Alta / transferência</option>
+                <option>Alta / transferÃªncia</option>
                 <option>Outro</option>
               </select>
             </label>
           </div>
           <div class="inline-actions">
-            <button class="primary-button" type="submit">Salvar pendência</button>
+            <button class="primary-button" type="submit">Salvar pendÃªncia</button>
             <button class="ghost-button cancel-subtask-button" type="button">Cancelar</button>
           </div>
         </form>

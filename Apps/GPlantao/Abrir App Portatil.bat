@@ -1,6 +1,6 @@
 @echo off
 set "APP_DIR=%~dp0"
-set "APP_FILE=%APP_DIR%ReceitasMedicas_Portatil.html"
+set "APP_FILE=%APP_DIR%GPlantao.html"
 set "APP_URL=file:///%APP_FILE:\=/%"
 
 if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (

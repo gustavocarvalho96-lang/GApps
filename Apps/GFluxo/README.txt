@@ -3,7 +3,7 @@ Fluxo UPA Portatil
 Como abrir:
 1. Entre nesta pasta.
 2. De dois cliques em abrir_app.bat.
-3. Se preferir, abra index.html direto no navegador.
+3. Se preferir, abra GFluxo.html direto no navegador.
 
 Como levar para outro computador:
 Copie a pasta GFluxo inteira para um pendrive ou compacte em .zip.

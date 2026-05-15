@@ -1,5 +1,6 @@
 var quickOrder = ["anamnese", "reavaliacao", "internacao", "encaminhamento", "antibioticos", "receita-livre", "administrativo"];
-var editableIds = ["administrativo", "anamnese", "reavaliacao", "internacao", "encaminhamento", "receita-livre"];
+var atestaditeOrder = ["atestadite"];
+var editableIds = ["administrativo", "anamnese", "reavaliacao", "internacao", "encaminhamento", "atestadite", "receita-livre"];
 var ANAMNESE_STORAGE_KEY = "gplantao-anamnese-draft-v1";
 var state = {
   selectedId: "administrativo",
@@ -14,6 +15,7 @@ var state = {
   labOutput: "",
   labSource: "auto",
   labDetectedSource: "",
+  atestaditeSidebarVisible: false,
   scores: {
     heart: { history: 0, ecg: 0, age: "", riskFactors: 0, troponin: 0 },
     grace: { age: "", heartRate: "", systolicBp: "", creatinine: "", killip: 1, arrest: 0, stDeviation: 0, markers: 0 },
@@ -24,7 +26,7 @@ var state = {
   useParacetamolAlt: false,
   useEscopolaminaParacetamolAlt: false,
   useGastroCipro: false,
-  openGroups: { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, otoOro: false, psych: false, scores: false }
+  openGroups: { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false }
 };
 
 function el(id) {
@@ -114,7 +116,7 @@ function selectProtocol(id) {
   state.useParacetamolAlt = false;
   state.useEscopolaminaParacetamolAlt = false;
   state.useGastroCipro = false;
-  state.openGroups = { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, otoOro: false, psych: false, scores: false };
+  state.openGroups = { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false };
   var protocol = findProtocol(id);
   state.editableText = protocol && protocol.id === "anamnese" ? loadAnamneseDraft(protocol) : getInitialText(protocol);
   render();
@@ -133,10 +135,13 @@ function filtered() {
   var quick = protocols.filter(function (item) { return quickOrder.indexOf(item.id) >= 0; }).sort(function (a, b) {
     return quickOrder.indexOf(a.id) - quickOrder.indexOf(b.id);
   });
-  var recipes = protocols.filter(function (item) { return quickOrder.indexOf(item.id) < 0; }).sort(function (a, b) {
+  var atestadite = protocols.filter(function (item) { return atestaditeOrder.indexOf(item.id) >= 0; }).sort(function (a, b) {
+    return atestaditeOrder.indexOf(a.id) - atestaditeOrder.indexOf(b.id);
+  });
+  var recipes = protocols.filter(function (item) { return quickOrder.indexOf(item.id) < 0 && atestaditeOrder.indexOf(item.id) < 0; }).sort(function (a, b) {
     return a.title.localeCompare(b.title, "pt-BR");
   });
-  return { quick: quick, recipes: recipes, all: quick.concat(recipes) };
+  return { quick: quick, atestadite: atestadite, recipes: recipes, all: quick.concat(atestadite, recipes) };
 }
 
 function currentProtocol() {

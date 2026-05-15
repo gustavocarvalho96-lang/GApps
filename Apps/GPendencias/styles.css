@@ -393,6 +393,10 @@ h2 {
   display: none;
 }
 
+.form-only .pending-section-header {
+  display: none;
+}
+
 .patient-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(240px, 0.75fr);
@@ -526,6 +530,11 @@ label {
 .form-only label {
   gap: 3px;
   font-size: 0.74rem;
+}
+
+.form-only .patient-grid label > span,
+.form-only .pending-item > label > span {
+  display: none;
 }
 
 label small {

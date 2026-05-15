@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8">
@@ -11,12 +11,12 @@
       <section class="topbar" aria-labelledby="app-title">
         <div>
           <div class="app-brand">
-            <img class="app-brand-logo" src="../shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
+            <img class="app-brand-logo" src="../../shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
             <div>
           <h1 id="app-title">Pendencias</h1>
             </div>
           </div>
-          <p class="current-clock">Horário do computador: <strong id="current-clock">--:--</strong></p>
+          <p class="current-clock">HorÃ¡rio do computador: <strong id="current-clock">--:--</strong></p>
           <div class="form-actions top-actions">
             <span class="save-status" id="save-status">Salvo neste computador</span>
             <button class="toggle-form-button" type="button" id="toggle-form-button" aria-expanded="true">Fechar cadastro</button>
@@ -33,21 +33,21 @@
               <input class="backup-file-input" id="import-file-input" type="file" accept="application/json,.json">
             </div>
             <button class="ghost-button" type="button" id="clear-done-button">Limpar completos</button>
-            <button class="danger-ghost-button" type="button" id="clear-all-button">Encerrar plantão</button>
+            <button class="danger-ghost-button" type="button" id="clear-all-button">Encerrar plantÃ£o</button>
           </div>
         </div>
-        <div class="shift-summary" aria-label="Resumo das pendências">
+        <div class="shift-summary" aria-label="Resumo das pendÃªncias">
           <span><strong id="open-count">0</strong> Pendentes</span>
           <span><strong id="late-count">0</strong> Completos</span>
         </div>
-        <a class="home-link" href="../index.html">Menu</a>
+        <a class="home-link" href="../../menu.html">Menu</a>
       </section>
 
       <div class="workspace-layout form-only">
       <section class="entry-band" aria-labelledby="form-title">
         <form id="task-form" class="task-form">
           <div class="form-header">
-            <h2 id="form-title">Nova pendência</h2>
+            <h2 id="form-title">Nova pendÃªncia</h2>
           </div>
 
           <div class="form-section">
@@ -61,21 +61,21 @@
               </label>
 
               <label>
-                <span>Hipótese diagnóstica <small>HD</small></span>
-                <input id="diagnosis-input" name="diagnosis" type="text" placeholder="Hipótese diagnóstica">
+                <span>HipÃ³tese diagnÃ³stica <small>HD</small></span>
+                <input id="diagnosis-input" name="diagnosis" type="text" placeholder="HipÃ³tese diagnÃ³stica">
               </label>
             </div>
           </div>
 
           <div class="pending-section">
             <div class="pending-section-header">
-              <h3>Solicitações deste paciente</h3>
+              <h3>SolicitaÃ§Ãµes deste paciente</h3>
             </div>
 
             <div id="pending-items" class="pending-items">
               <article class="pending-item">
                 <div class="pending-item-header">
-                  <strong>Pendência 1</strong>
+                  <strong>PendÃªncia 1</strong>
                   <label class="inline-type-field">
                     <span>Tipo</span>
                     <select name="type">
@@ -91,8 +91,8 @@
                 </div>
 
                 <label>
-                  <span>Solicitação</span>
-                  <textarea name="task" rows="3" placeholder="Solicitação pendente" required></textarea>
+                  <span>SolicitaÃ§Ã£o</span>
+                  <textarea name="task" rows="3" placeholder="SolicitaÃ§Ã£o pendente" required></textarea>
                 </label>
 
               </article>
@@ -100,7 +100,7 @@
           </div>
 
           <div class="submit-bar">
-            <button class="ghost-button" type="button" id="add-item-button">Adicionar outra solicitação</button>
+            <button class="ghost-button" type="button" id="add-item-button">Adicionar outra solicitaÃ§Ã£o</button>
             <button class="primary-button" type="submit">Adicionar Paciente</button>
           </div>
         </form>
@@ -110,7 +110,7 @@
         <section class="controls" aria-label="Filtros e busca">
           <label class="search-box hidden-search">
             <span>Buscar</span>
-            <input id="search-input" type="search" placeholder="Paciente, leito, HD, exame ou observação">
+            <input id="search-input" type="search" placeholder="Paciente, leito, HD, exame ou observaÃ§Ã£o">
           </label>
 
           <div class="filter-group" role="tablist" aria-label="Status">
@@ -123,7 +123,7 @@
         <section class="list-area" aria-labelledby="list-title">
           <div class="list-header">
             <h2 id="list-title">Pacientes pendentes</h2>
-            <p id="list-context">Cards permanecem até você limpar ou excluir.</p>
+            <p id="list-context">Cards permanecem atÃ© vocÃª limpar ou excluir.</p>
           </div>
 
           <div id="task-list" class="task-list" aria-live="polite"></div>
@@ -154,8 +154,8 @@
         </div>
 
         <label>
-          <span>Solicitação</span>
-          <textarea name="task" rows="3" placeholder="Solicitação pendente" required></textarea>
+          <span>SolicitaÃ§Ã£o</span>
+          <textarea name="task" rows="3" placeholder="SolicitaÃ§Ã£o pendente" required></textarea>
         </label>
 
       </article>
@@ -169,9 +169,9 @@
             <span class="created-time"></span>
             <span class="diagnosis-pill"></span>
             <div class="task-actions">
-              <button class="options-button" type="button" aria-expanded="false">Opções</button>
+              <button class="options-button" type="button" aria-expanded="false">OpÃ§Ãµes</button>
               <div class="card-options-menu" hidden>
-                <button class="add-subtask-button" type="button">Adicionar pendência</button>
+                <button class="add-subtask-button" type="button">Adicionar pendÃªncia</button>
                 <button class="edit-card-button" type="button">Editar paciente</button>
                 <button class="delete-button" type="button" aria-label="Excluir card">Excluir card</button>
               </div>
@@ -189,12 +189,12 @@
               <input name="patient" type="text" required>
             </label>
             <label>
-              <span>Hipótese diagnóstica <small>HD</small></span>
+              <span>HipÃ³tese diagnÃ³stica <small>HD</small></span>
               <input name="diagnosis" type="text">
             </label>
           </div>
           <label>
-            <span>Observação</span>
+            <span>ObservaÃ§Ã£o</span>
             <input name="note" type="text">
           </label>
           <div class="inline-actions">
@@ -204,8 +204,8 @@
         </form>
         <form class="card-add-form" hidden>
           <label>
-            <span>Nova solicitação</span>
-            <textarea name="task" rows="2" placeholder="Solicitação pendente" required></textarea>
+            <span>Nova solicitaÃ§Ã£o</span>
+            <textarea name="task" rows="2" placeholder="SolicitaÃ§Ã£o pendente" required></textarea>
           </label>
           <div class="form-grid">
             <label>
@@ -221,7 +221,7 @@
             </label>
           </div>
           <div class="inline-actions">
-            <button class="primary-button" type="submit">Salvar pendência</button>
+            <button class="primary-button" type="submit">Salvar pendÃªncia</button>
             <button class="ghost-button cancel-subtask-button" type="button">Cancelar</button>
           </div>
         </form>

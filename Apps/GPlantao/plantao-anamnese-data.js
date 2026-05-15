@@ -57,6 +57,49 @@ EXT: Sem Empastamento De Panturrilhas, Tec< 3 Segundos, Simétricas, Sem Edemas
     tags: ["anamnese", "exame físico"]
   },
   {
+    id: "atestadite",
+    title: "Atestadite",
+    category: "Estrutura Clinica",
+    prescription: `ATESTADO MEDICO
+
+Atesto, para os devidos fins, que o(a) paciente ____________________________________________ esteve em atendimento medico nesta unidade na data de hoje.
+
+Necessita de afastamento de suas atividades por ____ dia(s), a contar desta data.
+
+CID: ______
+
+Data: ____/____/______`,
+    orientation: "",
+    tags: ["atestado", "atestadite"],
+    collapsibleSections: [
+      {
+        key: "atestadite",
+        label: "Modelos de atestado",
+        items: [
+          ["Atestado simples", `ATESTADO MEDICO
+
+Atesto, para os devidos fins, que o(a) paciente ____________________________________________ esteve em atendimento medico nesta unidade na data de hoje.
+
+Necessita de afastamento de suas atividades por ____ dia(s), a contar desta data.
+
+CID: ______
+
+Data: ____/____/______`],
+          ["Comparecimento", `DECLARACAO DE COMPARECIMENTO
+
+Declaro, para os devidos fins, que o(a) paciente ____________________________________________ compareceu a esta unidade para atendimento medico na data de hoje, no periodo de ____:____ as ____:____.
+
+Data: ____/____/______`],
+          ["Acompanhante", `DECLARACAO DE ACOMPANHANTE
+
+Declaro, para os devidos fins, que ____________________________________________ acompanhou o(a) paciente ____________________________________________ durante atendimento medico nesta unidade na data de hoje, no periodo de ____:____ as ____:____.
+
+Data: ____/____/______`]
+        ]
+      }
+    ]
+  },
+  {
     id: "reavaliacao",
     title: "Reavaliação",
     category: "Estrutura Clínica",
