@@ -172,14 +172,20 @@ toggleFormButton?.addEventListener("click", () => {
 });
 
 document.addEventListener("click", (event) => {
-  if (!backupMenuPanel || backupMenuPanel.hidden) return;
-  if (event.target.closest(".backup-menu")) return;
+  if (backupMenuPanel && !backupMenuPanel.hidden && !event.target.closest(".backup-menu")) {
+    closeBackupMenu();
+  }
 
-  closeBackupMenu();
+  if (!event.target.closest(".task-actions")) {
+    closeCardOptionMenus();
+  }
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeBackupMenu();
+  if (event.key === "Escape") {
+    closeBackupMenu();
+    closeCardOptionMenus();
+  }
 });
 
 taskList?.addEventListener("click", (event) => {
@@ -195,6 +201,7 @@ taskList?.addEventListener("click", (event) => {
     const menu = card.querySelector(".card-options-menu");
     const isOpening = menu.hidden;
 
+    closeCardOptionMenus(card);
     menu.hidden = !isOpening;
     action.setAttribute("aria-expanded", String(isOpening));
     return;
@@ -203,8 +210,7 @@ taskList?.addEventListener("click", (event) => {
   if (action?.classList.contains("add-subtask-button")) {
     const addForm = card.querySelector(".card-add-form");
     addForm.hidden = false;
-    card.querySelector(".card-options-menu").hidden = true;
-    card.querySelector(".options-button").setAttribute("aria-expanded", "false");
+    closeCardOptionMenus();
     addForm.querySelector('[name="task"]').focus();
     return;
   }
@@ -220,8 +226,7 @@ taskList?.addEventListener("click", (event) => {
     editForm.elements.diagnosis.value = mainTask.diagnosis || "";
     editForm.elements.note.value = mainTask.note || "";
     editForm.hidden = false;
-    card.querySelector(".card-options-menu").hidden = true;
-    card.querySelector(".options-button").setAttribute("aria-expanded", "false");
+    closeCardOptionMenus();
     editForm.elements.patient.focus();
     return;
   }
@@ -247,17 +252,31 @@ taskList?.addEventListener("click", (event) => {
 
     if (!task || !editForm) return;
 
+    closeCardOptionMenus();
+    card.querySelectorAll(".subtask-item.is-editing").forEach((item) => {
+      if (item !== subtask) {
+        item.classList.remove("is-editing");
+        const form = item.querySelector(".subtask-edit-form");
+        if (form) {
+          form.reset();
+          form.hidden = true;
+        }
+      }
+    });
     editForm.elements.task.value = task.description || "";
     editForm.elements.type.value = task.type || "Exame";
     editForm.hidden = false;
+    subtask.classList.add("is-editing");
     editForm.elements.task.focus();
     return;
   }
 
   if (action?.classList.contains("cancel-subtask-edit-button")) {
     const editForm = action.closest(".subtask-edit-form");
+    const subtask = action.closest(".subtask-item");
     editForm.reset();
     editForm.hidden = true;
+    subtask?.classList.remove("is-editing");
     return;
   }
 
@@ -792,6 +811,16 @@ function closeBackupMenu() {
 
   backupMenuPanel.hidden = true;
   backupMenuButton.setAttribute("aria-expanded", "false");
+}
+
+function closeCardOptionMenus(exceptCard) {
+  document.querySelectorAll(".task-card").forEach((card) => {
+    if (exceptCard && card === exceptCard) return;
+    const menu = card.querySelector(".card-options-menu");
+    const button = card.querySelector(".options-button");
+    if (menu) menu.hidden = true;
+    if (button) button.setAttribute("aria-expanded", "false");
+  });
 }
 
 function todayKey() {

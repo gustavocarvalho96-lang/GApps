@@ -868,11 +868,11 @@ textarea:focus {
 }
 
 .subtask-edit-form {
-  grid-template-columns: minmax(0, 1fr) minmax(116px, 138px) auto;
-  align-items: end;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 4px 6px;
   margin-top: 2px;
-  padding: 7px;
+  padding: 5px;
   border-radius: 6px;
 }
 
@@ -880,42 +880,48 @@ textarea:focus {
   min-width: 0;
 }
 
+.subtask-edit-form > label {
+  grid-column: 1 / -1;
+}
+
 .subtask-edit-form label span {
-  margin-bottom: 3px;
-  font-size: 0.64rem;
+  display: none;
 }
 
 .subtask-edit-form textarea {
-  min-height: 34px;
-  max-height: 78px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  font-size: 0.76rem;
-  line-height: 1.25;
-}
-
-.subtask-edit-form select {
   min-height: 32px;
+  max-height: 58px;
   padding: 5px 7px;
   border-radius: 6px;
   font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.subtask-edit-form select {
+  min-height: 28px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 0.72rem;
 }
 
 .subtask-edit-form .form-grid {
+  grid-column: 1;
   gap: 0;
+  max-width: 132px;
 }
 
 .subtask-edit-form .inline-actions {
+  grid-column: 2;
   grid-template-columns: auto auto;
-  gap: 5px;
+  gap: 4px;
 }
 
 .subtask-edit-form .inline-actions .primary-button,
 .subtask-edit-form .inline-actions .ghost-button {
-  min-height: 32px;
-  padding: 5px 8px;
+  min-height: 28px;
+  padding: 4px 7px;
   border-radius: 6px;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
 }
 
 .card-add-form textarea {
@@ -943,6 +949,11 @@ textarea:focus {
 .subtask-item {
   display: grid;
   gap: 3px;
+}
+
+.subtask-item.is-editing {
+  position: relative;
+  z-index: 2;
 }
 
 .subtask-row {
@@ -978,6 +989,11 @@ textarea:focus {
 .subtask-row:focus-within .subtask-actions {
   opacity: 1;
   pointer-events: auto;
+}
+
+.subtask-item.is-editing .subtask-actions {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .subtask-actions .ghost-button,
