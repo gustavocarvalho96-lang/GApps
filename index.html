@@ -203,6 +203,205 @@
       transform: translateX(-3px);
     }
 
+    .sensitive-dot {
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      z-index: 20;
+      width: 9px;
+      height: 9px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(15, 34, 48, 0.16);
+      opacity: 0.22;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .sensitive-dot:hover,
+    .sensitive-dot:focus-visible {
+      opacity: 0.55;
+      outline: 2px solid rgba(15, 118, 110, 0.18);
+      outline-offset: 4px;
+    }
+
+    .sensitive-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 34, 48, 0.34);
+      backdrop-filter: blur(7px);
+    }
+
+    .sensitive-screen[hidden] {
+      display: none;
+    }
+
+    .sensitive-panel {
+      width: min(680px, 100%);
+      max-height: min(760px, calc(100vh - 40px));
+      display: grid;
+      grid-template-rows: auto auto minmax(240px, 1fr) auto;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: 0 30px 80px rgba(15, 34, 48, 0.22);
+      padding: 18px;
+    }
+
+    .sensitive-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .sensitive-head h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.15;
+    }
+
+    .sensitive-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .sensitive-close {
+      flex: 0 0 auto;
+      min-width: 34px;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .sensitive-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .sensitive-controls label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .sensitive-controls input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    .sensitive-controls input {
+      min-height: 38px;
+      padding: 8px 10px;
+    }
+
+    .sensitive-data {
+      min-height: 260px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 12px;
+      line-height: 1.45;
+    }
+
+    .sensitive-data[hidden] {
+      display: none;
+    }
+
+    .sensitive-section {
+      display: grid;
+      gap: 6px;
+      border-bottom: 1px solid var(--line);
+      padding: 0 0 12px;
+      margin: 0 0 12px;
+    }
+
+    .sensitive-section:last-child {
+      border-bottom: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .sensitive-section h3,
+    .sensitive-section p {
+      margin: 0;
+    }
+
+    .sensitive-section h3 {
+      font-size: 0.95rem;
+    }
+
+    .sensitive-section p {
+      white-space: pre-wrap;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .sensitive-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sensitive-action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sensitive-panel button:not(.sensitive-close) {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .sensitive-panel .primary {
+      border-color: rgba(15, 118, 110, .25);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .sensitive-panel .danger {
+      border-color: #efd9d5;
+      background: #fff8f6;
+      color: #9a4639;
+    }
+
+    .sensitive-status {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
     @media (max-width: 860px) {
       .app {
         padding: 22px 16px 34px;
@@ -246,6 +445,19 @@
       .card-logo {
         width: 38px;
         height: 38px;
+      }
+
+      .sensitive-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .sensitive-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .sensitive-panel button:not(.sensitive-close) {
+        width: 100%;
       }
     }
   </style>
@@ -296,5 +508,137 @@
       </a>
     </section>
   </main>
+  <button id="sensitiveDot" class="sensitive-dot" type="button" aria-label="Abrir dados sensíveis"></button>
+
+  <section id="sensitiveScreen" class="sensitive-screen" hidden aria-modal="true" role="dialog" aria-labelledby="sensitiveTitle">
+    <div class="sensitive-panel">
+      <div class="sensitive-head">
+        <div>
+          <h2 id="sensitiveTitle">Dados sensíveis</h2>
+      <p>Consulta local de dados fixos predefinidos. O acesso é liberado por senha.</p>
+        </div>
+        <button id="sensitiveClose" class="sensitive-close" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <div class="sensitive-controls">
+        <label>
+          Senha local
+          <input id="sensitivePassword" type="password" autocomplete="current-password" placeholder="Digite a senha para abrir">
+        </label>
+        <button id="sensitiveUnlock" type="button">Abrir</button>
+      </div>
+
+      <div id="sensitiveData" class="sensitive-data" hidden></div>
+
+      <div class="sensitive-actions">
+        <span id="sensitiveStatus" class="sensitive-status">Bloqueado</span>
+      </div>
+    </div>
+  </section>
+
+  <script src="shared/sensitive-data.js"></script>
+  <script>
+    (function () {
+      var dot = document.getElementById("sensitiveDot");
+      var screen = document.getElementById("sensitiveScreen");
+      var closeBtn = document.getElementById("sensitiveClose");
+      var passwordInput = document.getElementById("sensitivePassword");
+      var sensitiveData = document.getElementById("sensitiveData");
+      var unlockBtn = document.getElementById("sensitiveUnlock");
+      var status = document.getElementById("sensitiveStatus");
+
+      function setStatus(message) {
+        status.textContent = message;
+      }
+
+      function cryptoAvailable() {
+        return !!(window.crypto && crypto.subtle && window.TextEncoder && window.TextDecoder);
+      }
+
+      function bytesToHex(bytes) {
+        return Array.from(bytes).map(function (byte) {
+          return byte.toString(16).padStart(2, "0");
+        }).join("");
+      }
+
+      async function sha256(value) {
+        var data = new TextEncoder().encode(value);
+        var hash = await crypto.subtle.digest("SHA-256", data);
+        return bytesToHex(new Uint8Array(hash));
+      }
+
+      function renderSensitiveData() {
+        var config = window.GAPPS_SENSITIVE_DATA || {};
+        var sections = Array.isArray(config.sections) ? config.sections : [];
+        sensitiveData.innerHTML = "";
+        if (!sections.length) {
+          var empty = document.createElement("p");
+          empty.textContent = "Nenhum dado predefinido.";
+          sensitiveData.appendChild(empty);
+          return;
+        }
+        sections.forEach(function (section) {
+          var block = document.createElement("article");
+          block.className = "sensitive-section";
+          var title = document.createElement("h3");
+          title.textContent = section.title || "Dados";
+          block.appendChild(title);
+          (section.lines || []).forEach(function (line) {
+            var item = document.createElement("p");
+            item.textContent = line;
+            block.appendChild(item);
+          });
+          sensitiveData.appendChild(block);
+        });
+      }
+
+      function openScreen() {
+        screen.hidden = false;
+        sensitiveData.hidden = true;
+        setStatus("Digite a senha e clique em Abrir");
+        setTimeout(function () {
+          passwordInput.focus();
+        }, 0);
+      }
+
+      function closeScreen() {
+        screen.hidden = true;
+      }
+
+      dot.addEventListener("click", openScreen);
+      closeBtn.addEventListener("click", closeScreen);
+      screen.addEventListener("click", function (event) {
+        if (event.target === screen) closeScreen();
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !screen.hidden) closeScreen();
+      });
+
+      unlockBtn.addEventListener("click", async function () {
+        if (!cryptoAvailable()) {
+          setStatus("Validacao de senha indisponivel neste navegador");
+          return;
+        }
+        if (!passwordInput.value) {
+          setStatus("Digite a senha");
+          return;
+        }
+        try {
+          var config = window.GAPPS_SENSITIVE_DATA || {};
+          var passwordHash = await sha256(passwordInput.value);
+          if (passwordHash !== config.passwordHash) {
+            setStatus("Senha incorreta");
+            return;
+          }
+          renderSensitiveData();
+          sensitiveData.hidden = false;
+          setStatus("Acesso liberado");
+        } catch (error) {
+          setStatus("Nao foi possivel abrir");
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
