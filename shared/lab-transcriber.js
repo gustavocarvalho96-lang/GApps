@@ -184,6 +184,33 @@ function transcribeLabs(rawText) {
     if (coagParts.length) push("Coagulograma (" + coagParts.join("; ") + ")");
   }
 
+  function gasValue(source, label, unitPattern) {
+    var regex = new RegExp(label + "\\s+([+-]?\\d+(?:[.,]\\d+)?)(?:\\s*(" + unitPattern + "))?", "i");
+    var match = source.match(regex);
+    if (!match || !match[1]) return "";
+    return normalizeText(match[1] + (match[2] ? " " + match[2] : ""));
+  }
+
+  var gasometria = sliceBetween("GASOMETRIA", ["HEMOGRAMA COMPLETO", "PROTEINA C REATIVA", "PROTEÍNA C REATIVA", "URINA TIPO I", "COAGULOGRAMA"]);
+  if (gasometria) {
+    var gasParts = [];
+    var ph = gasValue(gasometria, "pH", "");
+    var pco2 = gasValue(gasometria, "pCO2", "mmHg");
+    var po2 = gasValue(gasometria, "pO2", "mmHg");
+    var hco3 = gasValue(gasometria, "HCO3", "mmol\\/?l|mmol\\/L");
+    var tco2 = gasValue(gasometria, "TCO2", "mmol\\/?l|mmol\\/L");
+    var be = gasValue(gasometria, "BE\\s*(?:\\(B\\))?", "mmol\\/?l|mmol\\/L");
+    var so2 = gasValue(gasometria, "sO2", "%");
+    if (ph) gasParts.push("pH " + ph);
+    if (pco2) gasParts.push("pCO2 " + pco2);
+    if (po2) gasParts.push("pO2 " + po2);
+    if (hco3) gasParts.push("HCO3 " + hco3);
+    if (tco2) gasParts.push("TCO2 " + tco2);
+    if (be) gasParts.push("BE " + be);
+    if (so2) gasParts.push("sO2 " + so2);
+    if (gasParts.length) push("gasometria arterial (" + gasParts.join("; ") + ")");
+  }
+
   function findUrinaSection() {
     var starts = ["URINA TIPO I", "URINA TIPO 1", "EAS", "URINA I"];
     for (var i = 0; i < starts.length; i += 1) {

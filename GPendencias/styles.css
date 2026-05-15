@@ -50,6 +50,7 @@ button {
   gap: 18px;
   margin-bottom: 14px;
   position: relative;
+  z-index: 30;
   padding-right: 84px;
 }
 
@@ -290,11 +291,12 @@ h2 {
   justify-content: flex-start;
   margin-top: 8px;
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow: visible;
   padding-bottom: 2px;
 }
 
 .top-actions .ghost-button,
+.top-actions .toggle-form-button,
 .top-actions .danger-ghost-button,
 .top-actions .backup-menu-button,
 .top-actions .save-status {
@@ -312,6 +314,7 @@ h2 {
 
 .backup-menu {
   position: relative;
+  z-index: 80;
   display: inline-flex;
   align-items: center;
 }
@@ -320,7 +323,7 @@ h2 {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  z-index: 20;
+  z-index: 1000;
   display: grid;
   min-width: 190px;
   gap: 5px;
@@ -558,6 +561,7 @@ textarea:focus {
 
 .primary-button,
 .ghost-button,
+.toggle-form-button,
 .danger-ghost-button,
 .filter-button,
 .options-button,
@@ -616,6 +620,18 @@ textarea:focus {
   border-color: rgba(23, 107, 93, 0.28);
   background: #e9f2ef;
   color: var(--accent-strong);
+}
+
+.toggle-form-button {
+  border-color: rgba(37, 99, 235, 0.32);
+  background: #eef4ff;
+  color: #1d4ed8;
+  box-shadow: 0 7px 16px rgba(37, 99, 235, 0.10);
+}
+
+.toggle-form-button:hover {
+  border-color: rgba(37, 99, 235, 0.52);
+  background: #dbeafe;
 }
 
 .danger-ghost-button {
@@ -695,9 +711,9 @@ textarea:focus {
 
 .task-card.is-done {
   opacity: 1;
-  border-left-color: var(--success);
-  background: #f6fbf8;
-  box-shadow: 0 8px 18px rgba(47, 115, 80, 0.08);
+  border-left-color: #d66a5d;
+  background: #fff1ef;
+  box-shadow: 0 8px 18px rgba(182, 64, 45, 0.08);
 }
 
 .task-title-row {
@@ -849,6 +865,57 @@ textarea:focus {
 
 .card-edit-form label {
   min-width: 0;
+}
+
+.subtask-edit-form {
+  grid-template-columns: minmax(0, 1fr) minmax(116px, 138px) auto;
+  align-items: end;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 7px;
+  border-radius: 6px;
+}
+
+.subtask-edit-form label {
+  min-width: 0;
+}
+
+.subtask-edit-form label span {
+  margin-bottom: 3px;
+  font-size: 0.64rem;
+}
+
+.subtask-edit-form textarea {
+  min-height: 34px;
+  max-height: 78px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+
+.subtask-edit-form select {
+  min-height: 32px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+}
+
+.subtask-edit-form .form-grid {
+  gap: 0;
+}
+
+.subtask-edit-form .inline-actions {
+  grid-template-columns: auto auto;
+  gap: 5px;
+}
+
+.subtask-edit-form .inline-actions .primary-button,
+.subtask-edit-form .inline-actions .ghost-button {
+  min-height: 32px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 0.74rem;
 }
 
 .card-add-form textarea {
@@ -1103,6 +1170,7 @@ textarea:focus {
   }
 
   .form-actions .ghost-button,
+  .form-actions .toggle-form-button,
   .save-status {
     flex: 1 1 auto;
     text-align: center;
@@ -1146,6 +1214,10 @@ textarea:focus {
   }
 
   .subtask-row {
+    grid-template-columns: 1fr;
+  }
+
+  .subtask-edit-form {
     grid-template-columns: 1fr;
   }
 

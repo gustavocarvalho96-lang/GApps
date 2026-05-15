@@ -524,9 +524,9 @@ function updateListCopy() {
   if (!listTitle || !listContext) return;
 
   const copy = {
-    open: ["Cards pendentes", "Cards permanecem até você limpar ou excluir."],
+    open: ["Pacientes pendentes", "Pacientes permanecem até você limpar ou excluir."],
     all: ["Todas as pendências", "Abertas primeiro, depois as concluídas."],
-    done: ["Cards completos", "Pacientes com todos os itens feitos."],
+    done: ["Pacientes completos", "Pacientes com todos os itens feitos."],
   };
 
   listTitle.textContent = copy[activeFilter][0];
@@ -603,7 +603,7 @@ function buildSubtasks(taskItems) {
         </label>
       </div>
       <div class="inline-actions">
-        <button class="primary-button" type="submit">Salvar solicitação</button>
+        <button class="primary-button" type="submit">Salvar</button>
         <button class="ghost-button cancel-subtask-edit-button" type="button">Cancelar</button>
       </div>
     `;

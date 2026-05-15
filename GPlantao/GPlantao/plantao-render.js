@@ -197,7 +197,7 @@ function renderEditable(protocol, body) {
     titleWrap.appendChild(hint);
     var sourceRow = div("row lab-source-row");
     (protocol.labSources || []).forEach(function (source) {
-      var hiddenClass = source.source === "auto" ? "" : " manual-source-hidden";
+      var hiddenClass = " manual-source-hidden";
       sourceRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className + hiddenClass + (state.labSource === source.source ? " active" : ""), function () {
         transcribeCurrentLabs(input, source.source);
         showToast("Transcrito: " + labSourceLabel());
@@ -210,7 +210,19 @@ function renderEditable(protocol, body) {
     input.className = "small lab-input";
     input.placeholder = "Cole aqui o texto do exame";
     input.value = state.labInput || "";
-    input.oninput = function () { state.labInput = input.value; };
+    input.oninput = function () {
+      state.labInput = input.value;
+      if (!state.labInput.trim()) {
+        state.labOutput = "";
+        state.labDetectedSource = "";
+        output.textContent = "Cole o exame acima para transcrever automaticamente.";
+        sourceBadge.textContent = "Origem: " + (state.labSource === "auto" ? "aguardando detecÃ§Ã£o" : labSourceLabel());
+        return;
+      }
+      transcribeCurrentLabs(input, state.labSource);
+      output.textContent = state.labOutput;
+      sourceBadge.textContent = "Origem: " + (state.labDetectedSource || labSourceLabel());
+    };
     input.onkeydown = function (event) {
       if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
         event.preventDefault();
@@ -222,7 +234,7 @@ function renderEditable(protocol, body) {
     };
     var output = document.createElement("pre");
     output.className = "lab-output";
-    output.textContent = state.labOutput || "Cole o exame acima e clique em Transcrever exames.";
+    output.textContent = state.labOutput || "Cole o exame acima para transcrever automaticamente.";
     var sourceBadge = div("lab-detected-source");
     sourceBadge.textContent = "Origem: " + (state.labDetectedSource || (state.labSource === "auto" ? "aguardando detecção" : labSourceLabel()));
     var actions = div("row");

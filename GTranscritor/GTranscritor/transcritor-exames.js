@@ -5,6 +5,8 @@ var campoLimpoBtn = document.getElementById("campoLimpoBtn");
 var jundiaiBtn = document.getElementById("jundiaiBtn");
 var detectedSource = document.getElementById("detectedSource");
 var activeSource = "auto";
+var autoTranscribeTimer;
+var emptyMessage = "Cole o exame ao lado para transcrever automaticamente.";
 
 function showToast(message) {
   var toast = document.getElementById("actionToast");
@@ -32,38 +34,57 @@ function setDetectedSource(label) {
   detectedSource.textContent = "Origem: " + label;
 }
 
-function transcribeBySource(source) {
+function resetTranscription() {
+  output.textContent = emptyMessage;
+  setDetectedSource("Aguardando exame");
+}
+
+function transcribeBySource(source, options) {
+  options = options || {};
   activeSource = source || activeSource;
   updateSourceButtons();
+  if (!input.value.trim()) {
+    resetTranscription();
+    return;
+  }
   if (activeSource === "auto") {
     var result = transcribeAutomaticLabs(input.value);
     output.textContent = result.output;
     setDetectedSource(result.label);
-    showToast("Transcrito: " + result.label);
+    if (options.toast) showToast("Transcrito: " + result.label);
     return;
   }
   if (activeSource === "jundiai") {
     output.textContent = transcribeJundiaiLabs(input.value);
     setDetectedSource("Jundiai");
-    showToast("Transcrito: Jundiai");
+    if (options.toast) showToast("Transcrito: Jundiai");
     return;
   }
   output.textContent = transcribeCampoLimpoLabs(input.value);
   setDetectedSource("Campo Limpo");
-  showToast("Transcrito: Campo Limpo");
+  if (options.toast) showToast("Transcrito: Campo Limpo");
+}
+
+function scheduleAutoTranscription() {
+  clearTimeout(autoTranscribeTimer);
+  autoTranscribeTimer = setTimeout(function () {
+    transcribeBySource(activeSource);
+  }, 180);
 }
 
 autoBtn.onclick = function () {
-  transcribeBySource("auto");
+  transcribeBySource("auto", { toast: true });
 };
 
 campoLimpoBtn.onclick = function () {
-  transcribeBySource("campo-limpo");
+  transcribeBySource("campo-limpo", { toast: true });
 };
 
 jundiaiBtn.onclick = function () {
-  transcribeBySource("jundiai");
+  transcribeBySource("jundiai", { toast: true });
 };
+
+input.addEventListener("input", scheduleAutoTranscription);
 
 document.getElementById("copyBtn").onclick = function () {
   var text = output.textContent || "";
@@ -87,8 +108,7 @@ document.getElementById("copyBtn").onclick = function () {
 
 document.getElementById("clearBtn").onclick = function () {
   input.value = "";
-  output.textContent = "Cole o exame ao lado e clique em Transcrever exames.";
-  setDetectedSource("Aguardando exame");
+  resetTranscription();
   input.focus();
   showToast("Campos limpos");
 };
@@ -96,8 +116,9 @@ document.getElementById("clearBtn").onclick = function () {
 document.addEventListener("keydown", function (event) {
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     event.preventDefault();
-    transcribeBySource(activeSource);
+    transcribeBySource(activeSource, { toast: true });
   }
 });
 
 updateSourceButtons();
+resetTranscription();

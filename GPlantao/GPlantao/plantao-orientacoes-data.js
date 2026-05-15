@@ -154,7 +154,7 @@ SINAIS DE ALARME:
 - Sangue no vômito, fezes negras, dor abdominal intensa, febre alta ou piora importante.
 - Crianças pequenas, idosos, gestantes e imunossuprimidos devem reavaliar mais cedo se piora.`],
     ["TCE", `ORIENTAÇÕES TCE (Traumatismo Cranioencefálico leve):
-- Manter repouso relativo por 24-48h e evitar álcool, sedativos e dirigir se houver tontura/sonolência.
+- Manter repouso relativo por 48h e evitar álcool, sedativos e dirigir se houver tontura/sonolência.
 - Permanecer com acompanhante nas primeiras 24h, se possível.
 - Evitar esporte, esforço físico intenso e risco de novo trauma até melhora completa.
 - Pode haver cefaleia leve, tontura ou náusea inicial; deve haver melhora progressiva.
