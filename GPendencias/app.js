@@ -29,7 +29,6 @@ const saveStatus = document.querySelector("#save-status");
 const currentClock = document.querySelector("#current-clock");
 const openCount = document.querySelector("#open-count");
 const lateCount = document.querySelector("#late-count");
-const doneCount = document.querySelector("#done-count");
 const toggleFormButton = document.querySelector("#toggle-form-button");
 const workspaceLayout = document.querySelector(".workspace-layout");
 
@@ -500,6 +499,7 @@ function getVisibleGroups() {
       );
 
       if (activeFilter === "done" && !isComplete) return false;
+      if (activeFilter === "open" && isComplete) return false;
       return haystack.includes(query);
     })
     .sort(sortGroups);
@@ -546,16 +546,15 @@ function updateCounters() {
   const completeGroups = groupTasks(tasks).filter((group) => group.tasks.every((task) => task.done));
   openCount.textContent = openTasks.length;
   lateCount.textContent = completeGroups.length;
-  doneCount.textContent = tasks.filter((task) => task.done).length;
 }
 
 function updateListCopy() {
   if (!listTitle || !listContext) return;
 
   const copy = {
-    open: ["Pacientes pendentes", "Pacientes permanecem até você limpar ou excluir."],
-    all: ["Todas as pendências", "Abertas primeiro, depois as concluídas."],
-    done: ["Pacientes completos", "Pacientes com todos os itens feitos."],
+    open: ["Pacientes pendentes", ""],
+    all: ["Todas as pendências", ""],
+    done: ["Pacientes completos", ""],
   };
 
   listTitle.textContent = copy[activeFilter][0];

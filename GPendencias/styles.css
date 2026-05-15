@@ -221,14 +221,14 @@ h2 {
 .form-only .entry-band {
   position: sticky;
   top: 18px;
-  border-radius: 16px;
-  padding: 22px;
+  border-radius: 10px;
+  padding: 14px;
 }
 
 .cards-workspace {
   display: grid;
   min-width: 0;
-  gap: 12px;
+  gap: 6px;
 }
 
 .is-form-closed .entry-band {
@@ -250,6 +250,10 @@ h2 {
 .task-form {
   display: grid;
   gap: 12px;
+}
+
+.form-only .task-form {
+  gap: 8px;
 }
 
 .form-header,
@@ -396,8 +400,8 @@ h2 {
 }
 
 .form-only .patient-grid {
-  grid-template-columns: 1fr;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(150px, .85fr);
+  gap: 8px;
 }
 
 .pending-section {
@@ -413,6 +417,7 @@ h2 {
   border: 0;
   background: transparent;
   padding: 0;
+  gap: 6px;
 }
 
 .pending-section-header,
@@ -425,9 +430,9 @@ h2 {
 
 .form-only .pending-item-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 148px auto;
+  grid-template-columns: minmax(0, 1fr) 132px auto;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .pending-section-header h3 {
@@ -437,13 +442,17 @@ h2 {
 
 .form-only .pending-section-header h3 {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 800;
 }
 
 .pending-items {
   display: grid;
   gap: 10px;
+}
+
+.form-only .pending-items {
+  gap: 7px;
 }
 
 .pending-item {
@@ -460,6 +469,7 @@ h2 {
   border: 0;
   background: transparent;
   padding: 0;
+  gap: 5px;
 }
 
 .pending-item-header strong {
@@ -468,13 +478,13 @@ h2 {
 
 .form-only .pending-item-header strong {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.74rem;
 }
 
 .form-only .pending-item-header .remove-item-button {
-  min-height: 30px;
-  padding: 5px 9px;
-  font-size: 0.78rem;
+  min-height: 28px;
+  padding: 4px 7px;
+  font-size: 0.72rem;
 }
 
 .inline-type-field {
@@ -493,6 +503,13 @@ h2 {
   font-size: 0.8rem;
 }
 
+.form-only .inline-type-field select {
+  min-height: 28px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+}
+
 .remove-item-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
@@ -504,6 +521,11 @@ label {
   color: var(--muted);
   font-size: 0.84rem;
   font-weight: 700;
+}
+
+.form-only label {
+  gap: 3px;
+  font-size: 0.74rem;
 }
 
 label small {
@@ -528,8 +550,11 @@ textarea {
 .form-only input,
 .form-only select,
 .form-only textarea {
-  border-radius: 10px;
+  min-height: 32px;
+  border-radius: 6px;
   background: #fbfcfb;
+  padding: 6px 8px;
+  font-size: 0.8rem;
 }
 
 textarea {
@@ -538,7 +563,9 @@ textarea {
 }
 
 .form-only textarea {
-  min-height: 78px;
+  min-height: 42px;
+  max-height: 72px;
+  line-height: 1.25;
 }
 
 input:focus,
@@ -587,8 +614,8 @@ textarea:focus {
   position: static;
   z-index: 3;
   display: grid;
-  grid-template-columns: 126px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
   border-top: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), var(--surface) 38%);
   padding-top: 12px;
@@ -597,15 +624,17 @@ textarea:focus {
 .form-only .submit-bar {
   border-top: 0;
   background: transparent;
-  padding-top: 2px;
+  padding-top: 0;
+  gap: 7px;
 }
 
 .form-only .submit-bar .ghost-button,
 .form-only .submit-bar .primary-button {
-  min-height: 34px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  font-size: 0.82rem;
+  min-height: 32px;
+  padding: 6px 7px;
+  border-radius: 7px;
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
 
 .primary-button:hover {
@@ -652,19 +681,27 @@ textarea:focus {
   display: grid;
   grid-template-columns: 1fr;
   align-items: end;
-  gap: 10px;
+  gap: 6px;
   margin: 0;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--surface);
-  padding: 12px;
-  box-shadow: 0 10px 24px rgba(23, 33, 27, 0.04);
+  padding: 6px;
+  box-shadow: none;
 }
 
 .filter-group {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 5px;
+}
+
+.filter-button {
+  min-height: 30px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  white-space: nowrap;
 }
 
 .filter-button.is-active {
@@ -688,7 +725,7 @@ textarea:focus {
   display: grid;
   gap: 8px;
   max-height: calc(100vh - 250px);
-  margin-top: 12px;
+  margin-top: 6px;
   overflow: auto;
   padding-right: 4px;
 }
@@ -1110,32 +1147,19 @@ textarea:focus {
 }
 
 .empty-state {
-  margin-top: 12px;
-  border: 1px dashed var(--line);
-  border-radius: 8px;
-  padding: 18px;
-  text-align: center;
-}
-
-.empty-state h3 {
-  margin-bottom: 6px;
-}
-
-.empty-state p {
-  margin-bottom: 0;
-  color: var(--muted);
+  display: none;
 }
 
 .cards-page .controls,
 .cards-workspace .controls {
   grid-template-columns: minmax(260px, 1fr) auto;
   align-items: end;
-  margin-bottom: 16px;
+  margin-bottom: 6px;
 }
 
 .cards-page .list-area,
 .cards-workspace .list-area {
-  padding: 20px;
+  padding: 12px;
   overflow: visible;
 }
 
