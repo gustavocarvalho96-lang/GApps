@@ -631,6 +631,29 @@ textarea.anamnese-editor {
   min-height: 680px;
 }
 
+.atestadite-block {
+  background: #fff;
+}
+
+.atestadite-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.atestadite-block-head .panel-title {
+  margin-bottom: 0;
+}
+
+textarea.atestadite-editor {
+  min-height: 190px;
+}
+
+textarea.atestadite-anamnese-editor {
+  min-height: 360px;
+}
+
 .safety-strip {
   display: flex;
   flex-wrap: wrap;

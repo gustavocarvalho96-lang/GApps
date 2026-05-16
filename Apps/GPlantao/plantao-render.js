@@ -245,7 +245,7 @@ function renderEditable(protocol, body) {
         state.labOutput = "";
         state.labDetectedSource = "";
         output.textContent = "Cole o exame acima para transcrever automaticamente.";
-        sourceBadge.textContent = "Origem: " + (state.labSource === "auto" ? "aguardando detecÃ§Ã£o" : labSourceLabel());
+        sourceBadge.textContent = "Origem: " + (state.labSource === "auto" ? "aguardando detecção" : labSourceLabel());
         return;
       }
       transcribeCurrentLabs(input, state.labSource);
@@ -309,6 +309,33 @@ function renderEditable(protocol, body) {
   body.appendChild(area);
 }
 
+function renderAtestaditeEditor(protocol, body) {
+  if (!Object.keys(state.atestaditeTexts || {}).length) {
+    state.atestaditeTexts = getAtestaditeInitialTexts(protocol);
+  }
+  (protocol.atestaditeSections || []).forEach(function (section) {
+    var panel = div("panel stack atestadite-block");
+    var head = div("atestadite-block-head");
+    var title = div("panel-title");
+    title.textContent = section.label;
+    head.appendChild(title);
+    if (section.copySeparate) {
+      head.appendChild(textButton("Copiar " + section.label.toLowerCase(), "text-btn", function () {
+        copyText(getAtestaditeSectionText(section));
+      }));
+    }
+    var area = document.createElement("textarea");
+    area.className = "atestadite-editor" + (section.key === "anamnese" ? " atestadite-anamnese-editor" : "");
+    area.value = state.atestaditeTexts[section.key] || "";
+    area.oninput = function () {
+      state.atestaditeTexts[section.key] = area.value;
+    };
+    panel.appendChild(head);
+    panel.appendChild(area);
+    body.appendChild(panel);
+  });
+}
+
 function renderProtocol(protocol) {
   var content = el("content");
   content.innerHTML = "";
@@ -334,7 +361,9 @@ function renderProtocol(protocol) {
   renderOptions(protocol, card);
 
   var body = div("body stack");
-  if (isEditable(protocol.id)) {
+  if (protocol.atestaditeSections) {
+    renderAtestaditeEditor(protocol, body);
+  } else if (isEditable(protocol.id)) {
     renderEditable(protocol, body);
   } else {
     var panel = div("panel");
@@ -389,7 +418,11 @@ function renderAtestaditeSidebar(items) {
       render();
     };
   }
-  if (body) body.innerHTML = "";
+  body.innerHTML = "";
+  var list = document.createElement("div");
+  list.id = "atestaditeList";
+  body.appendChild(list);
+  renderNav("atestaditeList", items, state.selectedId, "Nenhum modelo.");
 }
 
 function render() {

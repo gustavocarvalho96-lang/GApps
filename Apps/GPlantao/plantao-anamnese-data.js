@@ -57,45 +57,56 @@ EXT: Sem Empastamento De Panturrilhas, Tec< 3 Segundos, Simétricas, Sem Edemas
     tags: ["anamnese", "exame físico"]
   },
   {
-    id: "atestadite",
-    title: "Atestadite",
-    category: "Estrutura Clinica",
-    prescription: `ATESTADO MEDICO
-
-Atesto, para os devidos fins, que o(a) paciente ____________________________________________ esteve em atendimento medico nesta unidade na data de hoje.
-
-Necessita de afastamento de suas atividades por ____ dia(s), a contar desta data.
-
-CID: ______
-
-Data: ____/____/______`,
-    orientation: "",
-    tags: ["atestado", "atestadite"],
-    collapsibleSections: [
+    id: "atestadite-ivas",
+    title: "IVAS",
+    category: "Atestadite",
+    atestadite: true,
+    tags: ["atestadite", "ivas", "resfriado", "rinossinusite", "gripe"],
+    atestaditeSections: [
       {
-        key: "atestadite",
-        label: "Modelos de atestado",
-        items: [
-          ["Atestado simples", `ATESTADO MEDICO
+        key: "anamnese",
+        label: "Anamnese",
+        text: `HMA : Paciente procura atendimento por quadro de sintomas gripais iniciado ha cerca de 3 dias, com coriza, obstrucao nasal, espirros, odinofagia leve e tosse seca/irritativa. Refere mal-estar geral leve e aceitacao preservada de liquidos por via oral.
 
-Atesto, para os devidos fins, que o(a) paciente ____________________________________________ esteve em atendimento medico nesta unidade na data de hoje.
+Nega falta de ar, dor toracica, febre persistente, prostracao importante, confusao mental, cianose, queda do estado geral, vomitos persistentes, rigidez de nuca, disfagia importante, sialorreia, estridor, hemoptise ou piora respiratoria progressiva.
 
-Necessita de afastamento de suas atividades por ____ dia(s), a contar desta data.
+Ao exame fisico: paciente em bom estado geral, consciente e orientado, corado, hidratado, acianotico, anicterico, afebril, eupneico, hemodinamicamente estavel. Oroscopia com hiperemia leve de orofaringe, sem placas ou exsudato. Ausculta pulmonar com murmurio vesicular presente bilateralmente, sem ruidos adventicios e sem sinais de esforco respiratorio. Sem sinais de gravidade no momento.`
+      },
+      {
+        key: "conduta",
+        label: "Conduta",
+        text: `Conduta : Oriento medidas gerais, hidratacao oral, repouso relativo, lavagem nasal com soro fisiologico e sintomaticos conforme necessidade.
 
-CID: ______
+Oriento que quadro e sugestivo de infeccao de vias aereas superiores, geralmente autolimitada, sem sinais de alarme no momento.
 
-Data: ____/____/______`],
-          ["Comparecimento", `DECLARACAO DE COMPARECIMENTO
+Oriento retorno imediato se falta de ar, dor toracica, febre persistente, prostracao importante, piora do estado geral, dificuldade para engolir, sinais de desidratacao, cianose, confusao mental ou piora respiratoria progressiva.`
+      }
+    ]
+  },
+  {
+    id: "atestadite-geca",
+    title: "GECA",
+    category: "Atestadite",
+    atestadite: true,
+    tags: ["atestadite", "geca", "gastroenterite", "diarreia", "vomitos"],
+    atestaditeSections: [
+      {
+        key: "anamnese",
+        label: "Anamnese",
+        text: `HMA : Paciente procura atendimento por quadro de diarreia liquida associada a nauseas e episodios de vomitos, iniciado ha cerca de 3 dias, com dor abdominal em colica, difusa e intermitente. Refere aceitacao parcial de liquidos por via oral.
 
-Declaro, para os devidos fins, que o(a) paciente ____________________________________________ compareceu a esta unidade para atendimento medico na data de hoje, no periodo de ____:____ as ____:____.
+Nega febre persistente, sangue ou muco nas fezes, vomitos incoerciveis, dor abdominal localizada ou progressiva, distensao abdominal importante, sincope, sonolencia, confusao mental, reducao importante da diurese, sinais de desidratacao intensa, uso recente de antibioticos, viagem recente ou contato com alimento sabidamente contaminado.
 
-Data: ____/____/______`],
-          ["Acompanhante", `DECLARACAO DE ACOMPANHANTE
+Ao exame fisico: paciente em bom estado geral, consciente e orientado, corado, hidratado, acianotico, anicterico, afebril, eupneico, hemodinamicamente estavel. Mucosas umidas, perfusao periferica preservada. Abdome flacido, ruidos hidroaereos presentes, dor leve difusa a palpacao, sem defesa, sem descompressao brusca dolorosa, sem sinais de irritacao peritoneal. Sem sinais clinicos de desidratacao importante no momento.`
+      },
+      {
+        key: "conduta",
+        label: "Conduta",
+        text: `Conduta : Oriento hidratacao oral vigorosa e fracionada, dieta leve conforme tolerancia e evitar alimentos gordurosos, leite e derivados temporariamente se piorarem sintomas.
 
-Declaro, para os devidos fins, que ____________________________________________ acompanhou o(a) paciente ____________________________________________ durante atendimento medico nesta unidade na data de hoje, no periodo de ____:____ as ____:____.
+Prescrevo sintomaticos.
 
-Data: ____/____/______`]
-        ]
+Oriento retorno imediato se febre persistente, sangue nas fezes, vomitos incoerciveis, dor abdominal intensa/progressiva, sinais de desidratacao, sonolencia, piora do estado geral ou ausencia de melhora.`
       }
     ]
   },

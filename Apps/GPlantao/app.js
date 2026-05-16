@@ -1,6 +1,5 @@
 var quickOrder = ["anamnese", "reavaliacao", "internacao", "encaminhamento", "antibioticos", "receita-livre", "administrativo"];
-var atestaditeOrder = ["atestadite"];
-var editableIds = ["administrativo", "anamnese", "reavaliacao", "internacao", "encaminhamento", "atestadite", "receita-livre"];
+var editableIds = ["administrativo", "anamnese", "reavaliacao", "internacao", "encaminhamento", "receita-livre"];
 var ANAMNESE_STORAGE_KEY = "gplantao-anamnese-draft-v1";
 var state = {
   selectedId: "administrativo",
@@ -16,6 +15,7 @@ var state = {
   labSource: "auto",
   labDetectedSource: "",
   atestaditeSidebarVisible: false,
+  atestaditeTexts: {},
   scores: {
     heart: { history: 0, ecg: 0, age: "", riskFactors: 0, troponin: 0 },
     grace: { age: "", heartRate: "", systolicBp: "", creatinine: "", killip: 1, arrest: 0, stDeviation: 0, markers: 0 },
@@ -73,6 +73,7 @@ function getProtocols() {
 
 function getInitialText(protocol) {
   if (!protocol) return "";
+  if (protocol.atestaditeSections) return buildAtestaditeText(protocol);
   if (protocol.referralTemplates) return buildReferralText(protocol.referralTemplates && protocol.referralTemplates[0], "ambulatorial");
   if (protocol.genderedTemplate) return applyAnamneseGender(protocol.prescription || "", state.anamneseGender);
   return protocol.prescription || "";
@@ -118,6 +119,7 @@ function selectProtocol(id) {
   state.useGastroCipro = false;
   state.openGroups = { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false };
   var protocol = findProtocol(id);
+  state.atestaditeTexts = protocol && protocol.atestaditeSections ? getAtestaditeInitialTexts(protocol) : {};
   state.editableText = protocol && protocol.id === "anamnese" ? loadAnamneseDraft(protocol) : getInitialText(protocol);
   render();
 }
@@ -135,10 +137,10 @@ function filtered() {
   var quick = protocols.filter(function (item) { return quickOrder.indexOf(item.id) >= 0; }).sort(function (a, b) {
     return quickOrder.indexOf(a.id) - quickOrder.indexOf(b.id);
   });
-  var atestadite = protocols.filter(function (item) { return atestaditeOrder.indexOf(item.id) >= 0; }).sort(function (a, b) {
-    return atestaditeOrder.indexOf(a.id) - atestaditeOrder.indexOf(b.id);
+  var atestadite = protocols.filter(function (item) { return item.atestadite === true; }).sort(function (a, b) {
+    return a.title.localeCompare(b.title, "pt-BR");
   });
-  var recipes = protocols.filter(function (item) { return quickOrder.indexOf(item.id) < 0 && atestaditeOrder.indexOf(item.id) < 0; }).sort(function (a, b) {
+  var recipes = protocols.filter(function (item) { return quickOrder.indexOf(item.id) < 0 && item.atestadite !== true; }).sort(function (a, b) {
     return a.title.localeCompare(b.title, "pt-BR");
   });
   return { quick: quick, atestadite: atestadite, recipes: recipes, all: quick.concat(atestadite, recipes) };
@@ -146,6 +148,29 @@ function filtered() {
 
 function currentProtocol() {
   return findProtocol(state.selectedId);
+}
+
+function getAtestaditeInitialTexts(protocol) {
+  var texts = {};
+  (protocol.atestaditeSections || []).forEach(function (section) {
+    texts[section.key] = section.text || "";
+  });
+  return texts;
+}
+
+function buildAtestaditeText(protocol) {
+  var source = Object.keys(state.atestaditeTexts || {}).length ? state.atestaditeTexts : getAtestaditeInitialTexts(protocol);
+  return (protocol.atestaditeSections || []).map(function (section) {
+    if (section.copySeparate) return "";
+    var text = source[section.key] || "";
+    return text.trim();
+  }).filter(function (text) {
+    return text.trim();
+  }).join("\n\n");
+}
+
+function getAtestaditeSectionText(section) {
+  return ((state.atestaditeTexts || {})[section.key] || section.text || "").trim();
 }
 
 function buildReferralText(template, mode) {
@@ -194,6 +219,7 @@ function getPrescription(protocol) {
 }
 
 function finalText(protocol) {
+  if (protocol && protocol.atestaditeSections) return buildAtestaditeText(protocol);
   var prescription = getPrescription(protocol);
   if (isEditable(protocol.id)) return prescription;
   var orientation = getOrientation(protocol);
