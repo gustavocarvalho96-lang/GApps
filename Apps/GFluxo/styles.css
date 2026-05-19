@@ -56,8 +56,22 @@
         letter-spacing: 0;
         transform: translateX(-3px);
       }
-      .toolbar-left, .toolbar-center { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .toolbar-left, .toolbar-center, .toolbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
       .toolbar-center { flex: 1 1 260px; justify-content: center; }
+      .toolbar-right { justify-content: flex-end; }
+      .subtle-btn {
+        padding: 10px 12px;
+        color: var(--muted);
+        background: transparent;
+        border-color: var(--line);
+        font-size: 12px;
+      }
+      .save-status {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        min-width: 132px;
+      }
       .grid { display: grid; grid-template-columns: minmax(380px, 500px) minmax(0, 1fr); gap: 24px; align-items: start; }
       .left { padding: 24px; }
       .right { padding: 20px; }

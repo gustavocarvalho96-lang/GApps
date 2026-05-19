@@ -1,8 +1,8 @@
 import { createReadStream, existsSync } from "node:fs";
-import { extname, join, normalize } from "node:path";
+import { extname, join, normalize, resolve } from "node:path";
 import { createServer } from "node:http";
 
-const root = process.cwd();
+const root = resolve(process.cwd(), "../..");
 const port = Number(process.env.PORT || 5173);
 
 const types = {
@@ -13,7 +13,7 @@ const types = {
 
 createServer((request, response) => {
   const url = new URL(request.url || "/", `http://${request.headers.host}`);
-  const requestedPath = url.pathname === "/" ? "/GPendencias.html" : url.pathname;
+  const requestedPath = url.pathname === "/" ? "/GPendencias.html" : url.pathname === "/cards.html" ? "/Apps/GPendencias/cards.html" : url.pathname;
   const filePath = normalize(join(root, decodeURIComponent(requestedPath)));
 
   if (!filePath.startsWith(root) || !existsSync(filePath)) {

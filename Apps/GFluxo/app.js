@@ -27,11 +27,24 @@ const OCR_PASSES = [
         verificationPreview: "",
         verificationBusy: false,
         pasteTarget: "main",
-        leftPanelOrder: ["legend", "upload", "extracted"],
+        leftPanelOrder: ["legend", "upload"],
         verificationBase: [],
       };
 
       const $ = (id) => document.getElementById(id);
+      const STORAGE_KEY = "gfluxo.localState.v1";
+      const PERSISTED_FIELDS = [
+        "legendInput",
+        "rawInput",
+        "includeFastTrack",
+        "rotationStartIndex",
+        "showLegend",
+        "showUpload",
+        "showReadingSummary",
+        "verificationMode",
+        "pasteTarget",
+        "leftPanelOrder",
+      ];
       const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
       const escapeAttribute = escapeHtml;
       const safeImageSrc = (value) => {
@@ -41,7 +54,85 @@ const OCR_PASSES = [
       const setHtml = (id, html) => {
         $(id).innerHTML = html;
       };
-      const appAssetUrl = (path) => new URL(path, window.location.href).href;
+      const APP_BASE_URL = new URL(".", document.currentScript?.src || window.location.href).href;
+      const appAssetUrl = (path) => new URL(path, APP_BASE_URL).href;
+      let persistTimer = null;
+
+      function getPersistableState() {
+        return PERSISTED_FIELDS.reduce((snapshot, field) => {
+          snapshot[field] = state[field];
+          return snapshot;
+        }, { savedAt: new Date().toISOString() });
+      }
+
+      function formatSavedTime(date) {
+        return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      }
+
+      function setSaveStatus(message) {
+        const target = $("saveStatus");
+        if (target) target.textContent = message;
+      }
+
+      function saveLocalState(showFeedback = false) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(getPersistableState()));
+          const message = `Salvo neste computador as ${formatSavedTime(new Date())}`;
+          setSaveStatus(message);
+          if (showFeedback) showToast("Salvo neste computador");
+        } catch {
+          setSaveStatus("Salvamento local indisponivel");
+          if (showFeedback) showToast("Nao consegui salvar");
+        }
+      }
+
+      function scheduleLocalSave() {
+        clearTimeout(persistTimer);
+        persistTimer = setTimeout(() => saveLocalState(false), 250);
+      }
+
+      function restoreLocalState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const saved = JSON.parse(raw);
+          for (const field of PERSISTED_FIELDS) {
+            if (Object.prototype.hasOwnProperty.call(saved, field)) state[field] = saved[field];
+          }
+          if (!Array.isArray(state.leftPanelOrder)) state.leftPanelOrder = ["legend", "upload"];
+          state.leftPanelOrder = state.leftPanelOrder.filter((section) => section !== "extracted");
+          state.precisionMode = true;
+          state.showExtractedPatients = false;
+          state.generatedImageDataUrl = "";
+          state.uploadPreview = "";
+          state.verificationPreview = "";
+          state.verificationResults = [];
+          state.verificationBase = [];
+          state.verificationDebug = { baselineNames: [], detectedNames: [], matchedNames: [] };
+          state.ocrStatus = saved.savedAt ? `Dados restaurados deste computador (${formatSavedTime(new Date(saved.savedAt))}).` : "Dados restaurados deste computador.";
+        } catch {
+          state.ocrStatus = "Nao consegui restaurar o salvamento local.";
+        }
+      }
+
+      function resetTemplate() {
+        Object.assign(state, {
+          legendInput: "",
+          rotationStartIndex: 0,
+          showLegend: false,
+          showUpload: false,
+          showReadingSummary: false,
+          verificationMode: false,
+          verificationResults: [],
+          verificationPreview: "",
+          verificationBase: [],
+          verificationDebug: { baselineNames: [], detectedNames: [], matchedNames: [] },
+          pasteTarget: "main",
+          leftPanelOrder: ["legend", "upload"],
+          generatedImageDataUrl: "",
+          ocrStatus: "Template limpo.",
+        });
+      }
 
       function showToast(message) {
         let toast = $("actionToast");
@@ -346,7 +437,6 @@ const OCR_PASSES = [
       }
 
       function renderTop() {
-        $("precisionBtn").classList.toggle("off", !state.precisionMode);
         $("fastTrackBtn").classList.toggle("off", !state.includeFastTrack);
         $("verificationBtn").classList.toggle("off", !state.verificationMode);
         $("downloadLink").classList.toggle("hidden", !state.generatedImageDataUrl);
@@ -378,6 +468,7 @@ const OCR_PASSES = [
           el.onclick = () => {
             const [id, direction] = el.dataset.move.split(":");
             moveLeftSection(id, direction);
+            scheduleLocalSave();
           };
         });
         document.querySelectorAll("[data-office-toggle]").forEach((el) => {
@@ -385,6 +476,7 @@ const OCR_PASSES = [
             const data = getComputedData();
             const next = data.officeConfig.map((item) => item.id === el.dataset.officeToggle ? { ...item, active: !item.active } : item);
             state.legendInput = serializeOfficeConfig(next);
+            scheduleLocalSave();
             render();
           };
         });
@@ -399,11 +491,12 @@ const OCR_PASSES = [
               officeId.classList.toggle("on", Boolean(el.value.trim()));
               officeId.classList.toggle("off", !el.value.trim());
             }
+            scheduleLocalSave();
             refreshComputedView();
           };
         });
         const rawInput = $("rawInput");
-        if (rawInput) rawInput.oninput = () => { state.rawInput = rawInput.value; state.generatedImageDataUrl = ""; refreshComputedView(); };
+        if (rawInput) rawInput.oninput = () => { state.rawInput = rawInput.value; state.generatedImageDataUrl = ""; scheduleLocalSave(); refreshComputedView(); };
         const ocrLog = $("ocrLog");
         if (ocrLog) ocrLog.oninput = () => { state.ocrLog = ocrLog.value; };
         const mainFile = $("mainFile");
@@ -425,6 +518,7 @@ const OCR_PASSES = [
         if (action === "toggleReading") state.showReadingSummary = !state.showReadingSummary;
         if (action === "chooseMain") { state.pasteTarget = "main"; $("mainFile")?.click(); return; }
         if (action === "chooseVerification") { state.pasteTarget = "verification"; $("verificationFile")?.click(); return; }
+        scheduleLocalSave();
         render();
       }
 
@@ -512,6 +606,7 @@ const OCR_PASSES = [
           state.passSummary = `${passesCount} leituras combinadas por consenso.`;
           state.ocrLog = logLines.join("\n\n");
           state.ocrStatus = `${extractedPatients.length} pacientes encontrados. Revise os nomes e depois gere o PNG.`;
+          scheduleLocalSave();
         } catch (error) {
           state.ocrStatus = error instanceof Error ? error.message : "Falha ao abrir imagem.";
         } finally {
@@ -540,10 +635,16 @@ const OCR_PASSES = [
         }
       }
 
-      $("closeAllBtn").onclick = () => { state.showLegend = false; state.showUpload = false; state.showExtractedPatients = false; state.showReadingSummary = false; render(); };
-      $("rotateBtn").onclick = () => { const data = getComputedData(); state.rotationStartIndex = data.consultorios.length ? (state.rotationStartIndex + 1) % data.consultorios.length : 0; render(); };
-      $("precisionBtn").onclick = () => { state.precisionMode = !state.precisionMode; render(); };
-      $("fastTrackBtn").onclick = () => { state.includeFastTrack = !state.includeFastTrack; render(); };
+      $("closeAllBtn").onclick = () => { state.showLegend = false; state.showUpload = false; state.showExtractedPatients = false; state.showReadingSummary = false; scheduleLocalSave(); render(); };
+      $("rotateBtn").onclick = () => { const data = getComputedData(); state.rotationStartIndex = data.consultorios.length ? (state.rotationStartIndex + 1) % data.consultorios.length : 0; scheduleLocalSave(); render(); };
+      $("fastTrackBtn").onclick = () => { state.includeFastTrack = !state.includeFastTrack; scheduleLocalSave(); render(); };
+      $("saveNowBtn").onclick = () => saveLocalState(true);
+      $("clearTemplateBtn").onclick = () => {
+        resetTemplate();
+        saveLocalState(false);
+        render();
+        showToast("Template limpo");
+      };
       $("verificationBtn").onclick = () => {
         const data = getComputedData();
         state.verificationMode = !state.verificationMode;
@@ -556,10 +657,12 @@ const OCR_PASSES = [
         } else {
           state.verificationBase = []; state.pasteTarget = "main"; state.verificationDebug = { baselineNames: [], detectedNames: [], matchedNames: [] };
         }
+        scheduleLocalSave();
         render();
       };
       $("clearBtn").onclick = () => {
         Object.assign(state, { rawInput: "", uploadPreview: "", generatedImageDataUrl: "", ocrLog: "", verificationResults: [], verificationPreview: "", verificationDebug: { baselineNames: [], detectedNames: [], matchedNames: [] }, verificationBase: [], pasteTarget: "main", ocrStatus: "Lista limpa." });
+        saveLocalState(false);
         render();
         showToast("Lista limpa");
       };
@@ -619,4 +722,8 @@ const OCR_PASSES = [
         await processImageFile(file);
       });
 
+      window.addEventListener("beforeunload", () => saveLocalState(false));
+
+      restoreLocalState();
       render();
+      scheduleLocalSave();

@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GApps</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef3f7;
+      --panel: #ffffff;
+      --text: #0f2230;
+      --muted: #64748b;
+      --line: #dce5ef;
+      --accent: #0f766e;
+      --accent-strong: #0b625c;
+      --plantao: #0f766e;
+      --plantao-strong: #0b625c;
+      --transcritor: #2563eb;
+      --transcritor-strong: #1d4ed8;
+      --fluxo: #7c3aed;
+      --fluxo-strong: #6d28d9;
+      --pendencias: #c27a14;
+      --pendencias-strong: #9a5f10;
+      --soft: #ecfdf5;
+      --shadow: 0 18px 45px rgba(15, 34, 48, 0.09);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, #f8fafc 0%, #eff7f4 54%, #eaf0f7 100%);
+    }
+
+    .app {
+      width: min(1120px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 44px 24px 54px;
+    }
+
+    .topbar {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      padding: 8px 0 0;
+      text-align: center;
+    }
+
+    .brand-bar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 60px;
+      padding: 12px 18px 12px 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow);
+    }
+
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      flex: 0 0 auto;
+      display: block;
+      margin-right: -3px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 2.65rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+      font-weight: 900;
+    }
+
+    .brand-separator {
+      width: 1px;
+      height: 32px;
+      background: var(--line);
+    }
+
+    .brand-apps {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .brand-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--plantao);
+      box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .72);
+      display: block;
+      flex: 0 0 auto;
+      transition: transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .brand-dot:nth-child(2) { background: var(--transcritor); }
+    .brand-dot:nth-child(3) { background: var(--fluxo); }
+    .brand-dot:nth-child(4) { background: var(--pendencias); }
+
+    .brand-dot:hover,
+    .brand-dot:focus-visible {
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 255, 255, .72),
+        0 0 0 4px rgba(15, 34, 48, .08);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(160px, 220px));
+      justify-content: center;
+      gap: 12px;
+      margin-top: clamp(24px, 4vw, 38px);
+    }
+
+    .card {
+      display: grid;
+      --card-color: var(--plantao);
+      --card-color-strong: var(--plantao-strong);
+      min-height: 92px;
+      place-items: center;
+      padding: 16px 14px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--card-color);
+      border-radius: 14px;
+      color: inherit;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .card:nth-child(1) {
+      --card-color: var(--plantao);
+      --card-color-strong: var(--plantao-strong);
+    }
+
+    .card:nth-child(2) {
+      --card-color: var(--transcritor);
+      --card-color-strong: var(--transcritor-strong);
+    }
+
+    .card:nth-child(3) {
+      --card-color: var(--fluxo);
+      --card-color-strong: var(--fluxo-strong);
+    }
+
+    .card:nth-child(4) {
+      --card-color: var(--pendencias);
+      --card-color-strong: var(--pendencias-strong);
+    }
+
+    .card:hover,
+    .card:focus-visible {
+      color: #ffffff;
+      border-color: color-mix(in srgb, var(--card-color) 18%, transparent);
+      border-top-color: rgba(255, 255, 255, 0.65);
+      background: linear-gradient(145deg, var(--card-color) 0%, var(--card-color-strong) 100%);
+      box-shadow: 0 24px 56px rgba(15, 34, 48, 0.13);
+      transform: translateY(-4px);
+      outline: none;
+    }
+
+    .card-brand {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .card-logo {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 auto;
+      display: block;
+      object-fit: contain;
+    }
+
+    .card h2 {
+      margin: 0;
+      text-align: center;
+      font-size: 1.2rem;
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+      transform: translateX(-3px);
+    }
+
+    .sensitive-dot {
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      z-index: 20;
+      width: 9px;
+      height: 9px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(15, 34, 48, 0.16);
+      opacity: 0.22;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .sensitive-dot:hover,
+    .sensitive-dot:focus-visible {
+      opacity: 0.55;
+      outline: 2px solid rgba(15, 118, 110, 0.18);
+      outline-offset: 4px;
+    }
+
+    .sensitive-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 34, 48, 0.34);
+      backdrop-filter: blur(7px);
+    }
+
+    .sensitive-screen[hidden] {
+      display: none;
+    }
+
+    .sensitive-panel {
+      width: min(680px, 100%);
+      max-height: min(760px, calc(100vh - 40px));
+      display: grid;
+      grid-template-rows: auto auto minmax(240px, 1fr) auto;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: 0 30px 80px rgba(15, 34, 48, 0.22);
+      padding: 18px;
+    }
+
+    .sensitive-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .sensitive-head h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.15;
+    }
+
+    .sensitive-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .sensitive-close {
+      flex: 0 0 auto;
+      min-width: 34px;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .sensitive-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .sensitive-controls label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .sensitive-controls input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    .sensitive-controls input {
+      min-height: 38px;
+      padding: 8px 10px;
+    }
+
+    .sensitive-data {
+      min-height: 260px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 12px;
+      line-height: 1.45;
+    }
+
+    .sensitive-data[hidden] {
+      display: none;
+    }
+
+    .sensitive-section {
+      display: grid;
+      gap: 6px;
+      border-bottom: 1px solid var(--line);
+      padding: 0 0 12px;
+      margin: 0 0 12px;
+    }
+
+    .sensitive-section:last-child {
+      border-bottom: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .sensitive-section h3,
+    .sensitive-section p {
+      margin: 0;
+    }
+
+    .sensitive-section h3 {
+      font-size: 0.95rem;
+    }
+
+    .sensitive-section p {
+      white-space: pre-wrap;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .sensitive-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sensitive-action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sensitive-panel button:not(.sensitive-close) {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .sensitive-panel .primary {
+      border-color: rgba(15, 118, 110, .25);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .sensitive-panel .danger {
+      border-color: #efd9d5;
+      background: #fff8f6;
+      color: #9a4639;
+    }
+
+    .sensitive-status {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        padding: 22px 16px 34px;
+      }
+
+      .brand-bar {
+        width: min(100%, 360px);
+        gap: 4px;
+        padding: 11px 14px;
+      }
+
+      .brand-logo {
+        width: 44px;
+        height: 44px;
+        margin-right: -3px;
+      }
+
+      .brand-title {
+        font-size: 2rem;
+      }
+
+      .brand-apps {
+        gap: 8px;
+      }
+
+      .brand-dot {
+        width: 18px;
+        height: 18px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+        margin-top: 28px;
+      }
+
+      .card {
+        min-height: 82px;
+        border-radius: 14px;
+      }
+
+      .card-logo {
+        width: 38px;
+        height: 38px;
+      }
+
+      .sensitive-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .sensitive-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .sensitive-panel button:not(.sensitive-close) {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar" aria-label="GApps">
+      <div class="brand-bar">
+        <img class="brand-logo" src="Apps/Shared/logo-stethoscope-c.svg" alt="">
+        <h1 class="brand-title">Apps</h1>
+        <div class="brand-separator" aria-hidden="true"></div>
+        <div class="brand-apps" aria-label="4 aplicativos">
+          <a class="brand-dot" href="GPlantao.html" title="Plantão" aria-label="Abrir Plantão"></a>
+          <a class="brand-dot" href="GTranscritor.html" title="Transcritor" aria-label="Abrir Transcritor"></a>
+          <a class="brand-dot" href="GFluxo.html" title="Fluxo" aria-label="Abrir Fluxo"></a>
+          <a class="brand-dot" href="GPendencias.html" title="Pendências" aria-label="Abrir Pendências"></a>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid" aria-label="Aplicativos disponíveis">
+      <a class="card" href="GPlantao.html">
+        <div class="card-brand">
+          <img class="card-logo" src="Apps/Shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
+          <h2>Plantão</h2>
+        </div>
+      </a>
+
+      <a class="card" href="GTranscritor.html">
+        <div class="card-brand">
+          <img class="card-logo" src="Apps/Shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
+          <h2>Transcritor</h2>
+        </div>
+      </a>
+
+      <a class="card" href="GFluxo.html">
+        <div class="card-brand">
+          <img class="card-logo" src="Apps/Shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
+          <h2>Fluxo</h2>
+        </div>
+      </a>
+
+      <a class="card" href="GPendencias.html">
+        <div class="card-brand">
+          <img class="card-logo" src="Apps/Shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
+          <h2>Pendências</h2>
+        </div>
+      </a>
+    </section>
+  </main>
+  <button id="sensitiveDot" class="sensitive-dot" type="button" aria-label="Abrir dados sensíveis"></button>
+
+  <section id="sensitiveScreen" class="sensitive-screen" hidden aria-modal="true" role="dialog" aria-labelledby="sensitiveTitle">
+    <div class="sensitive-panel">
+      <div class="sensitive-head">
+        <div>
+          <h2 id="sensitiveTitle">Dados sensíveis</h2>
+      <p>Consulta local de dados fixos predefinidos. O acesso é liberado por senha.</p>
+        </div>
+        <button id="sensitiveClose" class="sensitive-close" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <div class="sensitive-controls">
+        <label>
+          Senha local
+          <input id="sensitivePassword" type="password" autocomplete="current-password" placeholder="Digite a senha para abrir">
+        </label>
+        <button id="sensitiveUnlock" type="button">Abrir</button>
+      </div>
+
+      <div id="sensitiveData" class="sensitive-data" hidden></div>
+
+      <div class="sensitive-actions">
+        <span id="sensitiveStatus" class="sensitive-status">Bloqueado</span>
+      </div>
+    </div>
+  </section>
+
+  <script src="Apps/Shared/sensitive-data.js"></script>
+  <script>
+    (function () {
+      var dot = document.getElementById("sensitiveDot");
+      var screen = document.getElementById("sensitiveScreen");
+      var closeBtn = document.getElementById("sensitiveClose");
+      var passwordInput = document.getElementById("sensitivePassword");
+      var sensitiveData = document.getElementById("sensitiveData");
+      var unlockBtn = document.getElementById("sensitiveUnlock");
+      var status = document.getElementById("sensitiveStatus");
+
+      function setStatus(message) {
+        status.textContent = message;
+      }
+
+      function cryptoAvailable() {
+        return !!(window.crypto && crypto.subtle && window.TextEncoder && window.TextDecoder);
+      }
+
+      function bytesToHex(bytes) {
+        return Array.from(bytes).map(function (byte) {
+          return byte.toString(16).padStart(2, "0");
+        }).join("");
+      }
+
+      async function sha256(value) {
+        var data = new TextEncoder().encode(value);
+        var hash = await crypto.subtle.digest("SHA-256", data);
+        return bytesToHex(new Uint8Array(hash));
+      }
+
+      function renderSensitiveData() {
+        var config = window.GAPPS_SENSITIVE_DATA || {};
+        var sections = Array.isArray(config.sections) ? config.sections : [];
+        sensitiveData.innerHTML = "";
+        if (!sections.length) {
+          var empty = document.createElement("p");
+          empty.textContent = "Nenhum dado predefinido.";
+          sensitiveData.appendChild(empty);
+          return;
+        }
+        sections.forEach(function (section) {
+          var block = document.createElement("article");
+          block.className = "sensitive-section";
+          var title = document.createElement("h3");
+          title.textContent = section.title || "Dados";
+          block.appendChild(title);
+          (section.lines || []).forEach(function (line) {
+            var item = document.createElement("p");
+            item.textContent = line;
+            block.appendChild(item);
+          });
+          sensitiveData.appendChild(block);
+        });
+      }
+
+      function openScreen() {
+        screen.hidden = false;
+        sensitiveData.hidden = true;
+        setStatus("Digite a senha e clique em Abrir");
+        setTimeout(function () {
+          passwordInput.focus();
+        }, 0);
+      }
+
+      function closeScreen() {
+        screen.hidden = true;
+      }
+
+      dot.addEventListener("click", openScreen);
+      closeBtn.addEventListener("click", closeScreen);
+      screen.addEventListener("click", function (event) {
+        if (event.target === screen) closeScreen();
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !screen.hidden) closeScreen();
+      });
+
+      unlockBtn.addEventListener("click", async function () {
+        if (!cryptoAvailable()) {
+          setStatus("Validacao de senha indisponivel neste navegador");
+          return;
+        }
+        if (!passwordInput.value) {
+          setStatus("Digite a senha");
+          return;
+        }
+        try {
+          var config = window.GAPPS_SENSITIVE_DATA || {};
+          var passwordHash = await sha256(passwordInput.value);
+          if (passwordHash !== config.passwordHash) {
+            setStatus("Senha incorreta");
+            return;
+          }
+          renderSensitiveData();
+          sensitiveData.hidden = false;
+          setStatus("Acesso liberado");
+        } catch (error) {
+          setStatus("Nao foi possivel abrir");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

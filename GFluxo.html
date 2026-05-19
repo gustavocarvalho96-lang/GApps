@@ -1,0 +1,68 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fluxo</title>
+    <script src="Apps/GFluxo/vendor/html2canvas.min.js"></script>
+    <script src="Apps/GFluxo/vendor/tesseract.min.js"></script>
+    <link rel="stylesheet" href="Apps/GFluxo/styles.css" />
+    <link rel="stylesheet" href="Apps/Shared/ui.css" />
+  </head>
+  <body>
+    <main class="app">
+      <div class="shell">
+        <section class="card topbar">
+          <div class="topbar-inner">
+            <div class="brand">
+              <div class="brand-mark" aria-hidden="true">
+                <img src="Apps/Shared/logo-stethoscope-c.svg" alt="">
+              </div>
+              <h1>Fluxo</h1>
+            </div>
+            <div class="toolbar-left">
+              <button id="closeAllBtn" class="btn round close-btn" title="Fechar tudo">&times;</button>
+              <button id="rotateBtn" class="btn rotate-btn" title="Rodizio"><span>&#8635;</span><span id="rotateLabel">-</span></button>
+              <button id="fastTrackBtn" class="btn pill" title="Incluir Fast Track">&#9889;</button>
+              <button id="verificationBtn" class="btn pill off" title="Verificacao">&#10003;</button>
+              <button id="clearBtn" class="btn round" title="Limpar lista">&#128465;</button>
+              <button id="saveNowBtn" class="btn round" title="Salvar neste computador">&#128190;</button>
+            </div>
+            <div class="toolbar-center">
+              <button id="exportBtn" class="btn" disabled>&#9639; Gerar PNG</button>
+              <a id="downloadLink" class="btn ok hidden" download="fluxo-atendimento.png">&#10003; Baixar PNG</a>
+              <button id="copyBtn" class="btn ok hidden">&#10697; Copiar imagem</button>
+              <div id="saveStatus" class="save-status">Salvamento local pronto</div>
+              <div id="exportError" class="status error hidden"></div>
+            </div>
+            <div class="toolbar-right">
+              <button id="clearTemplateBtn" class="btn subtle-btn" title="Limpar template">Template</button>
+              <a class="home-link" href="Menu.html">Menu</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <aside class="card left">
+            <div id="leftSections" class="stack"></div>
+            <div id="verificationPanel" class="verification-box hidden"></div>
+            <div id="flagWarning" class="status warn hidden">Aten&ccedil;&atilde;o: existem nomes suspeitos ou com baixa confian&ccedil;a. Revise antes de enviar.</div>
+            <div id="readingSummary" class="section hidden"></div>
+          </aside>
+
+          <section class="card right">
+            <div class="stack">
+              <div class="preview-title">Fluxo de atendimento</div>
+              <div id="preview">
+                <div id="legendPreview" class="legend"></div>
+                <div id="patientColumns" class="patient-columns"></div>
+                <div id="odontoPreview"></div>
+              </div>
+            </div>
+          </section>
+        </section>
+      </div>
+    </main>
+    <script src="Apps/GFluxo/app.js"></script>
+</body>
+</html>

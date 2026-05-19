@@ -1,0 +1,74 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plantão</title>
+  <link rel="stylesheet" href="Apps/GPlantao/styles.css">
+  <link rel="stylesheet" href="Apps/Shared/ui.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <img src="Apps/Shared/logo-stethoscope-c.svg" alt="">
+      </div>
+      <div>
+        <div class="brand-name">Plantão</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="atestaditeSidebarToggle" class="sidebar-visibility-toggle" type="button" aria-expanded="true">Atestadite</button>
+      <a class="home-link" href="Menu.html">Menu</a>
+    </div>
+  </header>
+  <main class="app">
+    <aside class="sidebar sidebar-quick">
+      <div class="sidebar-head">
+        <div class="sidebar-title">Ações rápidas</div>
+      </div>
+      <div class="list">
+        <div id="quickList"></div>
+      </div>
+    </aside>
+    <aside class="sidebar sidebar-recipes">
+      <div class="sidebar-head">
+        <div class="sidebar-title">Receitas</div>
+      </div>
+      <div class="list">
+        <div id="recipeList"></div>
+      </div>
+    </aside>
+    <aside id="atestaditeSidebar" class="sidebar sidebar-atestadite">
+      <div class="sidebar-head">
+        <div class="sidebar-title">Atestadite</div>
+      </div>
+      <div id="atestaditeMenuBody" class="list">
+        <div id="atestaditeList"></div>
+      </div>
+    </aside>
+    <aside id="scoreSidebar" class="sidebar sidebar-scores hidden">
+      <div id="scorePanelContent" class="score-sidebar-content"></div>
+    </aside>
+    <section id="content" class="content"></section>
+  </main>
+  <script src="Apps/GPlantao/plantao-orientacoes-data.js"></script>
+  <script src="Apps/GPlantao/plantao-encaminhamentos-data.js"></script>
+  <script src="Apps/GPlantao/plantao-anamnese-data.js"></script>
+  <script src="Apps/GPlantao/plantao-receitas-data.js"></script>
+  <script src="Apps/GPlantao/app-data.js"></script>
+  <script src="Apps/Shared/lab-transcriber.js"></script>
+  <script src="Apps/Shared/lab-transcriber-auto.js"></script>
+  <script src="Apps/GPlantao/plantao-copy-toast.js"></script>
+  <script src="Apps/GPlantao/plantao-scores-cardio.js"></script>
+  <script src="Apps/GPlantao/plantao-scores-respiratorio.js"></script>
+  <script src="Apps/GPlantao/plantao-scores-neuro.js"></script>
+  <script src="Apps/GPlantao/plantao-scores-abdome.js"></script>
+  <script src="Apps/GPlantao/plantao-scores-tev.js"></script>
+  <script src="Apps/GPlantao/plantao-scores.js"></script>
+  <script src="Apps/GPlantao/plantao-reavaliacao.js"></script>
+  <script src="Apps/GPlantao/plantao-receita-livre.js"></script>
+  <script src="Apps/GPlantao/plantao-render.js"></script>
+  <script src="Apps/GPlantao/app.js"></script>
+</body>
+</html>

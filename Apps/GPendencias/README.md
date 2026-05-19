@@ -20,7 +20,7 @@ Depois abra:
 http://localhost:5173
 ```
 
-Use `GPendencias.html` para cadastrar pendências e `cards.html` para acompanhar os cards com mais espaço:
+Use `GPendencias.html` na raiz do GApps para cadastrar pendências e `cards.html` para acompanhar os cards com mais espaço:
 
 ```text
 http://localhost:5173/cards.html
