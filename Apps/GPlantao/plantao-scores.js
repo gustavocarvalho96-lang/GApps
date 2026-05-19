@@ -245,8 +245,7 @@ function scoreSuggestedConduct(id, result) {
 }
 
 function scoreTextWithConduct(id, result) {
-  var conduct = scoreSuggestedConduct(id, result);
-  return result.text + (conduct ? "\n  Conduta sugerida: " + conduct : "");
+  return result.text;
 }
 
 function renderSimpleScore(parent, config) {
