@@ -77,7 +77,7 @@ SINAIS DE ALARME:
 Escopolamina + dipirona ---- 20 cps
 Tomar 1 cp de 8/8h se dor.
 
-Diclofenaco 50mg ---- 6 cps
+Diclofenaco sodico 50mg ---- 6 cps
 Tomar 1 cp de 12/12h por até 3 dias.
 
 Paracetamol + codeína 500/30mg ---- 10 cps
@@ -142,7 +142,7 @@ Tomar 1 cp de 8/8h se náuseas/vômitos.
 Soro de reidratação ---- 2 envelopes
 Usar ao longo do dia.`,
     orientation: `- Hidratação oral rigorosa, fracionada ao longo do dia.
-- NAO usar AINEs: evitar ibuprofeno, diclofenaco, cetoprofeno, naproxeno e AAS, salvo orientação médica.
+- NAO usar AINEs: evitar ibuprofeno, Diclofenaco sodico, cetoprofeno, naproxeno e AAS, salvo orientação médica.
 - Usar preferencialmente dipirona/paracetamol conforme prescrição.
 - Retornar para reavaliação conforme orientação, especialmente entre o 3º e 7º dia de sintomas.
 
@@ -307,7 +307,7 @@ SINAIS DE ALARME:
 Cefalexina 500mg ---- 28 cps
 Tomar 1 comprimido de 6/6h por 7 dias.
 
-Diclofenaco 50mg ---- 12 cps
+Diclofenaco sodico 50mg ---- 12 cps
 Tomar 1 comprimido de 8/8h por 4 dias.
 
 Dipirona 500mg ---- 20 cps
@@ -434,7 +434,7 @@ SINAIS DE ALARME:
     title: "Hemorroida / Fissura anal",
     category: "Gastrointestinal",
     prescription: `Uso oral:
-Diclofenaco 50mg ---- 15 cps
+Diclofenaco sodico 50mg ---- 15 cps
 Tomar 1 comprimido de 8/8h por até 5 dias se dor.
 
 Diosmina + hesperidina 450/50mg ---- 30 cps
@@ -475,7 +475,7 @@ Aplicar 1 gota no olho afetado de 8/8h por 7 dias.`,
 
 SINAIS DE ALARME:
 - Redução da visão, dor intensa/progressiva ou fotofobia importante.
-- Secreção purulenta, trauma ocular associado ou ausência de melhora em 24-48h.
+- Secreção purulenta, trauma ocular associado ou ausência de melhora em 48h.
 - Qualquer suspeita de corpo estranho ou queimadura química exige reavaliação imediata.`,
     tags: ["ceratite", "solda", "dor ocular", "fotofobia"]
   },
@@ -592,7 +592,7 @@ SINAIS DE ALARME:
     tags: ["lombalgia"],
     options: [
       ["AINE + Dipirona + Ciclobenzaprina", `Uso oral:
-Diclofenaco 50mg ---- 15 cps
+Diclofenaco sodico 50mg ---- 15 cps
 Tomar 1 cp de 8/8h por 5 dias.
 
 Dipirona 500mg ---- 20 cps

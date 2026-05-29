@@ -2,7 +2,7 @@ const freeGroups = {
   dor: [
     ["Cetoprofeno", `Cetoprofeno 100mg ---- 6 cps
 Tomar 1 cp de 12/12h por até 3 dias.`],
-    ["Diclofenaco", `Diclofenaco 50mg ---- 9 cps
+    ["Diclofenaco sodico", `Diclofenaco sodico 50mg ---- 9 cps
 Tomar 1 cp de 8/8h por até 3 dias.`],
     ["Dipirona", `Dipirona 500mg ---- 20 cps
 Tomar 1 cp de 6/6h se dor ou febre.`],

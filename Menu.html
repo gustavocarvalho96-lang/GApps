@@ -205,32 +205,50 @@
 
     .sensitive-dot {
       position: fixed;
-      right: 10px;
-      bottom: 10px;
+      right: 6px;
+      bottom: 6px;
       z-index: 20;
-      width: 9px;
-      height: 9px;
+      width: 24px;
+      height: 24px;
       border: 0;
-      border-radius: 999px;
-      background: rgba(15, 34, 48, 0.16);
-      opacity: 0.22;
+      background: transparent;
+      opacity: 0.45;
       cursor: pointer;
       padding: 0;
     }
 
     .fluxo-toggle-dot {
       position: fixed;
-      right: 26px;
-      bottom: 10px;
+      right: 36px;
+      bottom: 6px;
       z-index: 20;
-      width: 9px;
-      height: 9px;
+      width: 24px;
+      height: 24px;
       border: 0;
-      border-radius: 999px;
-      background: rgba(124, 58, 237, 0.16);
-      opacity: 0.18;
+      background: transparent;
+      opacity: 0.36;
       cursor: pointer;
       padding: 0;
+    }
+
+    .sensitive-dot::before,
+    .fluxo-toggle-dot::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%);
+    }
+
+    .sensitive-dot::before {
+      background: rgba(15, 34, 48, 0.16);
+    }
+
+    .fluxo-toggle-dot::before {
+      background: rgba(124, 58, 237, 0.16);
     }
 
     .sensitive-dot:hover,
@@ -613,7 +631,11 @@
       }
 
       function isGFluxoVisible() {
-        return localStorage.getItem(GFLUXO_VISIBLE_KEY) === "true";
+        try {
+          return localStorage.getItem(GFLUXO_VISIBLE_KEY) === "true";
+        } catch (error) {
+          return false;
+        }
       }
 
       function setGFluxoVisible(visible) {
@@ -625,7 +647,9 @@
         if (brandApps) {
           brandApps.setAttribute("aria-label", visible ? "4 aplicativos" : "3 aplicativos");
         }
-        localStorage.setItem(GFLUXO_VISIBLE_KEY, visible ? "true" : "false");
+        try {
+          localStorage.setItem(GFLUXO_VISIBLE_KEY, visible ? "true" : "false");
+        } catch (error) {}
       }
 
       function cryptoAvailable() {
