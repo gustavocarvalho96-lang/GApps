@@ -239,6 +239,26 @@ h1 {
   box-shadow: 0 8px 18px rgba(59, 130, 246, .16);
 }
 
+.sobam-btn {
+  border-color: #d9e1ec;
+  background: #fff;
+  color: #344054;
+  box-shadow: 0 6px 14px rgba(15, 34, 48, .06);
+}
+
+.sobam-btn:hover {
+  border-color: rgba(194, 122, 20, .28);
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.sobam-btn.active {
+  border-color: rgba(194, 122, 20, .42);
+  background: #c27a14;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(194, 122, 20, .16);
+}
+
 textarea, pre {
   width: 100%;
   min-height: 360px;

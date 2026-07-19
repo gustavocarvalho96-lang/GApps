@@ -3,6 +3,7 @@ var output = document.getElementById("output");
 var autoBtn = document.getElementById("autoBtn");
 var campoLimpoBtn = document.getElementById("campoLimpoBtn");
 var jundiaiBtn = document.getElementById("jundiaiBtn");
+var sobamBtn = document.getElementById("sobamBtn");
 var detectedSource = document.getElementById("detectedSource");
 var activeSource = "auto";
 var autoTranscribeTimer;
@@ -28,6 +29,7 @@ function updateSourceButtons() {
   autoBtn.classList.toggle("active", activeSource === "auto");
   campoLimpoBtn.classList.toggle("active", activeSource === "campo-limpo");
   jundiaiBtn.classList.toggle("active", activeSource === "jundiai");
+  sobamBtn.classList.toggle("active", activeSource === "sobam");
 }
 
 function setDetectedSource(label) {
@@ -60,6 +62,12 @@ function transcribeBySource(source, options) {
     if (options.toast) showToast("Transcrito: Jundiai");
     return;
   }
+  if (activeSource === "sobam") {
+    output.textContent = transcribeSobamLabs(input.value);
+    setDetectedSource("SOBAM");
+    if (options.toast) showToast("Transcrito: SOBAM");
+    return;
+  }
   output.textContent = transcribeCampoLimpoLabs(input.value);
   setDetectedSource("Campo Limpo");
   if (options.toast) showToast("Transcrito: Campo Limpo");
@@ -82,6 +90,10 @@ campoLimpoBtn.onclick = function () {
 
 jundiaiBtn.onclick = function () {
   transcribeBySource("jundiai", { toast: true });
+};
+
+sobamBtn.onclick = function () {
+  transcribeBySource("sobam", { toast: true });
 };
 
 input.addEventListener("input", scheduleAutoTranscription);

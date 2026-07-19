@@ -118,7 +118,8 @@ Oriento retorno imediato se febre persistente, sangue nas fezes, vomitos incoerc
     labSources: [
       { label: "Auto", source: "auto", className: "auto-btn" },
       { label: "Campo Limpo", source: "campo-limpo", className: "campo-limpo-btn" },
-      { label: "Jundiai", source: "jundiai", className: "jundiai-btn" }
+      { label: "Jundiai", source: "jundiai", className: "jundiai-btn" },
+      { label: "SOBAM", source: "sobam", className: "sobam-btn" }
     ],
     prescription: `#Reavaliação#
 
@@ -126,7 +127,7 @@ Oriento retorno imediato se febre persistente, sangue nas fezes, vomitos incoerc
 
 -->Exames imagem:
 
-Reavalio paciente em consultório, paciente estável hemodinamicamente (PA // FC // FR // SATO2). Paciente refere melhora dos sintomas após medicações, com condições de alta hospitalar e término de tratamento a nível domiciliar.
+Reavalio paciente em consultório, paciente estável hemodinamicamente (PA | FC | FR | SATO2). Paciente refere melhora dos sintomas após medicações, com condições de alta hospitalar e término de tratamento a nível domiciliar.
 
 --> Conduta : 
 1 - Oriento manter tratamento conforme prescrito e medidas gerais.
