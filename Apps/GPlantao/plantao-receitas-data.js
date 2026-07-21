@@ -559,6 +559,46 @@ SINAIS DE ALARME:
     tags: ["cefaleia", "fotofobia", "náusea"]
   },
   {
+    id: "insuficiencia-venosa",
+    title: "Insuficiência venosa",
+    category: "Vascular",
+    prescription: "Selecione uma opção.",
+    orientation: `- Quadro compatível com insuficiência venosa crônica/estase venosa, sem sinais de gravidade no momento.
+- Oriento elevar membros inferiores, evitar longos períodos em pé ou sentado sem movimentar as pernas, caminhar regularmente e manter hidratação da pele.
+- Usar meia elástica compressiva conforme tolerância/orientação, se não houver suspeita de doença arterial periférica importante ou sinais de má perfusão, como pé frio/pálido, pulsos muito diminuídos, dor intensa em repouso, ferida isquêmica/necrose, feridas extensas, infecção importante ou dor intensa ao uso.
+- Acompanhamento ambulatorial com angiologia/cirurgia vascular para seguimento.
+
+SINAIS DE ALARME:
+- Dor ou inchaço súbito e assimétrico em uma perna.
+- Vermelhidão intensa, calor local, febre, secreção, ferida com piora ou mau cheiro.
+- Falta de ar, dor no peito, desmaio ou piora importante.
+- Pé frio/pálido, dor intensa progressiva ou alteração de sensibilidade.`,
+    allergyReplacements: [
+      ["Dipirona 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor.", "Paracetamol 500mg ---- 20 cps\nTomar 1 cp de 6/6h se dor."]
+    ],
+    options: [
+      ["Diosmina + Hesperidina", `Uso oral:
+Diosmina 450mg + Hesperidina 50mg ---- 60 cps
+Tomar 1 cp de 12/12h por 30 dias.
+
+Dipirona 500mg ---- 20 cps
+Tomar 1 cp de 6/6h se dor.
+
+Uso tópico:
+Hidratante corporal ---- 1 frasco
+Aplicar em membros inferiores 2x ao dia, evitando áreas com feridas abertas.`],
+      ["Meia elástica", `Uso externo:
+Meia elástica compressiva 20-30 mmHg ---- 1 par
+Usar durante o dia, se não houver contraindicação médica, retirando para dormir.
+Evitar uso se houver suspeita de doença arterial periférica importante ou sinais de má perfusão: pé frio/pálido, pulsos muito diminuídos, dor intensa em repouso, ferida isquêmica/necrose, feridas extensas, infecção importante ou dor intensa ao uso.
+
+Uso tópico:
+Hidratante corporal ---- 1 frasco
+Aplicar em membros inferiores 2x ao dia, evitando áreas com feridas abertas.`]
+    ].map(([label, value]) => ({ label, value })),
+    tags: ["insuficiencia venosa", "varizes", "edema", "vascular", "estase"]
+  },
+  {
     id: "lombalgia",
     title: "Dor Aguda",
     category: "Ortopedia",

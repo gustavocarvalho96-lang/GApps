@@ -16,11 +16,7 @@ function renderNav(containerId, items, selectedId, emptyText) {
       var title = document.createElement("span");
       title.className = "nav-title";
       title.textContent = item.title;
-      var meta = document.createElement("span");
-      meta.className = "nav-meta";
-      meta.textContent = item.category || "";
       b.appendChild(title);
-      b.appendChild(meta);
       node.appendChild(b);
     })(items[i]);
   }
@@ -114,6 +110,11 @@ function renderOptions(protocol, parent) {
       }
       atestadoControl.appendChild(atestadoMenu);
       anamneseButtons.appendChild(atestadoControl);
+      anamneseButtons.appendChild(textButton("Pré Tramal", "text-btn pre-med-toggle" + ((state.editableText || "").indexOf(ANAMNESE_PRE_MED_TRAMAL_TEXT) >= 0 ? " active" : ""), function () {
+        updateAnamnesePreMedicationInTemplate();
+        showToast("Pre medicacao inserida");
+        render();
+      }));
       otoOroBlock.appendChild(anamneseButtons);
       if (state.openGroups.otoOro) {
         var examRow = div("row");
@@ -373,10 +374,51 @@ function renderReavaliacaoVitals(body) {
   body.appendChild(panel);
 }
 
+function renderHighRiskReavaliacao(body) {
+  var panel = div("panel stack high-risk-panel");
+  var header = div("reavaliacao-panel-head");
+  var titleWrap = div("");
+  var title = div("panel-title");
+  title.textContent = "Medicacao de alto risco";
+  var hint = div("panel-hint");
+  hint.textContent = "Insere reavaliacao obrigatoria apos opioide, sedativo ou antipsicotico sedativo.";
+  titleWrap.appendChild(title);
+  titleWrap.appendChild(hint);
+  header.appendChild(titleWrap);
+  header.appendChild(textButton("Alto risco", "text-btn high-risk-toggle" + (state.openGroups.highRisk ? " active" : ""), function () {
+    state.openGroups.highRisk = !state.openGroups.highRisk;
+    render();
+  }));
+  panel.appendChild(header);
+
+  if (state.openGroups.highRisk) {
+    var row = div("row high-risk-options");
+    HIGH_RISK_MEDICATION_OPTIONS.forEach(function (option) {
+      row.appendChild(textButton(option.label, "text-btn", function () {
+        updateHighRiskReavaliacao(option);
+        state.openGroups.highRisk = false;
+        showToast("Reavaliacao de alto risco inserida");
+        render();
+      }));
+    });
+    if ((state.editableText || "").indexOf("medicacao de alto risco") >= 0) {
+      row.appendChild(textButton("Remover alto risco", "text-btn danger-btn", function () {
+        updateHighRiskReavaliacao(null);
+        state.openGroups.highRisk = false;
+        showToast("Reavaliacao removida");
+        render();
+      }));
+    }
+    panel.appendChild(row);
+  }
+  body.appendChild(panel);
+}
+
 function renderEditable(protocol, body) {
   if (protocol.freeGroupsEnabled) renderFreeGroups(body);
   if (protocol.collapsibleSections) renderCollapsibleSections(protocol, body);
   if (protocol.id === "reavaliacao") renderReavaliacaoVitals(body);
+  if (protocol.id === "reavaliacao") renderHighRiskReavaliacao(body);
   if (protocol.labTranscription) {
     var lab = div("panel stack reavaliacao-lab-panel");
     var header = div("reavaliacao-panel-head");
@@ -524,10 +566,7 @@ function renderProtocol(protocol) {
   var titleBox = div("");
   var h = document.createElement("h1");
   h.textContent = protocol.title;
-  var p = document.createElement("p");
-  p.textContent = protocol.category || "";
   titleBox.appendChild(h);
-  titleBox.appendChild(p);
   var actions = div("header-actions");
   actions.appendChild(textButton("Copiar tudo", "text-btn primary-btn", function () { copyText(finalText(protocol)); }));
   var headerLeft = div("header-left");

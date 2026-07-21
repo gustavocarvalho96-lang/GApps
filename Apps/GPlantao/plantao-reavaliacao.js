@@ -28,6 +28,15 @@ function labSourceLabel() {
   return "Campo Limpo";
 }
 
+var HIGH_RISK_MEDICATION_OPTIONS = [
+  { label: "Morfina", indication: "analgesia e controle de dor importante" },
+  { label: "Tramal", indication: "analgesia e controle de dor importante" }
+];
+
+function highRiskText(option) {
+  return "Paciente reavaliado as ______ apos administracao de " + option.label + ", indicada por necessidade clinica de analgesia e controle de dor importante. No momento, apresenta resposta terapeutica satisfatoria  sinais vitais: PA | FC | FR | SATO2, nivel de consciencia preservado, responsivo, dor EVA __/10 , sem sinais de depressao respiratoria, rebaixamento persistente do nivel de consciencia, hipotensao, dessaturacao ou outros eventos adversos. Sem necessidade de dose adicional ou mudanca de conduta no momento.";
+}
+
 function formatReavaliacaoVitals() {
   var vitals = state.reavaliacaoVitals || {};
   var parts = [];
@@ -61,6 +70,45 @@ function updateReavaliacaoVitalsInTemplate() {
   state.editableText = text.replace(/paciente est.vel hemodinamicamente/i, function (match) {
     return match + " " + replacement;
   });
+  saveReavaliacaoDraft();
+}
+
+function removeHighRiskReavaliacaoBlock(text) {
+  var lines = (text || "").split("\n");
+  var next = [];
+  var skipping = false;
+  for (var i = 0; i < lines.length; i += 1) {
+    var line = lines[i];
+    if (/^\s*Paciente reavaliado apos administracao de .*medicacao de alto risco/i.test(line)) {
+      skipping = true;
+      continue;
+    }
+    if (skipping && /^\s*$/.test(line)) continue;
+    if (skipping && /^\s*-->/.test(line)) {
+      skipping = false;
+      next.push(line);
+      continue;
+    }
+    if (!skipping) next.push(line);
+  }
+  return next.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+function setHighRiskReavaliacaoBlock(text, blockText) {
+  var next = removeHighRiskReavaliacaoBlock(text || "");
+  if (!blockText) return next;
+  var conductPattern = /\n\s*-->\s*Conduta\s*:/i;
+  if (conductPattern.test(next)) {
+    return next.replace(conductPattern, "\n" + blockText + "\n\n--> Conduta :").replace(/\n{3,}/g, "\n\n");
+  }
+  return next.trimEnd() + "\n\n" + blockText;
+}
+
+function updateHighRiskReavaliacao(option) {
+  var editor = document.querySelector("textarea.template-editor");
+  var source = editor ? editor.value : state.editableText;
+  state.editableText = setHighRiskReavaliacaoBlock(source || "", option ? highRiskText(option) : "");
+  if (editor) editor.value = state.editableText;
   saveReavaliacaoDraft();
 }
 

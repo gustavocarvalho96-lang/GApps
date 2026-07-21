@@ -34,6 +34,7 @@ var ALLERGY_OPTIONS = [
   "Sulfametoxazol-trimetoprima",
   "Tramadol"
 ];
+var ANAMNESE_PRE_MED_TRAMAL_TEXT = "Paciente avaliado antes da administracao de Tramal, indicada por necessidade clinica de analgesia e controle de dor importante, com justificativa baseada em quadro algico significativo e necessidade de controle sintomatico. Sinais vitais recentes: PA | FC | FR | SATO2, nivel de consciencia preservado, responsivo, dor EVA __/10. Sem sinais clinicos de instabilidade respiratoria ou hemodinamica no momento.";
 var ANAMNESE_ATTESTATION_OPTIONS = [
   {
     label: "IVAS 2d",
@@ -141,7 +142,7 @@ var state = {
   useParacetamolAlt: false,
   useEscopolaminaParacetamolAlt: false,
   useGastroCipro: false,
-  openGroups: { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false, atestado: false }
+  openGroups: { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false, atestado: false, highRisk: false }
 };
 
 function el(id) {
@@ -417,7 +418,7 @@ function selectProtocol(id) {
   state.labOutput = "";
   state.labSource = "auto";
   state.labDetectedSource = "";
-  state.openGroups = { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false, atestado: false };
+  state.openGroups = { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false, atestado: false, highRisk: false };
   var protocol = findProtocol(id);
   state.atestaditeTexts = protocol && protocol.atestaditeSections ? getAtestaditeInitialTexts(protocol) : {};
   state.editableText = protocol && protocol.id === "anamnese"
@@ -540,11 +541,13 @@ function getOrientation(protocol) {
 }
 
 function addTextToEditable(label, text) {
-  var lower = state.editableText.toLowerCase();
-  if (lower.indexOf(label.toLowerCase()) >= 0) {
-    state.editableText = state.editableText.replace(text, "").replace(/\n{3,}/g, "\n\n").trimEnd();
+  var current = state.editableText || "";
+  var escaped = String(text || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (current.indexOf(text) >= 0) {
+    state.editableText = current.replace(new RegExp("\\n*" + escaped, "g"), "").replace(/\n{3,}/g, "\n\n").trimEnd();
+    if (/^Uso oral:\s*$/i.test(state.editableText)) state.editableText = "Uso oral:\n\n";
   } else {
-    state.editableText = state.editableText.trimEnd() + "\n\n" + text;
+    state.editableText = current.trimEnd() + "\n\n" + text;
   }
   saveAnamneseDraft("Anamnese salva");
   render();
@@ -650,6 +653,32 @@ function updateAnamneseAttestationInTemplate(attestationText) {
   var editor = document.querySelector("textarea.anamnese-editor");
   var source = editor ? editor.value : state.editableText;
   state.editableText = setAnamneseAttestationBlock(source || "", attestationText);
+  if (editor) editor.value = state.editableText;
+  saveAnamneseDraft("Anamnese salva");
+}
+
+function removeAnamnesePreMedicationBlock(text) {
+  var escaped = ANAMNESE_PRE_MED_TRAMAL_TEXT.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return (text || "")
+    .replace(new RegExp("\\n?" + escaped + "\\n?", "g"), "\n")
+    .replace(/\n{3,}/g, "\n\n");
+}
+
+function setAnamnesePreMedicationBlock(text) {
+  var next = removeAnamnesePreMedicationBlock(text || "");
+  var conductPattern = /(-->\s*Conduta\s*:\s*)/i;
+  if (conductPattern.test(next)) {
+    return next.replace(conductPattern, function (marker) {
+      return marker + "\n" + ANAMNESE_PRE_MED_TRAMAL_TEXT + "\n\n";
+    }).replace(/\n{3,}/g, "\n\n");
+  }
+  return next.trimEnd() + "\n\n" + ANAMNESE_PRE_MED_TRAMAL_TEXT;
+}
+
+function updateAnamnesePreMedicationInTemplate() {
+  var editor = document.querySelector("textarea.anamnese-editor");
+  var source = editor ? editor.value : state.editableText;
+  state.editableText = setAnamnesePreMedicationBlock(source || "");
   if (editor) editor.value = state.editableText;
   saveAnamneseDraft("Anamnese salva");
 }

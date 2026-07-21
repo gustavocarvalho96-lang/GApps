@@ -214,6 +214,20 @@ button {
   width: min(320px, calc(100vw - 32px));
 }
 
+.pre-med-toggle {
+  border-color: rgba(29, 78, 216, .22);
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 850;
+}
+
+.pre-med-toggle:hover,
+.pre-med-toggle.active {
+  border-color: rgba(29, 78, 216, .38);
+  background: #dbeafe;
+  color: #1e40af;
+}
+
 .allergy-alert {
   width: min(1360px, calc(100% - 56px));
   min-height: 42px;
@@ -419,18 +433,6 @@ textarea:focus {
   font-size: 13px;
   font-weight: 750;
   line-height: 1.15;
-}
-
-.nav-meta {
-  display: none;
-  margin-top: 2px;
-  color: #7a8798;
-  font-size: 11px;
-  line-height: 1.25;
-}
-
-.nav-btn.active .nav-meta {
-  display: block;
 }
 
 .content {
@@ -639,6 +641,34 @@ textarea:focus {
   background: #c27a14;
   color: #fff;
   box-shadow: 0 10px 22px rgba(194, 122, 20, .18);
+}
+
+.high-risk-panel {
+  border-left: 5px solid #b42318;
+}
+
+.high-risk-toggle {
+  border-color: rgba(180, 35, 24, .22);
+  background: #fff7f7;
+  color: #b42318;
+  font-weight: 850;
+}
+
+.high-risk-toggle:hover,
+.high-risk-toggle.active {
+  border-color: rgba(180, 35, 24, .38);
+  background: #fee4e2;
+  color: #912018;
+}
+
+.high-risk-options {
+  padding-top: 2px;
+}
+
+.danger-btn {
+  border-color: rgba(180, 35, 24, .24);
+  background: #fff7f7;
+  color: #b42318;
 }
 
 .ghost-btn {
