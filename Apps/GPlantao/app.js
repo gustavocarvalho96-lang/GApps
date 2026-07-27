@@ -34,6 +34,8 @@ var ALLERGY_OPTIONS = [
   "Sulfametoxazol-trimetoprima",
   "Tramadol"
 ];
+var ALLERGY_QUICK_OPTIONS = ["Dipirona", "Diclofenaco", "Penicilina benzatina", "Amoxicilina"];
+var NO_KNOWN_ALLERGIES_TEXT = "Nega alergias medicamentosas";
 var ANAMNESE_PRE_MED_TRAMAL_TEXT = "Paciente avaliado antes da administracao de Tramal, indicada por necessidade clinica de analgesia e controle de dor importante, com justificativa baseada em quadro algico significativo e necessidade de controle sintomatico. Sinais vitais recentes: PA | FC | FR | SATO2, nivel de consciencia preservado, responsivo, dor EVA __/10. Sem sinais clinicos de instabilidade respiratoria ou hemodinamica no momento.";
 var ANAMNESE_ATTESTATION_OPTIONS = [
   {
@@ -284,7 +286,7 @@ function loadAllergies() {
     var stored = localStorage.getItem(ALLERGY_STORAGE_KEY);
     var parsed = stored ? JSON.parse(stored) : [];
     state.allergies = Array.isArray(parsed) ? parsed.filter(function (item) {
-      return ALLERGY_OPTIONS.indexOf(item) >= 0;
+      return typeof item === "string" && item.trim() && item.length <= 80;
     }) : [];
   } catch (error) {
     state.allergies = [];
@@ -323,13 +325,32 @@ function updateVisibleAnamneseAllergyLine() {
   editor.value = state.editableText;
 }
 
-function toggleAllergy(medicine) {
+function addAllergy(medicine) {
+  medicine = (medicine || "").trim();
+  if (!medicine) return;
   var current = state.allergies || [];
-  if (current.indexOf(medicine) >= 0) {
-    state.allergies = current.filter(function (item) { return item !== medicine; });
-  } else {
-    state.allergies = current.concat(medicine);
-  }
+  if (current.indexOf(medicine) >= 0) return;
+  state.allergies = current.filter(function (item) { return item !== NO_KNOWN_ALLERGIES_TEXT; }).concat(medicine.slice(0, 80));
+  saveAllergies();
+  updateVisibleAnamneseAllergyLine();
+  renderAllergyControls();
+}
+
+function removeAllergy(medicine) {
+  state.allergies = (state.allergies || []).filter(function (item) { return item !== medicine; });
+  saveAllergies();
+  updateVisibleAnamneseAllergyLine();
+  renderAllergyControls();
+}
+
+function toggleAllergy(medicine) {
+  if ((state.allergies || []).indexOf(medicine) >= 0) removeAllergy(medicine);
+  else addAllergy(medicine);
+}
+
+function setNoKnownAllergies() {
+  state.allergies = [NO_KNOWN_ALLERGIES_TEXT];
+  state.allergyMenuOpen = false;
   saveAllergies();
   updateVisibleAnamneseAllergyLine();
   renderAllergyControls();
@@ -348,11 +369,95 @@ function renderAllergyControls() {
   if (menu) {
     menu.innerHTML = "";
     menu.classList.toggle("hidden", !state.allergyMenuOpen);
-    ALLERGY_OPTIONS.forEach(function (medicine) {
-      menu.appendChild(textButton(medicine, "allergy-option" + (allergies.indexOf(medicine) >= 0 ? " active" : ""), function () {
-        toggleAllergy(medicine);
-      }));
-    });
+    if (state.allergyMenuOpen) {
+      var searchRow = div("allergy-search-row");
+      var search = document.createElement("input");
+      search.id = "allergySearch";
+      search.className = "allergy-search";
+      search.type = "text";
+      search.autocomplete = "off";
+      search.placeholder = "Digite: dipi, amox, contraste...";
+      search.setAttribute("aria-label", "Buscar ou escrever alergia");
+      var addButton = textButton("Adicionar", "allergy-add", function () {
+        addAllergy(search.value);
+        var nextSearch = el("allergySearch");
+        if (nextSearch) nextSearch.focus();
+      });
+      searchRow.appendChild(search);
+      searchRow.appendChild(addButton);
+      menu.appendChild(searchRow);
+
+      var hint = div("allergy-hint");
+      hint.textContent = "Enter adiciona · Esc fecha · aceita qualquer texto";
+      menu.appendChild(hint);
+      var suggestions = div("allergy-suggestions");
+      menu.appendChild(suggestions);
+
+      function updateSuggestions() {
+        var term = search.value.trim().toLocaleLowerCase("pt-BR");
+        suggestions.innerHTML = "";
+        if (!term) return;
+        var candidates = ALLERGY_OPTIONS.concat(ALLERGY_QUICK_OPTIONS).filter(function (item, index, list) {
+          return list.indexOf(item) === index &&
+            allergies.indexOf(item) < 0 &&
+            item.toLocaleLowerCase("pt-BR").indexOf(term) >= 0;
+        }).slice(0, 4);
+        candidates.forEach(function (medicine) {
+          suggestions.appendChild(textButton(medicine, "allergy-suggestion", function () {
+            addAllergy(medicine);
+            var nextSearch = el("allergySearch");
+            if (nextSearch) nextSearch.focus();
+          }));
+        });
+      }
+
+      search.oninput = updateSuggestions;
+      search.onkeydown = function (event) {
+        if (event.key === "Escape") {
+          state.allergyMenuOpen = false;
+          renderAllergyControls();
+          return;
+        }
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        var suggestion = suggestions.querySelector("button");
+        addAllergy(suggestion ? suggestion.textContent : search.value);
+        var nextSearch = el("allergySearch");
+        if (nextSearch) nextSearch.focus();
+      };
+
+      if (allergies.length) {
+        var selectedLabel = div("allergy-menu-label");
+        selectedLabel.textContent = "Registradas";
+        menu.appendChild(selectedLabel);
+        var selectedChips = div("allergy-selected");
+        allergies.forEach(function (medicine) {
+          var tag = div("allergy-tag");
+          var tagText = document.createElement("span");
+          tagText.textContent = medicine;
+          var remove = textButton("×", "allergy-tag-remove", function () { removeAllergy(medicine); });
+          remove.title = "Remover " + medicine;
+          tag.appendChild(tagText);
+          tag.appendChild(remove);
+          selectedChips.appendChild(tag);
+        });
+        menu.appendChild(selectedChips);
+      }
+
+      var quickLabel = div("allergy-menu-label");
+      quickLabel.textContent = "Mais usadas";
+      menu.appendChild(quickLabel);
+      var quickOptions = div("allergy-quick-options");
+      ALLERGY_QUICK_OPTIONS.forEach(function (medicine) {
+        quickOptions.appendChild(textButton(medicine, "allergy-chip" + (allergies.indexOf(medicine) >= 0 ? " active" : ""), function () {
+          toggleAllergy(medicine);
+          var nextSearch = el("allergySearch");
+          if (nextSearch) nextSearch.focus();
+        }));
+      });
+      menu.appendChild(quickOptions);
+      menu.appendChild(textButton("✓ Nega alergias medicamentosas", "allergy-negative", setNoKnownAllergies));
+    }
     if (allergies.length) {
       menu.appendChild(textButton("Limpar alergias", "allergy-option allergy-clear", function () {
         state.allergies = [];
@@ -364,7 +469,9 @@ function renderAllergyControls() {
   }
   if (alert) {
     alert.classList.toggle("hidden", allergies.length === 0);
-    alert.textContent = allergies.length ? "ALERGIA: " + allergies.join(" | ") : "";
+    alert.textContent = allergies.length === 1 && allergies[0] === NO_KNOWN_ALLERGIES_TEXT
+      ? NO_KNOWN_ALLERGIES_TEXT
+      : allergies.length ? "ALERGIA: " + allergies.join(" | ") : "";
   }
   var editor = document.querySelector("textarea.anamnese-editor");
   var allergyText = allergies.join(" | ");
@@ -722,13 +829,6 @@ function boot() {
   if (clearSavedDataBtn) {
     clearSavedDataBtn.addEventListener("click", clearAllSavedData);
   }
-  document.addEventListener("click", function (event) {
-    var control = document.querySelector(".allergy-control");
-    if (!control || control.contains(event.target)) return;
-    if (!state.allergyMenuOpen) return;
-    state.allergyMenuOpen = false;
-    renderAllergyControls();
-  });
   render();
 }
 

@@ -1,6 +1,13 @@
 function detectAutomaticLabSource(rawText) {
   var text = String(rawText || "");
   var search = jundiaiSearchText(text);
+  if (
+    search.indexOf("pedido :") >= 0 &&
+    search.indexOf("pagina:") >= 0 &&
+    search.indexOf("hosp. sao vicente de paulo jundiai") >= 0
+  ) {
+    return "jundiai-pdf";
+  }
   var sobamScore = 0;
   [
     "laudo liberado eletronicamente",
@@ -15,13 +22,6 @@ function detectAutomaticLabSource(rawText) {
   });
   if (search.indexOf("material:") >= 0 && search.indexOf("liberacao:") >= 0) sobamScore += 1;
   if (sobamScore >= 3) return "sobam";
-  if (
-    search.indexOf("pedido :") >= 0 &&
-    search.indexOf("pagina:") >= 0 &&
-    search.indexOf("hosp. sao vicente de paulo jundiai") >= 0
-  ) {
-    return "jundiai-pdf";
-  }
   var jundiaiScore = 0;
   [
     "o.s.:",

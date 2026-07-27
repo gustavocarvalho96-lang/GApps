@@ -31,7 +31,12 @@ function renderOptions(protocol, parent) {
       state.labOutput = "";
       state.labSource = "auto";
       state.labDetectedSource = "";
-      if (protocol.id === "anamnese") state.anamneseVitals = { pa: "", fc: "", fr: "", sato2: "" };
+      if (protocol.id === "anamnese") {
+        state.anamneseVitals = { pa: "", fc: "", fr: "", sato2: "" };
+        state.allergies = [];
+        state.allergyMenuOpen = false;
+        saveAllergies();
+      }
       if (protocol.id === "reavaliacao") {
         state.reavaliacaoVitals = { pa: "", fc: "", fr: "", sato2: "" };
         clearReavaliacaoDraft();
@@ -81,6 +86,8 @@ function renderOptions(protocol, parent) {
       allergyControl.appendChild(textButton("Alergia", "text-btn allergy-toggle", function () {
         state.allergyMenuOpen = !state.allergyMenuOpen;
         renderAllergyControls();
+        var allergySearch = el("allergySearch");
+        if (allergySearch) allergySearch.focus();
       }));
       var allergyMenu = div("allergy-menu hidden");
       allergyMenu.id = "allergyMenu";
@@ -642,7 +649,6 @@ function renderAtestaditeSidebar(items) {
 }
 
 function render() {
-  renderAllergyControls();
   var lists = filtered();
   var protocol = currentProtocol();
   if (protocol) state.selectedId = protocol.id;

@@ -226,6 +226,20 @@
         assert(result.output.indexOf("urina tipo I") >= 0, result.output);
       });
 
+      add("Jundiai PDF tem prioridade sobre marcadores genericos do SOBAM", function () {
+        var sample = [
+          "Pedido : 8025005308",
+          "Paciente : PACIENTE TESTE CNS : 123",
+          "Hosp. Sao Vicente de Paulo Jundiai",
+          "Pagina: 1/2",
+          "Laudo liberado eletronicamente",
+          "Assinatura digital",
+          "Valor de referencia:"
+        ].join("\n");
+        var result = transcribeAutomaticLabs(sample);
+        assert(result.source === "jundiai-pdf", "Fonte detectada: " + result.source);
+      });
+
       tests.forEach(function (test) {
         try {
           test.fn();
