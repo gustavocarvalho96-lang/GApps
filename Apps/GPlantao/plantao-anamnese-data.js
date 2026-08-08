@@ -25,7 +25,7 @@ const administrativeProtocols = [
 # MUC :
 # Alergia :
 .
-# Ao exame fisico :
+# Exame fisico :
 BEG, Corada,Hidratada, Acianótica, Afebril, Anicterica, Eupneica
 Aparelho Pulmonar: MV Presente Bilateral Sem Ruidos Adventicios, Sem Sinais De Esforço Respiratório 
 Aparelho CardioVascular: BRNF 2 Tempos Sem Sopros Audíveis 
@@ -70,7 +70,7 @@ EXT: Sem Empastamento De Panturrilhas, Tec< 3 Segundos, Simétricas, Sem Edemas
 
 Nega falta de ar, dor toracica, febre persistente, prostracao importante, confusao mental, cianose, queda do estado geral, vomitos persistentes, rigidez de nuca, disfagia importante, sialorreia, estridor, hemoptise ou piora respiratoria progressiva.
 
-Ao exame fisico: paciente em bom estado geral, consciente e orientado, corado, hidratado, acianotico, anicterico, afebril, eupneico, hemodinamicamente estavel. Oroscopia com hiperemia leve de orofaringe, sem placas ou exsudato. Ausculta pulmonar com murmurio vesicular presente bilateralmente, sem ruidos adventicios e sem sinais de esforco respiratorio. Sem sinais de gravidade no momento.`
+Exame fisico: paciente em bom estado geral, consciente e orientado, corado, hidratado, acianotico, anicterico, afebril, eupneico, hemodinamicamente estavel. Oroscopia com hiperemia leve de orofaringe, sem placas ou exsudato. Ausculta pulmonar com murmurio vesicular presente bilateralmente, sem ruidos adventicios e sem sinais de esforco respiratorio. Sem sinais de gravidade no momento.`
       },
       {
         key: "conduta",
@@ -97,7 +97,7 @@ Oriento retorno imediato se falta de ar, dor toracica, febre persistente, prostr
 
 Nega febre persistente, sangue ou muco nas fezes, vomitos incoerciveis, dor abdominal localizada ou progressiva, distensao abdominal importante, sincope, sonolencia, confusao mental, reducao importante da diurese, sinais de desidratacao intensa, uso recente de antibioticos, viagem recente ou contato com alimento sabidamente contaminado.
 
-Ao exame fisico: paciente em bom estado geral, consciente e orientado, corado, hidratado, acianotico, anicterico, afebril, eupneico, hemodinamicamente estavel. Mucosas umidas, perfusao periferica preservada. Abdome flacido, ruidos hidroaereos presentes, dor leve difusa a palpacao, sem defesa, sem descompressao brusca dolorosa, sem sinais de irritacao peritoneal. Sem sinais clinicos de desidratacao importante no momento.`
+Exame fisico: paciente em bom estado geral, consciente e orientado, corado, hidratado, acianotico, anicterico, afebril, eupneico, hemodinamicamente estavel. Mucosas umidas, perfusao periferica preservada. Abdome flacido, ruidos hidroaereos presentes, dor leve difusa a palpacao, sem defesa, sem descompressao brusca dolorosa, sem sinais de irritacao peritoneal. Sem sinais clinicos de desidratacao importante no momento.`
       },
       {
         key: "conduta",

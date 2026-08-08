@@ -198,7 +198,9 @@ function getInitialText(protocol) {
 }
 
 function normalizeClinicalSectionMarkers(text) {
-  return String(text || "").replace(/-->\s*/g, "# ");
+  return String(text || "")
+    .replace(/-->\s*/g, "# ")
+    .replace(/Ao exame fisico/gi, "Exame fisico");
 }
 
 function loadAnamneseDraft(protocol) {
@@ -710,7 +712,7 @@ function formatAnamneseVitals() {
 
 function normalizeAnamneseVitalsText(text, replacement) {
   var next = text || "";
-  next = next.replace(/(# Ao exame fisico\s*:\s*)\([^)]*\)\.?/i, "$1");
+  next = next.replace(/(# Exame fisico\s*:\s*)\([^)]*\)\.?/i, "$1");
   next = next.replace(/^\s*\(PA[^)]*\)\.\s*$/gim, "");
   next = next.replace(/\n{3,}/g, "\n\n");
   if (!replacement) return next;
