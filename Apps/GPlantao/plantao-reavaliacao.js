@@ -84,7 +84,7 @@ function removeHighRiskReavaliacaoBlock(text) {
       continue;
     }
     if (skipping && /^\s*$/.test(line)) continue;
-    if (skipping && /^\s*-->/.test(line)) {
+    if (skipping && /^\s*#/.test(line)) {
       skipping = false;
       next.push(line);
       continue;
@@ -97,9 +97,9 @@ function removeHighRiskReavaliacaoBlock(text) {
 function setHighRiskReavaliacaoBlock(text, blockText) {
   var next = removeHighRiskReavaliacaoBlock(text || "");
   if (!blockText) return next;
-  var conductPattern = /\n\s*-->\s*Conduta\s*:/i;
+  var conductPattern = /\n\s*#\s*Conduta\s*:/i;
   if (conductPattern.test(next)) {
-    return next.replace(conductPattern, "\n" + blockText + "\n\n--> Conduta :").replace(/\n{3,}/g, "\n\n");
+    return next.replace(conductPattern, "\n" + blockText + "\n\n# Conduta :").replace(/\n{3,}/g, "\n\n");
   }
   return next.trimEnd() + "\n\n" + blockText;
 }
@@ -118,8 +118,8 @@ function insertLabOutputIntoReavaliacao() {
   state.labOutput = output;
   if (!output) return;
   var text = state.editableText || "";
-  var labsMarker = "-->Exames labs:";
-  var imageMarker = "-->Exames imagem:";
+  var labsMarker = "# Exames labs:";
+  var imageMarker = "# Exames imagem:";
   var labsIndex = text.indexOf(labsMarker);
   var imageIndex = text.indexOf(imageMarker);
   if (labsIndex >= 0 && imageIndex > labsIndex) {

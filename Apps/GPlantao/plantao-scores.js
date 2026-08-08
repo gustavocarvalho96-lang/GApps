@@ -318,8 +318,8 @@ function scoreConfigsFor(tab) {
 
 function insertScoreLine(label, line) {
   var text = state.editableText || "";
-  var scoreMarker = "--> Scores :";
-  var conductMarker = "--> Conduta";
+  var scoreMarker = "# Scores :";
+  var conductMarker = "# Conduta";
   var lines;
   if (text.indexOf(scoreMarker) < 0) {
     var insert = "\n" + scoreMarker + "\n" + line + "\n";
@@ -333,7 +333,7 @@ function insertScoreLine(label, line) {
   var markerIndex = lines.indexOf(scoreMarker);
   var replaced = false;
   for (var i = markerIndex + 1; i < lines.length; i += 1) {
-    if (lines[i].indexOf("--> ") === 0) break;
+    if (lines[i].indexOf("# ") === 0) break;
     if (lines[i].indexOf("- " + label + ":") === 0) {
       lines[i] = line;
       replaced = true;

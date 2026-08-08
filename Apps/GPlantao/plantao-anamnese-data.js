@@ -20,12 +20,12 @@ const administrativeProtocols = [
     title: "Anamnese",
     category: "Estrutura Clínica",
     genderedTemplate: true,
-    prescription: `--> HMA :  
---> AP : 
---> MUC :
---> Alergia : 
+    prescription: `# HMA :
+# AP :
+# MUC :
+# Alergia :
 .
---> Ao exame fisico : 
+# Ao exame fisico :
 BEG, Corada,Hidratada, Acianótica, Afebril, Anicterica, Eupneica
 Aparelho Pulmonar: MV Presente Bilateral Sem Ruidos Adventicios, Sem Sinais De Esforço Respiratório 
 Aparelho CardioVascular: BRNF 2 Tempos Sem Sopros Audíveis 
@@ -33,7 +33,7 @@ Aparelho Abdominal: RHA Presente, Sem Defesa, Indolor À Palpação, DB Negativo
 NEURO: Glasgow 15, Pifr, Sem Sinais Meningeos, Sem Déficit Motor
 EXT: Sem Empastamento De Panturrilhas, Tec< 3 Segundos, Simétricas, Sem Edemas
 
---> Conduta : 
+# Conduta :
 1 - Oriento uso correto das medicações e medidas gerais conforme hipótese clínica.
 2 - Oriento retorno imediato em caso de falta de ar, dor no peito, desmaio, confusão mental, febre persistente, dor intensa/progressiva, vômitos persistentes, sangramento, piora do estado geral ou qualquer sinal de alarme.
 3 - Oriento acompanhamento ambulatorial regular e reavaliação se não houver melhora no prazo orientado.`,
@@ -123,13 +123,13 @@ Oriento retorno imediato se febre persistente, sangue nas fezes, vomitos incoerc
     ],
     prescription: `#Reavaliação#
 
--->Exames labs:
+# Exames labs:
 
--->Exames imagem:
+# Exames imagem:
 
 Reavalio paciente em consultório, paciente estável hemodinamicamente (PA | FC | FR | SATO2). Paciente refere melhora dos sintomas após medicações, com condições de alta hospitalar e término de tratamento a nível domiciliar.
 
---> Conduta : 
+# Conduta :
 1 - Oriento manter tratamento conforme prescrito e medidas gerais.
 2 - Oriento retorno imediato se falta de ar, dor no peito, desmaio, confusão mental, febre persistente, dor intensa/progressiva, vômitos persistentes, sangramento, piora do estado geral ou qualquer sinal de alarme.
 3 - Oriento acompanhamento ambulatorial regular e reavaliação se não houver melhora no prazo orientado.`,
@@ -141,19 +141,19 @@ Reavalio paciente em consultório, paciente estável hemodinamicamente (PA | FC 
     title: "Internação",
     category: "Estrutura Clínica",
     prescription: `#Internação - Enfermaria#
---> Dia de internação : 
---> HD: 
---> ATB:
+# Dia de internação :
+# HD:
+# ATB:
 . 
---> HMA : 
---> AP:
---> MUC: 
+# HMA :
+# AP:
+# MUC:
 . 
 Exame fisico:
 Exame laboratoriais: 
 Exame imagem: 
 
--->Conduta:
+# Conduta:
 1 - Internação na enfermaria 
 2 - Suporte clinico
 3 - Antibioticoterapia 

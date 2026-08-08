@@ -197,6 +197,10 @@ function getInitialText(protocol) {
   return protocol.prescription || "";
 }
 
+function normalizeClinicalSectionMarkers(text) {
+  return String(text || "").replace(/-->\s*/g, "# ");
+}
+
 function loadAnamneseDraft(protocol) {
   var fallback = getInitialText(protocol);
   try {
@@ -214,7 +218,7 @@ function loadAnamneseDraft(protocol) {
         sato2: payload.vitals.sato2 || ""
       };
     }
-    return payload && typeof payload.text === "string" ? normalizeAnamneseVitalsText(payload.text, null) : fallback;
+    return payload && typeof payload.text === "string" ? normalizeAnamneseVitalsText(normalizeClinicalSectionMarkers(payload.text), null) : fallback;
   } catch (error) {
     return fallback;
   }
@@ -252,7 +256,7 @@ function loadReavaliacaoDraft(protocol) {
     state.labOutput = payload && typeof payload.labOutput === "string" ? payload.labOutput : "";
     state.labSource = payload && typeof payload.labSource === "string" ? payload.labSource : "auto";
     state.labDetectedSource = payload && typeof payload.labDetectedSource === "string" ? payload.labDetectedSource : "";
-    return payload && typeof payload.text === "string" ? payload.text : fallback;
+    return payload && typeof payload.text === "string" ? normalizeClinicalSectionMarkers(payload.text) : fallback;
   } catch (error) {
     return fallback;
   }
@@ -305,12 +309,12 @@ function formatAnamneseAllergies() {
 
 function setAnamneseAllergyLine(text, allergyText) {
   var allergiesText = typeof allergyText === "string" ? allergyText : formatAnamneseAllergies();
-  if (/-->\s*Alergia[ \t]*:/i.test(text)) {
-    return text.replace(/(-->\s*Alergia[ \t]*:[ \t]*).*/i, function (_, prefix) {
+  if (/#\s*Alergia[ \t]*:/i.test(text)) {
+    return text.replace(/(#\s*Alergia[ \t]*:[ \t]*).*/i, function (_, prefix) {
       return prefix + allergiesText;
     });
   }
-  return "--> Alergia : " + allergiesText + "\n" + text;
+  return "# Alergia : " + allergiesText + "\n" + text;
 }
 
 function updateAnamneseAllergiesInTemplate(shouldSave, sourceText) {
@@ -706,13 +710,13 @@ function formatAnamneseVitals() {
 
 function normalizeAnamneseVitalsText(text, replacement) {
   var next = text || "";
-  next = next.replace(/(--> Ao exame fisico\s*:\s*)\([^)]*\)\.?/i, "$1");
+  next = next.replace(/(# Ao exame fisico\s*:\s*)\([^)]*\)\.?/i, "$1");
   next = next.replace(/^\s*\(PA[^)]*\)\.\s*$/gim, "");
   next = next.replace(/\n{3,}/g, "\n\n");
   if (!replacement) return next;
-  var conductPattern = /\n\s*--> Conduta\s*:/i;
+  var conductPattern = /\n\s*# Conduta\s*:/i;
   if (conductPattern.test(next)) {
-    return next.replace(conductPattern, "\n" + replacement + "\n\n--> Conduta :");
+    return next.replace(conductPattern, "\n" + replacement + "\n\n# Conduta :");
   }
   return next.trimEnd() + "\n" + replacement;
 }
@@ -734,7 +738,7 @@ function removeAnamneseAttestationBlock(text) {
       continue;
     }
     if (skipping && /^\s*$/.test(line)) continue;
-    if (skipping && /^\s*(?:\d+\s*-|-->)/.test(line)) {
+    if (skipping && /^\s*(?:\d+\s*-|#)/.test(line)) {
       skipping = false;
       next.push(line);
       continue;
@@ -747,13 +751,13 @@ function removeAnamneseAttestationBlock(text) {
 function setAnamneseAttestationBlock(text, attestationText) {
   var next = removeAnamneseAttestationBlock(text || "");
   if (!attestationText) return next;
-  var conductPattern = /(-->\s*Conduta\s*:\s*)/i;
+  var conductPattern = /(#\s*Conduta\s*:\s*)/i;
   if (conductPattern.test(next)) {
     return next.replace(conductPattern, function (marker) {
       return marker + "\n" + attestationText + "\n\n";
     }).replace(/\n{3,}/g, "\n\n");
   }
-  return next.trimEnd() + "\n\n--> Conduta :\n" + attestationText;
+  return next.trimEnd() + "\n\n# Conduta :\n" + attestationText;
 }
 
 function updateAnamneseAttestationInTemplate(attestationText) {
@@ -773,7 +777,7 @@ function removeAnamnesePreMedicationBlock(text) {
 
 function setAnamnesePreMedicationBlock(text) {
   var next = removeAnamnesePreMedicationBlock(text || "");
-  var conductPattern = /(-->\s*Conduta\s*:\s*)/i;
+  var conductPattern = /(#\s*Conduta\s*:\s*)/i;
   if (conductPattern.test(next)) {
     return next.replace(conductPattern, function (marker) {
       return marker + "\n" + ANAMNESE_PRE_MED_TRAMAL_TEXT + "\n\n";
@@ -795,7 +799,7 @@ function toggleAnamneseExam(text) {
   if (current.indexOf(text) >= 0) {
     state.editableText = current.replace(text, "").replace(/\n{3,}/g, "\n\n").trimEnd();
   } else {
-    var conductMarker = "--> Conduta";
+    var conductMarker = "# Conduta";
     var conductIndex = current.indexOf(conductMarker);
     if (conductIndex >= 0) {
       state.editableText = current.slice(0, conductIndex).trimEnd() + "\n" + text + "\n\n" + current.slice(conductIndex).trimStart();
