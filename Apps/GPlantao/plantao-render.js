@@ -51,6 +51,9 @@ function renderOptions(protocol, parent) {
       resetRow.appendChild(textButton("Feminino", "text-btn" + (state.anamneseGender === "feminino" ? " active" : ""), function () {
         setAnamneseGender("feminino");
       }));
+      resetRow.appendChild(textButton("Nega alergias medicamentosas", "text-btn" + ((state.allergies || []).length === 1 && state.allergies[0] === NO_KNOWN_ALLERGIES_TEXT ? " active" : ""), function () {
+        setNoKnownAllergies();
+      }));
     }
     parent.appendChild(resetRow);
 
