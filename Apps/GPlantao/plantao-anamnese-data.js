@@ -24,7 +24,6 @@ const administrativeProtocols = [
 # AP :
 # MUC :
 # Alergia :
-.
 # Exame fisico :
 BEG, Corada,Hidratada, Acianótica, Afebril, Anicterica, Eupneica
 Aparelho Pulmonar: MV Presente Bilateral Sem Ruidos Adventicios, Sem Sinais De Esforço Respiratório 
@@ -144,11 +143,9 @@ Reavalio paciente em consultório, paciente estável hemodinamicamente (PA | FC 
 # Dia de internação :
 # HD:
 # ATB:
-. 
 # HMA :
 # AP:
 # MUC:
-. 
 Exame fisico:
 Exame laboratoriais: 
 Exame imagem: 
