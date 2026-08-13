@@ -603,7 +603,6 @@ function buildReferralText(template, mode) {
   return "Encaminho para avaliacao em " + template.specialty + "\n\n" +
     "Hipotese diagnostica: " + template.hypothesis + "\n\n" +
     "Resumo clinico:\n" + template.summary + "\n\n" +
-    "Exames relevantes:\n" + template.exams + "\n\n" +
     "Conduta ja realizada:\n" + template.conduct + "\n\n" +
     "Prioridade / finalidade:\n" + urgencyText + "\n\n" +
     "Solicito avaliacao especializada e seguimento.";
