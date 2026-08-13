@@ -201,7 +201,7 @@ function normalizeClinicalSectionMarkers(text) {
   return String(text || "")
     .replace(/-->\s*/g, "# ")
     .replace(/Ao exame fisico/gi, "Exame fisico")
-    .replace(/(#\s*Alergia\s*:[^\r\n]*)\r?\n\s*\.\s*(?=\r?\n#\s*Exame fisico)/i, "$1");
+    .replace(/(#\s*Alergia\s*:[^\r\n]*)\r?\n\s*\.\s*(?=\r?\n#\s*Exame fisico)/i, "$1\n");
 }
 
 function loadAnamneseDraft(protocol) {
