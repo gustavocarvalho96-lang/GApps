@@ -1045,13 +1045,8 @@ textarea:focus {
 
 .hma-ai-alarm-box {
   padding: 12px;
-  border: 1px solid #d8e0ea;
+  border: 1px solid #f1c56b;
   border-radius: 12px;
-  background: #f8fafc;
-}
-
-.hma-ai-alarm-box {
-  border-color: #f1c56b;
   background: #fffaf0;
 }
 
