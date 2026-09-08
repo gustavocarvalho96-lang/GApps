@@ -101,13 +101,15 @@ input.addEventListener("input", scheduleAutoTranscription);
 document.getElementById("copyBtn").onclick = function () {
   var text = output.textContent || "";
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function () {
-      showToast("Resultado copiado");
-    }).catch(function () {
-      showToast("Nao foi possivel copiar");
-    });
-  }
-  else {
+    navigator.clipboard
+      .writeText(text)
+      .then(function () {
+        showToast("Resultado copiado");
+      })
+      .catch(function () {
+        showToast("Nao foi possivel copiar");
+      });
+  } else {
     var area = document.createElement("textarea");
     area.value = text;
     document.body.appendChild(area);

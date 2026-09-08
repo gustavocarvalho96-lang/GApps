@@ -1,10 +1,13 @@
 function copyText(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function () {
-      showToast("Copiado");
-    }).catch(function () {
-      fallbackCopyText(text);
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(function () {
+        showToast("Copiado");
+      })
+      .catch(function () {
+        fallbackCopyText(text);
+      });
   } else {
     fallbackCopyText(text);
   }

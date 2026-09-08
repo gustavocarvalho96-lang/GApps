@@ -1,5 +1,7 @@
 function normalizeText(value) {
-  return String(value || "").replace(/\s+/g, " ").trim();
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function valueAfter(source, label, tokenCount, useLast) {
@@ -7,7 +9,10 @@ function valueAfter(source, label, tokenCount, useLast) {
   var search = label.toLowerCase();
   var index = useLast ? sourceLower.lastIndexOf(search) : sourceLower.indexOf(search);
   if (index < 0) return "";
-  return normalizeText(source.slice(index + label.length)).split(" ").slice(0, tokenCount).join(" ");
+  return normalizeText(source.slice(index + label.length))
+    .split(" ")
+    .slice(0, tokenCount)
+    .join(" ");
 }
 
 function transcribeLabs(rawText) {
@@ -15,13 +20,16 @@ function transcribeLabs(rawText) {
   var lower = text.toLowerCase();
   var patient = "NOME DO PACIENTE";
   var date = "DATA";
-  var patientMatch = text.match(/Paciente\s*:\s*(.*?)(Data de Nascimento|Cadastro|Convenio|Convênio|$)/i);
+  var patientMatch = text.match(
+    /Paciente\s*:\s*(.*?)(Data de Nascimento|Cadastro|Convenio|Convênio|$)/i
+  );
   if (patientMatch && patientMatch[1]) patient = patientMatch[1].trim();
   patient = patient.replace(/\s*Protocolo\s*:?\s*\d+\s*$/i, "").trim();
   var cadastroIndex = lower.indexOf("cadastro");
-  var dateMatch = cadastroIndex >= 0
-    ? text.slice(cadastroIndex, cadastroIndex + 100).match(/\b\d{2}\/\d{2}\/\d{4}\b/)
-    : text.match(/\b\d{2}\/\d{2}\/\d{4}\b/);
+  var dateMatch =
+    cadastroIndex >= 0
+      ? text.slice(cadastroIndex, cadastroIndex + 100).match(/\b\d{2}\/\d{2}\/\d{4}\b/)
+      : text.match(/\b\d{2}\/\d{2}\/\d{4}\b/);
   if (dateMatch) date = dateMatch[0];
 
   var items = [];
@@ -40,7 +48,12 @@ function transcribeLabs(rawText) {
     return text.slice(startIndex, endIndex);
   }
 
-  var hemograma = sliceBetween("HEMOGRAMA COMPLETO", ["PROTEINA C REATIVA", "PROTEÍNA C REATIVA", "URINA TIPO I", "COAGULOGRAMA"]);
+  var hemograma = sliceBetween("HEMOGRAMA COMPLETO", [
+    "PROTEINA C REATIVA",
+    "PROTEÍNA C REATIVA",
+    "URINA TIPO I",
+    "COAGULOGRAMA"
+  ]);
   if (hemograma) {
     var parts = [];
     var hb = valueAfter(hemograma, "Hemoglobina", 2);
@@ -81,7 +94,7 @@ function transcribeLabs(rawText) {
     ["AMILASE SÉRICA", "amilase"],
     ["AMILASE", "amilase"],
     ["FOSFATASE ALCALINA", "FA"],
-    ["GAMA GLUTAMIL TRANSFERASE", "GGT"],
+    ["GAMA GLUTAMIL TRANSFERASE", "GGT"]
   ].forEach(function (exam) {
     var start = lower.indexOf(exam[0].toLowerCase());
     if (start < 0) return;
@@ -97,22 +110,43 @@ function transcribeLabs(rawText) {
       var start = lower.indexOf(labels[i].toLowerCase());
       if (start < 0) continue;
       var nextExam = text.length;
-      ["BILIRRUBINA TOTAL", "BILIRRUBINAS TOTAL", "BILIRRUBINA DIRETA", "BILIRRUBINA INDIRETA", "BILLIRUBINA TOTAL", "BILLIRUBINA DIRETA", "BILLIRUBINA INDIRETA", "FOSFATASE ALCALINA", "GAMA GLUTAMIL TRANSFERASE", "AMILASE", "URINA TIPO I", "HEMOGRAMA COMPLETO"].forEach(function (marker) {
+      [
+        "BILIRRUBINA TOTAL",
+        "BILIRRUBINAS TOTAL",
+        "BILIRRUBINA DIRETA",
+        "BILIRRUBINA INDIRETA",
+        "BILLIRUBINA TOTAL",
+        "BILLIRUBINA DIRETA",
+        "BILLIRUBINA INDIRETA",
+        "FOSFATASE ALCALINA",
+        "GAMA GLUTAMIL TRANSFERASE",
+        "AMILASE",
+        "URINA TIPO I",
+        "HEMOGRAMA COMPLETO"
+      ].forEach(function (marker) {
         var found = lower.indexOf(marker.toLowerCase(), start + labels[i].length);
         if (found >= 0 && found < nextExam) nextExam = found;
       });
       var block = text.slice(start, nextExam);
       var resultIndex = block.toLowerCase().indexOf("resultado");
-      var candidate = resultIndex >= 0
-        ? block.slice(resultIndex).replace(/^resultado\s*:?\s*/i, "")
-        : block.slice(labels[i].length);
-      var match = normalizeText(candidate).match(/([<>]?\s*\d+(?:[.,]\d+)?\s*[a-zA-Z/%µ]+(?:\/[a-zA-Z]+)?)/);
+      var candidate =
+        resultIndex >= 0
+          ? block.slice(resultIndex).replace(/^resultado\s*:?\s*/i, "")
+          : block.slice(labels[i].length);
+      var match = normalizeText(candidate).match(
+        /([<>]?\s*\d+(?:[.,]\d+)?\s*[a-zA-Z/%µ]+(?:\/[a-zA-Z]+)?)/
+      );
       if (match && match[1]) return normalizeText(match[1]);
     }
     return "";
   }
 
-  var bt = examResult(["BILIRRUBINA TOTAL", "BILIRRUBINAS TOTAL", "BILLIRUBINA TOTAL", "BILLIRUBINAS TOTAL"]);
+  var bt = examResult([
+    "BILIRRUBINA TOTAL",
+    "BILIRRUBINAS TOTAL",
+    "BILLIRUBINA TOTAL",
+    "BILLIRUBINAS TOTAL"
+  ]);
   var bd = examResult(["BILIRRUBINA DIRETA", "BILLIRUBINA DIRETA"]);
   var bi = examResult(["BILIRRUBINA INDIRETA", "BILLIRUBINA INDIRETA"]);
   if (bt || bi || bd) {
@@ -126,7 +160,10 @@ function transcribeLabs(rawText) {
       if (start < 0) continue;
       var resultIndex = lower.indexOf("resultado:", start);
       if (resultIndex < 0) continue;
-      var result = normalizeText(text.slice(resultIndex + "resultado:".length)).split(" ").slice(0, 2).join(" ");
+      var result = normalizeText(text.slice(resultIndex + "resultado:".length))
+        .split(" ")
+        .slice(0, 2)
+        .join(" ");
       if (result) {
         push(shortName + " " + result);
         return;
@@ -134,8 +171,22 @@ function transcribeLabs(rawText) {
     }
   }
 
-  pushTransaminase(["TRANSAMINASE GLUTAMICA OXALACETICA - TGO", "TRANSAMINASE GLUTAMICA OXALACETICA", "ASPARTATO AMINOTRANSFERASE"], "TGO");
-  pushTransaminase(["TRANSAMINASE GLUTAMICA PIRUVICA - TGP/ALT", "TRANSAMINASE GLUTAMICA PIRUVICA", "ALANINA AMINOTRANSFERASE"], "TGP");
+  pushTransaminase(
+    [
+      "TRANSAMINASE GLUTAMICA OXALACETICA - TGO",
+      "TRANSAMINASE GLUTAMICA OXALACETICA",
+      "ASPARTATO AMINOTRANSFERASE"
+    ],
+    "TGO"
+  );
+  pushTransaminase(
+    [
+      "TRANSAMINASE GLUTAMICA PIRUVICA - TGP/ALT",
+      "TRANSAMINASE GLUTAMICA PIRUVICA",
+      "ALANINA AMINOTRANSFERASE"
+    ],
+    "TGP"
+  );
 
   function coagValue(source, labels, tokenCount) {
     for (var i = 0; i < labels.length; i += 1) {
@@ -154,10 +205,24 @@ function transcribeLabs(rawText) {
     if (startIndex < 0) return "";
     var endIndex = text.length;
     [
-      "CREATINA QUINASE", "CREATININA", "FOSFATASE ALCALINA", "GAMA GLUTAMIL TRANSFERASE",
-      "PROTEINA C REATIVA", "PROTEÍNA C REATIVA", "POTASSIO", "POTÁSSIO", "SODIO", "SÓDIO",
-      "TRANSAMINASE", "UREIA", "HEMOGRAMA COMPLETO", "URINA TIPO I", "TEMPO DE ATIVAÇÃO",
-      "TEMPO DE ATIVACAO", "TEMPO DE TROMBOPLASTINA", "COAGULOGRAMA"
+      "CREATINA QUINASE",
+      "CREATININA",
+      "FOSFATASE ALCALINA",
+      "GAMA GLUTAMIL TRANSFERASE",
+      "PROTEINA C REATIVA",
+      "PROTEÍNA C REATIVA",
+      "POTASSIO",
+      "POTÁSSIO",
+      "SODIO",
+      "SÓDIO",
+      "TRANSAMINASE",
+      "UREIA",
+      "HEMOGRAMA COMPLETO",
+      "URINA TIPO I",
+      "TEMPO DE ATIVAÇÃO",
+      "TEMPO DE ATIVACAO",
+      "TEMPO DE TROMBOPLASTINA",
+      "COAGULOGRAMA"
     ].forEach(function (marker) {
       var found = lower.indexOf(marker.toLowerCase(), startIndex + 1);
       if (found >= 0 && found < endIndex) endIndex = found;
@@ -166,17 +231,42 @@ function transcribeLabs(rawText) {
   }
 
   function resultValue(source, tokenCount) {
-    var result = valueAfter(source, "Resultado:", tokenCount) || valueAfter(source, "Resultado", tokenCount);
+    var result =
+      valueAfter(source, "Resultado:", tokenCount) || valueAfter(source, "Resultado", tokenCount);
     return result;
   }
 
-  var coag = sliceBetween("COAGULOGRAMA", ["CREATININA", "UREIA", "GAMA GLUTAMIL TRANSFERASE", "HEMOGRAMA COMPLETO", "URINA TIPO I", "GASOMETRIA"]);
-  var tap = sectionFromLabels(["TEMPO DE ATIVAÇÃO DA PROTROMBINA", "TEMPO DE ATIVACAO DA PROTROMBINA", "TAP"]);
+  var coag = sliceBetween("COAGULOGRAMA", [
+    "CREATININA",
+    "UREIA",
+    "GAMA GLUTAMIL TRANSFERASE",
+    "HEMOGRAMA COMPLETO",
+    "URINA TIPO I",
+    "GASOMETRIA"
+  ]);
+  var tap = sectionFromLabels([
+    "TEMPO DE ATIVAÇÃO DA PROTROMBINA",
+    "TEMPO DE ATIVACAO DA PROTROMBINA",
+    "TAP"
+  ]);
   var ttpaBlock = sectionFromLabels(["TEMPO DE TROMBOPLASTINA PARCIAL ATIVADA", "TTPA"]);
   if (coag || tap || ttpaBlock) {
-    var tp = coagValue(coag || tap, ["Tempo de Protrombina:", "Tempo de Protrombina", "Tempo do Protrombina:", "Tempo do Protrombina", "TP:"], 2) || resultValue(tap, 2);
+    var tp =
+      coagValue(
+        coag || tap,
+        [
+          "Tempo de Protrombina:",
+          "Tempo de Protrombina",
+          "Tempo do Protrombina:",
+          "Tempo do Protrombina",
+          "TP:"
+        ],
+        2
+      ) || resultValue(tap, 2);
     var inr = coagValue(coag || tap, ["INR:", "INR", "RNI:", "RNI"], 1);
-    var ttpa = coagValue(coag, ["TTPA:", "TTPA", "Tempo de Tromboplastina Parcial Ativada"], 2) || resultValue(ttpaBlock, 2);
+    var ttpa =
+      coagValue(coag, ["TTPA:", "TTPA", "Tempo de Tromboplastina Parcial Ativada"], 2) ||
+      resultValue(ttpaBlock, 2);
     var coagParts = [];
     if (tp) coagParts.push("TAP = " + tp);
     if (inr) coagParts.push("RNI = " + inr);
@@ -185,13 +275,22 @@ function transcribeLabs(rawText) {
   }
 
   function gasValue(source, label, unitPattern) {
-    var regex = new RegExp(label + "\\s+([+-]?\\d+(?:[.,]\\d+)?)(?:\\s*(" + unitPattern + "))?", "i");
+    var regex = new RegExp(
+      label + "\\s+([+-]?\\d+(?:[.,]\\d+)?)(?:\\s*(" + unitPattern + "))?",
+      "i"
+    );
     var match = source.match(regex);
     if (!match || !match[1]) return "";
     return normalizeText(match[1] + (match[2] ? " " + match[2] : ""));
   }
 
-  var gasometria = sliceBetween("GASOMETRIA", ["HEMOGRAMA COMPLETO", "PROTEINA C REATIVA", "PROTEÍNA C REATIVA", "URINA TIPO I", "COAGULOGRAMA"]);
+  var gasometria = sliceBetween("GASOMETRIA", [
+    "HEMOGRAMA COMPLETO",
+    "PROTEINA C REATIVA",
+    "PROTEÍNA C REATIVA",
+    "URINA TIPO I",
+    "COAGULOGRAMA"
+  ]);
   if (gasometria) {
     var gasParts = [];
     var ph = gasValue(gasometria, "pH", "");
@@ -236,9 +335,17 @@ function transcribeLabs(rawText) {
   var urina = findUrinaSection();
   if (urina) {
     var uparts = [];
-    var uleu = urineRegexValue(urina, /leuc\S*citos\s*[:\-]?\s*([><]?\s*[\d.,]+(?:\s*\/?\s*[a-zA-Z]+)?)/i) || urineValue(urina, ["Leucocitos"], 2);
-    var uhem = urineRegexValue(urina, /hem\S*cias\s*[:\-]?\s*([><]?\s*[\d.,]+(?:\s*\/?\s*[a-zA-Z]+)?)/i) || urineValue(urina, ["Hemacias"], 2);
-    var ubac = urineRegexValue(urina, /(?:flora bacteriana|bact\S*rias)\s*[:\-]?\s*(\+{1,4}|ausente|ausentes|rara|raras|presente|presentes)/i) || urineValue(urina, ["Bacterias", "Flora bacteriana"], 1);
+    var uleu =
+      urineRegexValue(urina, /leuc\S*citos\s*[:\-]?\s*([><]?\s*[\d.,]+(?:\s*\/?\s*[a-zA-Z]+)?)/i) ||
+      urineValue(urina, ["Leucocitos"], 2);
+    var uhem =
+      urineRegexValue(urina, /hem\S*cias\s*[:\-]?\s*([><]?\s*[\d.,]+(?:\s*\/?\s*[a-zA-Z]+)?)/i) ||
+      urineValue(urina, ["Hemacias"], 2);
+    var ubac =
+      urineRegexValue(
+        urina,
+        /(?:flora bacteriana|bact\S*rias)\s*[:\-]?\s*(\+{1,4}|ausente|ausentes|rara|raras|presente|presentes)/i
+      ) || urineValue(urina, ["Bacterias", "Flora bacteriana"], 1);
     if (uleu) uparts.push("leucocitos " + uleu);
     if (uhem) uparts.push("hemacias " + uhem);
     if (ubac) uparts.push("flora bacteriana " + ubac);
@@ -253,11 +360,17 @@ function transcribeCampoLimpoLabs(rawText) {
 }
 
 function jundiaiSearchText(value) {
-  return normalizeText(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return normalizeText(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 function jundiaiLines(rawText) {
-  return String(rawText || "").split(/\r?\n/).map(normalizeText).filter(Boolean);
+  return String(rawText || "")
+    .split(/\r?\n/)
+    .map(normalizeText)
+    .filter(Boolean);
 }
 
 function jundiaiMatchesLabel(line, label) {
@@ -283,7 +396,11 @@ function jundiaiSection(lines, startLabels, endLabels) {
     var next = jundiaiSearchText(lines[k]);
     for (var m = 0; m < endLabels.length; m += 1) {
       var endLabel = jundiaiSearchText(endLabels[m]);
-      if (next === endLabel || next.indexOf(endLabel + " ") === 0 || next.indexOf(endLabel + "/") === 0) {
+      if (
+        next === endLabel ||
+        next.indexOf(endLabel + " ") === 0 ||
+        next.indexOf(endLabel + "/") === 0
+      ) {
         endIndex = k;
         return lines.slice(startIndex, endIndex);
       }
@@ -293,7 +410,9 @@ function jundiaiSection(lines, startLabels, endLabels) {
 }
 
 function jundiaiLooksLikeValue(value) {
-  return /^\s*(?:[<>]?\s*\d{1,3}(?:\.\d{3})*(?:[,.]\d+)?|\+\s*\+|\+{1,4}|negativo|normal|raras?|ausentes?|inferior a\s*\d+(?:[,.]\d+)?)\s*$/i.test(value);
+  return /^\s*(?:[<>]?\s*\d{1,3}(?:\.\d{3})*(?:[,.]\d+)?|\+\s*\+|\+{1,4}|negativo|normal|raras?|ausentes?|inferior a\s*\d+(?:[,.]\d+)?)\s*$/i.test(
+    value
+  );
 }
 
 function jundiaiValueAfter(lines, labels) {
@@ -312,7 +431,9 @@ function jundiaiValueAfter(lines, labels) {
 }
 
 function jundiaiLooksLikeUnit(value) {
-  return /^(?:g\/dL|mg\/dL|mmol\/L|U\/L|UI\/L|ng\/L|pg\/mL|mL\/min\/1,73 m2|Mil\/mm3|10\^6\/mm3|\/mL|%|segundos?)$/i.test(normalizeText(value));
+  return /^(?:g\/dL|mg\/dL|mmol\/L|U\/L|UI\/L|ng\/L|pg\/mL|mL\/min\/1,73 m2|Mil\/mm3|10\^6\/mm3|\/mL|%|segundos?)$/i.test(
+    normalizeText(value)
+  );
 }
 
 function jundiaiValueWithUnitAfter(lines, labels) {
@@ -337,7 +458,9 @@ function jundiaiValueWithUnitAfter(lines, labels) {
 function jundiaiHemogramLeuco(value) {
   var number = normalizeText(value).match(/\d+(?:[,.]\d+)?/);
   if (!number) return value;
-  return String(Math.round(parseFloat(number[0].replace(".", "").replace(",", ".")) * 1000)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return String(
+    Math.round(parseFloat(number[0].replace(".", "").replace(",", ".")) * 1000)
+  ).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 function jundiaiHemogramPlaquetas(value) {
@@ -349,7 +472,8 @@ function jundiaiPatient(lines) {
   for (var i = 0; i < lines.length; i += 1) {
     if (jundiaiSearchText(lines[i]) === "paciente:") {
       for (var j = i + 1; j < Math.min(lines.length, i + 6); j += 1) {
-        if (!/^(codigo:|dt\.?nascimento:|sexo:|rg:|cpf:)$/i.test(jundiaiSearchText(lines[j]))) return lines[j];
+        if (!/^(codigo:|dt\.?nascimento:|sexo:|rg:|cpf:)$/i.test(jundiaiSearchText(lines[j])))
+          return lines[j];
       }
     }
   }
@@ -373,12 +497,36 @@ function transcribeJundiaiLabs(rawText) {
   var patient = jundiaiPatient(lines);
   var date = jundiaiDate(lines);
   var examHeaders = [
-    "Hemograma Completo", "Tempo e atividade Protrombina", "TTPA - Tempo de Tromboplastina Parcial Ativada",
-    "Ureia, sérica", "Dosagem sérica de Creatinina", "Sódio", "Potássio", "Magnésio", "Bilirrubinas",
-    "Proteína C Reativa - PCR", "Troponina", "Troponina I", "Troponina T", "Urina I", "Cálcio Ionizado",
-    "Dosagem de Lactato", "Amilase", "Amilase Sérica", "Fosfatase Alcalina", "Gama GT", "Gama-Glutamil Transferase", "Gama Glutamil Transferase",
-    "Transaminase Glutamica Oxalacetica", "Transaminase Glutâmica Oxalacética", "TGO", "AST",
-    "Transaminase Glutamica Piruvica", "Transaminase Glutâmica Pirúvica", "TGP", "ALT",
+    "Hemograma Completo",
+    "Tempo e atividade Protrombina",
+    "TTPA - Tempo de Tromboplastina Parcial Ativada",
+    "Ureia, sérica",
+    "Dosagem sérica de Creatinina",
+    "Sódio",
+    "Potássio",
+    "Magnésio",
+    "Bilirrubinas",
+    "Proteína C Reativa - PCR",
+    "Troponina",
+    "Troponina I",
+    "Troponina T",
+    "Urina I",
+    "Cálcio Ionizado",
+    "Dosagem de Lactato",
+    "Amilase",
+    "Amilase Sérica",
+    "Fosfatase Alcalina",
+    "Gama GT",
+    "Gama-Glutamil Transferase",
+    "Gama Glutamil Transferase",
+    "Transaminase Glutamica Oxalacetica",
+    "Transaminase Glutâmica Oxalacética",
+    "TGO",
+    "AST",
+    "Transaminase Glutamica Piruvica",
+    "Transaminase Glutâmica Pirúvica",
+    "TGP",
+    "ALT",
     "Problema ao visualizar"
   ];
   var items = [];
@@ -402,7 +550,11 @@ function transcribeJundiaiLabs(rawText) {
   }
 
   var tap = jundiaiSection(lines, ["Tempo e atividade Protrombina"], examHeaders.slice(2));
-  var ttpa = jundiaiSection(lines, ["TTPA - Tempo de Tromboplastina Parcial Ativada"], examHeaders.slice(3));
+  var ttpa = jundiaiSection(
+    lines,
+    ["TTPA - Tempo de Tromboplastina Parcial Ativada"],
+    examHeaders.slice(3)
+  );
   var coagParts = [];
   var tp = jundiaiValueWithUnitAfter(tap, ["Tempo"]);
   var rni = jundiaiValueAfter(tap, ["RNI"]);
@@ -423,8 +575,16 @@ function transcribeJundiaiLabs(rawText) {
     [["Amilase", "Amilase Sérica"], "amilase", ["Resultado"]],
     [["Fosfatase Alcalina"], "FA", ["Resultado"]],
     [["Gama GT", "Gama-Glutamil Transferase", "Gama Glutamil Transferase"], "GGT", ["Resultado"]],
-    [["Transaminase Glutamica Oxalacetica", "Transaminase Glutâmica Oxalacética", "TGO", "AST"], "TGO", ["Resultado"]],
-    [["Transaminase Glutamica Piruvica", "Transaminase Glutâmica Pirúvica", "TGP", "ALT"], "TGP", ["Resultado"]]
+    [
+      ["Transaminase Glutamica Oxalacetica", "Transaminase Glutâmica Oxalacética", "TGO", "AST"],
+      "TGO",
+      ["Resultado"]
+    ],
+    [
+      ["Transaminase Glutamica Piruvica", "Transaminase Glutâmica Pirúvica", "TGP", "ALT"],
+      "TGP",
+      ["Resultado"]
+    ]
   ].forEach(function (config) {
     var section = jundiaiSection(lines, config[0], examHeaders);
     var value = jundiaiValueWithUnitAfter(section, config[2]);
@@ -435,7 +595,8 @@ function transcribeJundiaiLabs(rawText) {
   var bt = jundiaiValueWithUnitAfter(bilis, ["Bilirrubina Total"]);
   var bd = jundiaiValueWithUnitAfter(bilis, ["Bilirrubina Direta"]);
   var bi = jundiaiValueWithUnitAfter(bilis, ["Bilirrubina Indireta"]);
-  if (bt || bi || bd) push("BT " + (bt || "") + " (BI = " + (bi || "") + "; BD = " + (bd || "") + ")");
+  if (bt || bi || bd)
+    push("BT " + (bt || "") + " (BI = " + (bi || "") + "; BD = " + (bd || "") + ")");
 
   var urina = jundiaiSection(lines, ["Urina I"], examHeaders);
   if (urina.length) {
@@ -460,7 +621,13 @@ function transcribeJundiaiLabs(rawText) {
     if (value) push(config[1] + " " + value);
   });
 
-  return patient + " - Laboratorios (" + date + "): " + (items.length ? items.join("; ") : transcribeLabs(rawText));
+  return (
+    patient +
+    " - Laboratorios (" +
+    date +
+    "): " +
+    (items.length ? items.join("; ") : transcribeLabs(rawText))
+  );
 }
 
 window.normalizeText = normalizeText;

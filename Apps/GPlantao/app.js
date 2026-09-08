@@ -1,7 +1,23 @@
-var quickOrder = ["anamnese", "reavaliacao", "internacao", "encaminhamento", "antibioticos", "receita-livre", "administrativo"];
-var editableIds = ["administrativo", "anamnese", "reavaliacao", "internacao", "encaminhamento", "receita-livre"];
+var quickOrder = [
+  "anamnese",
+  "reavaliacao",
+  "internacao",
+  "encaminhamento",
+  "antibioticos",
+  "receita-livre",
+  "administrativo"
+];
+var editableIds = [
+  "administrativo",
+  "anamnese",
+  "reavaliacao",
+  "internacao",
+  "encaminhamento",
+  "receita-livre"
+];
 var ANAMNESE_STORAGE_KEY = "gplantao-anamnese-draft-v1";
 var REAVALIACAO_STORAGE_KEY = "gplantao-reavaliacao-draft-v1";
+var INTERNACAO_STORAGE_KEY = "gplantao-internacao-draft-v1";
 var ALLERGY_STORAGE_KEY = "gplantao-allergies-v1";
 var ALLERGY_OPTIONS = [
   "Diclofenaco",
@@ -36,7 +52,8 @@ var ALLERGY_OPTIONS = [
 ];
 var ALLERGY_QUICK_OPTIONS = ["Dipirona", "Diclofenaco", "Penicilina benzatina", "Amoxicilina"];
 var NO_KNOWN_ALLERGIES_TEXT = "Nega alergias medicamentosas";
-var ANAMNESE_PRE_MED_TRAMAL_TEXT = "Paciente avaliado antes da administracao de Tramal, indicada por necessidade clinica de analgesia e controle de dor importante, com justificativa baseada em quadro algico significativo e necessidade de controle sintomatico. Sinais vitais recentes: PA | FC | FR | SATO2, nivel de consciencia preservado, responsivo, dor EVA __/10. Sem sinais clinicos de instabilidade respiratoria ou hemodinamica no momento.";
+var ANAMNESE_PRE_MED_TRAMAL_TEXT =
+  "Paciente avaliado antes da administracao de Tramal, indicada por necessidade clinica de analgesia e controle de dor importante, com justificativa baseada em quadro algico significativo e necessidade de controle sintomatico. Sinais vitais recentes: PA | FC | FR | SATO2, nivel de consciencia preservado, responsivo, dor EVA __/10. Sem sinais clinicos de instabilidade respiratoria ou hemodinamica no momento.";
 var ANAMNESE_ATTESTATION_OPTIONS = [
   {
     label: "IVAS 2d",
@@ -136,7 +153,16 @@ var state = {
   atestaditeTexts: {},
   scores: {
     heart: { history: 0, ecg: 0, age: "", riskFactors: 0, troponin: 0 },
-    grace: { age: "", heartRate: "", systolicBp: "", creatinine: "", killip: 1, arrest: 0, stDeviation: 0, markers: 0 },
+    grace: {
+      age: "",
+      heartRate: "",
+      systolicBp: "",
+      creatinine: "",
+      killip: 1,
+      arrest: 0,
+      stDeviation: 0,
+      markers: 0
+    },
     tab: "cardio",
     open: {},
     items: {}
@@ -144,7 +170,19 @@ var state = {
   useParacetamolAlt: false,
   useEscopolaminaParacetamolAlt: false,
   useGastroCipro: false,
-  openGroups: { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false, atestado: false, highRisk: false }
+  openGroups: {
+    dor: false,
+    gastro: false,
+    resp: false,
+    antibiotics: false,
+    orientacoes: false,
+    atestadite: false,
+    physicalExam: false,
+    physicalExamSection: "",
+    scores: false,
+    atestado: false,
+    highRisk: false
+  }
 };
 
 function el(id) {
@@ -192,8 +230,13 @@ function getProtocols() {
 function getInitialText(protocol) {
   if (!protocol) return "";
   if (protocol.atestaditeSections) return buildAtestaditeText(protocol);
-  if (protocol.referralTemplates) return buildReferralText(protocol.referralTemplates && protocol.referralTemplates[0], "ambulatorial");
-  if (protocol.genderedTemplate) return applyAnamneseGender(protocol.prescription || "", state.anamneseGender);
+  if (protocol.referralTemplates)
+    return buildReferralText(
+      protocol.referralTemplates && protocol.referralTemplates[0],
+      "ambulatorial"
+    );
+  if (protocol.genderedTemplate)
+    return applyAnamneseGender(protocol.prescription || "", state.anamneseGender);
   return protocol.prescription || "";
 }
 
@@ -221,7 +264,9 @@ function loadAnamneseDraft(protocol) {
         sato2: payload.vitals.sato2 || ""
       };
     }
-    return payload && typeof payload.text === "string" ? normalizeAnamneseVitalsText(normalizeClinicalSectionMarkers(payload.text), null) : fallback;
+    return payload && typeof payload.text === "string"
+      ? normalizeAnamneseVitalsText(normalizeClinicalSectionMarkers(payload.text), null)
+      : fallback;
   } catch (error) {
     return fallback;
   }
@@ -230,12 +275,15 @@ function loadAnamneseDraft(protocol) {
 function saveAnamneseDraft(message) {
   if (state.selectedId !== "anamnese") return;
   try {
-    localStorage.setItem(ANAMNESE_STORAGE_KEY, JSON.stringify({
-      text: state.editableText || "",
-      gender: state.anamneseGender,
-      vitals: state.anamneseVitals || { pa: "", fc: "", fr: "", sato2: "" },
-      savedAt: new Date().toISOString()
-    }));
+    localStorage.setItem(
+      ANAMNESE_STORAGE_KEY,
+      JSON.stringify({
+        text: state.editableText || "",
+        gender: state.anamneseGender,
+        vitals: state.anamneseVitals || { pa: "", fc: "", fr: "", sato2: "" },
+        savedAt: new Date().toISOString()
+      })
+    );
   } catch (error) {
     // Autosave silencioso: se o navegador bloquear o storage, a anamnese segue em memoria.
   }
@@ -258,8 +306,11 @@ function loadReavaliacaoDraft(protocol) {
     state.labInput = payload && typeof payload.labInput === "string" ? payload.labInput : "";
     state.labOutput = payload && typeof payload.labOutput === "string" ? payload.labOutput : "";
     state.labSource = payload && typeof payload.labSource === "string" ? payload.labSource : "auto";
-    state.labDetectedSource = payload && typeof payload.labDetectedSource === "string" ? payload.labDetectedSource : "";
-    return payload && typeof payload.text === "string" ? normalizeClinicalSectionMarkers(payload.text) : fallback;
+    state.labDetectedSource =
+      payload && typeof payload.labDetectedSource === "string" ? payload.labDetectedSource : "";
+    return payload && typeof payload.text === "string"
+      ? normalizeClinicalSectionMarkers(payload.text)
+      : fallback;
   } catch (error) {
     return fallback;
   }
@@ -268,15 +319,18 @@ function loadReavaliacaoDraft(protocol) {
 function saveReavaliacaoDraft() {
   if (state.selectedId !== "reavaliacao") return;
   try {
-    localStorage.setItem(REAVALIACAO_STORAGE_KEY, JSON.stringify({
-      text: state.editableText || "",
-      vitals: state.reavaliacaoVitals || { pa: "", fc: "", fr: "", sato2: "" },
-      labInput: state.labInput || "",
-      labOutput: state.labOutput || "",
-      labSource: state.labSource || "auto",
-      labDetectedSource: state.labDetectedSource || "",
-      savedAt: new Date().toISOString()
-    }));
+    localStorage.setItem(
+      REAVALIACAO_STORAGE_KEY,
+      JSON.stringify({
+        text: state.editableText || "",
+        vitals: state.reavaliacaoVitals || { pa: "", fc: "", fr: "", sato2: "" },
+        labInput: state.labInput || "",
+        labOutput: state.labOutput || "",
+        labSource: state.labSource || "auto",
+        labDetectedSource: state.labDetectedSource || "",
+        savedAt: new Date().toISOString()
+      })
+    );
   } catch (error) {
     // Autosave silencioso: se o navegador bloquear o storage, a reavaliacao segue em memoria.
   }
@@ -288,13 +342,41 @@ function clearReavaliacaoDraft() {
   } catch (error) {}
 }
 
+function loadInternacaoDraft(protocol) {
+  var fallback = getInitialText(protocol);
+  try {
+    var stored = localStorage.getItem(INTERNACAO_STORAGE_KEY);
+    var payload = stored ? JSON.parse(stored) : null;
+    return payload && typeof payload.text === "string" ? payload.text : fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function saveInternacaoDraft() {
+  if (state.selectedId !== "internacao") return;
+  try {
+    localStorage.setItem(
+      INTERNACAO_STORAGE_KEY,
+      JSON.stringify({
+        text: state.editableText || "",
+        savedAt: new Date().toISOString()
+      })
+    );
+  } catch (error) {
+    // Mantem a edicao disponivel quando o navegador bloqueia o armazenamento.
+  }
+}
+
 function loadAllergies() {
   try {
     var stored = localStorage.getItem(ALLERGY_STORAGE_KEY);
     var parsed = stored ? JSON.parse(stored) : [];
-    state.allergies = Array.isArray(parsed) ? parsed.filter(function (item) {
-      return typeof item === "string" && item.trim() && item.length <= 80;
-    }) : [];
+    state.allergies = Array.isArray(parsed)
+      ? parsed.filter(function (item) {
+          return typeof item === "string" && item.trim();
+        })
+      : [];
   } catch (error) {
     state.allergies = [];
   }
@@ -321,7 +403,9 @@ function setAnamneseAllergyLine(text, allergyText) {
 }
 
 function updateAnamneseAllergiesInTemplate(shouldSave, sourceText) {
-  state.editableText = setAnamneseAllergyLine(typeof sourceText === "string" ? sourceText : (state.editableText || ""));
+  state.editableText = setAnamneseAllergyLine(
+    typeof sourceText === "string" ? sourceText : state.editableText || ""
+  );
   if (shouldSave !== false) saveAnamneseDraft("Anamnese salva");
 }
 
@@ -337,14 +421,20 @@ function addAllergy(medicine) {
   if (!medicine) return;
   var current = state.allergies || [];
   if (current.indexOf(medicine) >= 0) return;
-  state.allergies = current.filter(function (item) { return item !== NO_KNOWN_ALLERGIES_TEXT; }).concat(medicine.slice(0, 80));
+  state.allergies = current
+    .filter(function (item) {
+      return item !== NO_KNOWN_ALLERGIES_TEXT;
+    })
+    .concat(medicine.slice(0, 80));
   saveAllergies();
   updateVisibleAnamneseAllergyLine();
   renderAllergyControls();
 }
 
 function removeAllergy(medicine) {
-  state.allergies = (state.allergies || []).filter(function (item) { return item !== medicine; });
+  state.allergies = (state.allergies || []).filter(function (item) {
+    return item !== medicine;
+  });
   saveAllergies();
   updateVisibleAnamneseAllergyLine();
   renderAllergyControls();
@@ -356,7 +446,9 @@ function toggleAllergy(medicine) {
 }
 
 function setNoKnownAllergies() {
-  state.allergies = [NO_KNOWN_ALLERGIES_TEXT];
+  var alreadySelected =
+    (state.allergies || []).length === 1 && state.allergies[0] === NO_KNOWN_ALLERGIES_TEXT;
+  state.allergies = alreadySelected ? [] : [NO_KNOWN_ALLERGIES_TEXT];
   state.allergyMenuOpen = false;
   saveAllergies();
   updateVisibleAnamneseAllergyLine();
@@ -364,131 +456,16 @@ function setNoKnownAllergies() {
 }
 
 function renderAllergyControls() {
-  var toggle = el("allergyToggle");
-  var menu = el("allergyMenu");
-  var alert = el("allergyAlert");
-  var allergies = state.allergies || [];
-  if (toggle) {
-    toggle.textContent = allergies.length ? "Alergia (" + allergies.length + ")" : "Alergia";
-    toggle.classList.toggle("active", allergies.length > 0);
-    toggle.setAttribute("aria-expanded", state.allergyMenuOpen ? "true" : "false");
-  }
-  if (menu) {
-    menu.innerHTML = "";
-    menu.classList.toggle("hidden", !state.allergyMenuOpen);
-    if (state.allergyMenuOpen) {
-      var searchRow = div("allergy-search-row");
-      var search = document.createElement("input");
-      search.id = "allergySearch";
-      search.className = "allergy-search";
-      search.type = "text";
-      search.autocomplete = "off";
-      search.placeholder = "Digite: dipi, amox, contraste...";
-      search.setAttribute("aria-label", "Buscar ou escrever alergia");
-      var addButton = textButton("Adicionar", "allergy-add", function () {
-        addAllergy(search.value);
-        var nextSearch = el("allergySearch");
-        if (nextSearch) nextSearch.focus();
-      });
-      searchRow.appendChild(search);
-      searchRow.appendChild(addButton);
-      menu.appendChild(searchRow);
-
-      var hint = div("allergy-hint");
-      hint.textContent = "Enter adiciona · Esc fecha · aceita qualquer texto";
-      menu.appendChild(hint);
-      var suggestions = div("allergy-suggestions");
-      menu.appendChild(suggestions);
-
-      function updateSuggestions() {
-        var term = search.value.trim().toLocaleLowerCase("pt-BR");
-        suggestions.innerHTML = "";
-        if (!term) return;
-        var candidates = ALLERGY_OPTIONS.concat(ALLERGY_QUICK_OPTIONS).filter(function (item, index, list) {
-          return list.indexOf(item) === index &&
-            allergies.indexOf(item) < 0 &&
-            item.toLocaleLowerCase("pt-BR").indexOf(term) >= 0;
-        }).slice(0, 4);
-        candidates.forEach(function (medicine) {
-          suggestions.appendChild(textButton(medicine, "allergy-suggestion", function () {
-            addAllergy(medicine);
-            var nextSearch = el("allergySearch");
-            if (nextSearch) nextSearch.focus();
-          }));
-        });
-      }
-
-      search.oninput = updateSuggestions;
-      search.onkeydown = function (event) {
-        if (event.key === "Escape") {
-          state.allergyMenuOpen = false;
-          renderAllergyControls();
-          return;
-        }
-        if (event.key !== "Enter") return;
-        event.preventDefault();
-        var suggestion = suggestions.querySelector("button");
-        addAllergy(suggestion ? suggestion.textContent : search.value);
-        var nextSearch = el("allergySearch");
-        if (nextSearch) nextSearch.focus();
-      };
-
-      if (allergies.length) {
-        var selectedLabel = div("allergy-menu-label");
-        selectedLabel.textContent = "Registradas";
-        menu.appendChild(selectedLabel);
-        var selectedChips = div("allergy-selected");
-        allergies.forEach(function (medicine) {
-          var tag = div("allergy-tag");
-          var tagText = document.createElement("span");
-          tagText.textContent = medicine;
-          var remove = textButton("×", "allergy-tag-remove", function () { removeAllergy(medicine); });
-          remove.title = "Remover " + medicine;
-          tag.appendChild(tagText);
-          tag.appendChild(remove);
-          selectedChips.appendChild(tag);
-        });
-        menu.appendChild(selectedChips);
-      }
-
-      var quickLabel = div("allergy-menu-label");
-      quickLabel.textContent = "Mais usadas";
-      menu.appendChild(quickLabel);
-      var quickOptions = div("allergy-quick-options");
-      ALLERGY_QUICK_OPTIONS.forEach(function (medicine) {
-        quickOptions.appendChild(textButton(medicine, "allergy-chip" + (allergies.indexOf(medicine) >= 0 ? " active" : ""), function () {
-          toggleAllergy(medicine);
-          var nextSearch = el("allergySearch");
-          if (nextSearch) nextSearch.focus();
-        }));
-      });
-      menu.appendChild(quickOptions);
-      menu.appendChild(textButton("✓ Nega alergias medicamentosas", "allergy-negative", setNoKnownAllergies));
-    }
-    if (allergies.length) {
-      menu.appendChild(textButton("Limpar alergias", "allergy-option allergy-clear", function () {
-        state.allergies = [];
-        saveAllergies();
-        updateVisibleAnamneseAllergyLine();
-        renderAllergyControls();
-      }));
-    }
-  }
-  if (alert) {
-    alert.classList.toggle("hidden", allergies.length === 0);
-    alert.textContent = allergies.length === 1 && allergies[0] === NO_KNOWN_ALLERGIES_TEXT
-      ? NO_KNOWN_ALLERGIES_TEXT
-      : allergies.length ? "ALERGIA: " + allergies.join(" | ") : "";
-  }
   var editor = document.querySelector("textarea.anamnese-editor");
-  var allergyText = allergies.join(" | ");
-  if (editor && editor.value !== setAnamneseAllergyLine(editor.value, allergyText)) {
-    state.editableText = setAnamneseAllergyLine(editor.value, allergyText);
-    editor.value = state.editableText;
+  if (!editor) return;
+  var updatedText = setAnamneseAllergyLine(editor.value, formatAnamneseAllergies());
+  if (editor.value !== updatedText) {
+    state.editableText = updatedText;
+    editor.value = updatedText;
     saveAnamneseDraft("Anamnese salva");
   }
+  if (editor.refreshAllergySuggestions) editor.refreshAllergySuggestions();
 }
-
 function clearAllSavedData() {
   if (!window.confirm("Limpar todos os saves do GPlantao?")) return;
   try {
@@ -532,14 +509,30 @@ function selectProtocol(id) {
   state.labOutput = "";
   state.labSource = "auto";
   state.labDetectedSource = "";
-  state.openGroups = { dor: false, gastro: false, resp: false, antibiotics: false, orientacoes: false, atestadite: false, otoOro: false, psych: false, scores: false, atestado: false, highRisk: false };
+  state.openGroups = {
+    dor: false,
+    gastro: false,
+    resp: false,
+    antibiotics: false,
+    orientacoes: false,
+    atestadite: false,
+    physicalExam: false,
+    physicalExamSection: "",
+    scores: false,
+    atestado: false,
+    highRisk: false
+  };
   var protocol = findProtocol(id);
-  state.atestaditeTexts = protocol && protocol.atestaditeSections ? getAtestaditeInitialTexts(protocol) : {};
-  state.editableText = protocol && protocol.id === "anamnese"
-    ? loadAnamneseDraft(protocol)
-    : protocol && protocol.id === "reavaliacao"
-      ? loadReavaliacaoDraft(protocol)
-      : getInitialText(protocol);
+  state.atestaditeTexts =
+    protocol && protocol.atestaditeSections ? getAtestaditeInitialTexts(protocol) : {};
+  state.editableText =
+    protocol && protocol.id === "anamnese"
+      ? loadAnamneseDraft(protocol)
+      : protocol && protocol.id === "reavaliacao"
+        ? loadReavaliacaoDraft(protocol)
+        : protocol && protocol.id === "internacao"
+          ? loadInternacaoDraft(protocol)
+          : getInitialText(protocol);
   if (protocol && protocol.id === "anamnese") updateAnamneseAllergiesInTemplate(false);
   render();
 }
@@ -554,16 +547,33 @@ function findProtocol(id) {
 
 function filtered() {
   var protocols = getProtocols();
-  var quick = protocols.filter(function (item) { return quickOrder.indexOf(item.id) >= 0; }).sort(function (a, b) {
-    return quickOrder.indexOf(a.id) - quickOrder.indexOf(b.id);
-  });
-  var atestadite = protocols.filter(function (item) { return item.atestadite === true; }).sort(function (a, b) {
-    return a.title.localeCompare(b.title, "pt-BR");
-  });
-  var recipes = protocols.filter(function (item) { return quickOrder.indexOf(item.id) < 0 && item.atestadite !== true; }).sort(function (a, b) {
-    return a.title.localeCompare(b.title, "pt-BR");
-  });
-  return { quick: quick, atestadite: atestadite, recipes: recipes, all: quick.concat(atestadite, recipes) };
+  var quick = protocols
+    .filter(function (item) {
+      return quickOrder.indexOf(item.id) >= 0;
+    })
+    .sort(function (a, b) {
+      return quickOrder.indexOf(a.id) - quickOrder.indexOf(b.id);
+    });
+  var atestadite = protocols
+    .filter(function (item) {
+      return item.atestadite === true;
+    })
+    .sort(function (a, b) {
+      return a.title.localeCompare(b.title, "pt-BR");
+    });
+  var recipes = protocols
+    .filter(function (item) {
+      return quickOrder.indexOf(item.id) < 0 && item.atestadite !== true;
+    })
+    .sort(function (a, b) {
+      return a.title.localeCompare(b.title, "pt-BR");
+    });
+  return {
+    quick: quick,
+    atestadite: atestadite,
+    recipes: recipes,
+    all: quick.concat(atestadite, recipes)
+  };
 }
 
 function currentProtocol() {
@@ -579,14 +589,19 @@ function getAtestaditeInitialTexts(protocol) {
 }
 
 function buildAtestaditeText(protocol) {
-  var source = Object.keys(state.atestaditeTexts || {}).length ? state.atestaditeTexts : getAtestaditeInitialTexts(protocol);
-  return (protocol.atestaditeSections || []).map(function (section) {
-    if (section.copySeparate) return "";
-    var text = source[section.key] || "";
-    return text.trim();
-  }).filter(function (text) {
-    return text.trim();
-  }).join("\n\n");
+  var source = Object.keys(state.atestaditeTexts || {}).length
+    ? state.atestaditeTexts
+    : getAtestaditeInitialTexts(protocol);
+  return (protocol.atestaditeSections || [])
+    .map(function (section) {
+      if (section.copySeparate) return "";
+      var text = source[section.key] || "";
+      return text.trim();
+    })
+    .filter(function (text) {
+      return text.trim();
+    })
+    .join("\n\n");
 }
 
 function getAtestaditeSectionText(section) {
@@ -595,17 +610,30 @@ function getAtestaditeSectionText(section) {
 
 function buildReferralText(template, mode) {
   if (!template) return "";
-  var urgencyText = mode === "urgente"
-    ? "Solicito avaliacao com prioridade/urgencia conforme disponibilidade do servico."
-    : mode === "investigacao"
-      ? "Solicito avaliacao para investigacao complementar e definicao de conduta."
-      : "Solicito avaliacao ambulatorial conforme disponibilidade da rede.";
-  return "Encaminho para avaliacao em " + template.specialty + "\n\n" +
-    "Hipotese diagnostica: " + template.hypothesis + "\n\n" +
-    "Resumo clinico:\n" + template.summary + "\n\n" +
-    "Conduta ja realizada:\n" + template.conduct + "\n\n" +
-    "Prioridade / finalidade:\n" + urgencyText + "\n\n" +
-    "Solicito avaliacao especializada e seguimento.";
+  var urgencyText =
+    mode === "urgente"
+      ? "Solicito avaliacao com prioridade/urgencia conforme disponibilidade do servico."
+      : mode === "investigacao"
+        ? "Solicito avaliacao para investigacao complementar e definicao de conduta."
+        : "Solicito avaliacao ambulatorial conforme disponibilidade da rede.";
+  return (
+    "Encaminho para avaliacao em " +
+    template.specialty +
+    "\n\n" +
+    "Hipotese diagnostica: " +
+    template.hypothesis +
+    "\n\n" +
+    "Resumo clinico:\n" +
+    template.summary +
+    "\n\n" +
+    "Conduta ja realizada:\n" +
+    template.conduct +
+    "\n\n" +
+    "Prioridade / finalidade:\n" +
+    urgencyText +
+    "\n\n" +
+    "Solicito avaliacao especializada e seguimento."
+  );
 }
 
 function applyReplacements(text, replacements) {
@@ -620,7 +648,9 @@ function getPrescription(protocol) {
   if (isEditable(protocol.id)) return state.editableText;
   var base = protocol.prescription || "";
   if (protocol.antibioticOptions) {
-    base = (protocol.antibioticOptions[state.selectedAntibiotic] || protocol.antibioticOptions[0]).value || "";
+    base =
+      (protocol.antibioticOptions[state.selectedAntibiotic] || protocol.antibioticOptions[0])
+        .value || "";
   } else if (protocol.options && protocol.options.length) {
     base = (protocol.options[state.selectedOption] || protocol.options[0]).value || "";
   }
@@ -648,7 +678,12 @@ function finalText(protocol) {
 function getOrientation(protocol) {
   if (!protocol) return "";
   if (protocol.orientationOptions && protocol.orientationOptions.length) {
-    return (protocol.orientationOptions[state.selectedOrientationOption] || protocol.orientationOptions[0]).value || "";
+    return (
+      (
+        protocol.orientationOptions[state.selectedOrientationOption] ||
+        protocol.orientationOptions[0]
+      ).value || ""
+    );
   }
   return protocol.orientation || "";
 }
@@ -657,7 +692,10 @@ function addTextToEditable(label, text) {
   var current = state.editableText || "";
   var escaped = String(text || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   if (current.indexOf(text) >= 0) {
-    state.editableText = current.replace(new RegExp("\\n*" + escaped, "g"), "").replace(/\n{3,}/g, "\n\n").trimEnd();
+    state.editableText = current
+      .replace(new RegExp("\\n*" + escaped, "g"), "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trimEnd();
     if (/^Uso oral:\s*$/i.test(state.editableText)) state.editableText = "Uso oral:\n\n";
   } else {
     state.editableText = current.trimEnd() + "\n\n" + text;
@@ -670,23 +708,23 @@ function applyAnamneseGender(text, gender) {
   var isMale = gender === "masculino";
   var replacements = isMale
     ? [
-      [/\bCorada\b/g, "Corado"],
-      [/\bHidratada\b/g, "Hidratado"],
-      [/\bAcianótica\b/g, "Acianótico"],
-      [/\bAcianotica\b/g, "Acianotico"],
-      [/\bAnicterica\b/g, "Anicterico"],
-      [/\bAnictérica\b/g, "Anictérico"],
-      [/\bEupneica\b/g, "Eupneico"]
-    ]
+        [/\bCorada\b/g, "Corado"],
+        [/\bHidratada\b/g, "Hidratado"],
+        [/\bAcianótica\b/g, "Acianótico"],
+        [/\bAcianotica\b/g, "Acianotico"],
+        [/\bAnicterica\b/g, "Anicterico"],
+        [/\bAnictérica\b/g, "Anictérico"],
+        [/\bEupneica\b/g, "Eupneico"]
+      ]
     : [
-      [/\bCorado\b/g, "Corada"],
-      [/\bHidratado\b/g, "Hidratada"],
-      [/\bAcianótico\b/g, "Acianótica"],
-      [/\bAcianotico\b/g, "Acianotica"],
-      [/\bAnicterico\b/g, "Anicterica"],
-      [/\bAnictérico\b/g, "Anictérica"],
-      [/\bEupneico\b/g, "Eupneica"]
-    ];
+        [/\bCorado\b/g, "Corada"],
+        [/\bHidratado\b/g, "Hidratada"],
+        [/\bAcianótico\b/g, "Acianótica"],
+        [/\bAcianotico\b/g, "Acianotica"],
+        [/\bAnicterico\b/g, "Anicterica"],
+        [/\bAnictérico\b/g, "Anictérica"],
+        [/\bEupneico\b/g, "Eupneica"]
+      ];
   replacements.forEach(function (item) {
     text = text.replace(item[0], item[1]);
   });
@@ -695,7 +733,10 @@ function applyAnamneseGender(text, gender) {
 
 function setAnamneseGender(gender) {
   state.anamneseGender = gender;
-  state.editableText = applyAnamneseGender(state.editableText || getInitialText(findProtocol("anamnese")), gender);
+  state.editableText = applyAnamneseGender(
+    state.editableText || getInitialText(findProtocol("anamnese")),
+    gender
+  );
   saveAnamneseDraft("Anamnese salva");
   render();
 }
@@ -755,9 +796,11 @@ function setAnamneseAttestationBlock(text, attestationText) {
   if (!attestationText) return next;
   var conductPattern = /(#\s*Conduta\s*:\s*)/i;
   if (conductPattern.test(next)) {
-    return next.replace(conductPattern, function (marker) {
-      return marker + "\n" + attestationText + "\n\n";
-    }).replace(/\n{3,}/g, "\n\n");
+    return next
+      .replace(conductPattern, function (marker) {
+        return marker + "\n" + attestationText + "\n\n";
+      })
+      .replace(/\n{3,}/g, "\n\n");
   }
   return next.trimEnd() + "\n\n# Conduta :\n" + attestationText;
 }
@@ -781,9 +824,11 @@ function setAnamnesePreMedicationBlock(text) {
   var next = removeAnamnesePreMedicationBlock(text || "");
   var conductPattern = /(#\s*Conduta\s*:\s*)/i;
   if (conductPattern.test(next)) {
-    return next.replace(conductPattern, function (marker) {
-      return marker + "\n" + ANAMNESE_PRE_MED_TRAMAL_TEXT + "\n\n";
-    }).replace(/\n{3,}/g, "\n\n");
+    return next
+      .replace(conductPattern, function (marker) {
+        return marker + "\n" + ANAMNESE_PRE_MED_TRAMAL_TEXT + "\n\n";
+      })
+      .replace(/\n{3,}/g, "\n\n");
   }
   return next.trimEnd() + "\n\n" + ANAMNESE_PRE_MED_TRAMAL_TEXT;
 }
@@ -799,12 +844,20 @@ function updateAnamnesePreMedicationInTemplate() {
 function toggleAnamneseExam(text) {
   var current = state.editableText || "";
   if (current.indexOf(text) >= 0) {
-    state.editableText = current.replace(text, "").replace(/\n{3,}/g, "\n\n").trimEnd();
+    state.editableText = current
+      .replace(text, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trimEnd();
   } else {
     var conductMarker = "# Conduta";
     var conductIndex = current.indexOf(conductMarker);
     if (conductIndex >= 0) {
-      state.editableText = current.slice(0, conductIndex).trimEnd() + "\n" + text + "\n\n" + current.slice(conductIndex).trimStart();
+      state.editableText =
+        current.slice(0, conductIndex).trimEnd() +
+        "\n" +
+        text +
+        "\n\n" +
+        current.slice(conductIndex).trimStart();
     } else {
       state.editableText = current.trimEnd() + "\n" + text;
     }
@@ -822,11 +875,15 @@ function boot() {
   loadAllergies();
   var initialProtocol = findProtocol("anamnese") || protocols[0];
   state.selectedId = initialProtocol.id;
-  state.editableText = initialProtocol.id === "anamnese" ? loadAnamneseDraft(initialProtocol) : getInitialText(initialProtocol);
+  state.editableText =
+    initialProtocol.id === "anamnese"
+      ? loadAnamneseDraft(initialProtocol)
+      : getInitialText(initialProtocol);
   if (initialProtocol.id === "anamnese") updateAnamneseAllergiesInTemplate(false);
   document.addEventListener("keydown", function (event) {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
-      if (state.selectedId === "reavaliacao" && event.target && event.target.className === "small") return;
+      if (state.selectedId === "reavaliacao" && event.target && event.target.className === "small")
+        return;
       event.preventDefault();
       copyText(finalText(currentProtocol()));
     }

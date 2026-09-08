@@ -352,7 +352,7 @@ Carmelose sódica (lágrima artificial) ---- 1 frasco
 Aplicar 2 gotas em ambos os olhos de 6/6h.
 
 Ciprofloxacino colírio 0,3% ---- 1 frasco
-Aplicar 1 gota no olho acometido de 6/6h por 5 a 7 dias.
+Aplicar 1 gota no olho acometido de 6/6h por 7 dias.
 
 Suspender uso de lentes de contato até resolução completa dos sintomas.`]
     ].map(([label, value]) => ({ label, value }))

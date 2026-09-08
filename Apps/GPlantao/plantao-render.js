@@ -22,40 +22,58 @@ function renderNav(containerId, items, selectedId, emptyText) {
   }
 }
 
-function renderOptions(protocol, parent) {
-  if (isEditable(protocol.id)) {
-    var resetRow = div("section row");
-    resetRow.appendChild(textButton("Limpar template", "text-btn", function () {
-      state.editableText = getInitialText(protocol);
-      state.labInput = "";
-      state.labOutput = "";
-      state.labSource = "auto";
-      state.labDetectedSource = "";
-      if (protocol.id === "anamnese") {
-        state.anamneseVitals = { pa: "", fc: "", fr: "", sato2: "" };
-        state.allergies = [];
-        state.allergyMenuOpen = false;
-        saveAllergies();
-      }
-      if (protocol.id === "reavaliacao") {
-        state.reavaliacaoVitals = { pa: "", fc: "", fr: "", sato2: "" };
-        clearReavaliacaoDraft();
-      }
-      saveAnamneseDraft("Anamnese salva");
-      render();
-    }));
-    if (protocol.genderedTemplate) {
-      resetRow.appendChild(textButton("Masculino", "text-btn" + (state.anamneseGender === "masculino" ? " active" : ""), function () {
-        setAnamneseGender("masculino");
-      }));
-      resetRow.appendChild(textButton("Feminino", "text-btn" + (state.anamneseGender === "feminino" ? " active" : ""), function () {
-        setAnamneseGender("feminino");
-      }));
-      resetRow.appendChild(textButton("Nega alergias medicamentosas", "text-btn" + ((state.allergies || []).length === 1 && state.allergies[0] === NO_KNOWN_ALLERGIES_TEXT ? " active" : ""), function () {
-        setNoKnownAllergies();
-      }));
+function createClearTemplateButton(protocol) {
+  var clearTemplateButton = textButton("×", "text-btn template-clear-button", function () {
+    state.editableText = getInitialText(protocol);
+    state.labInput = "";
+    state.labOutput = "";
+    state.labSource = "auto";
+    state.labDetectedSource = "";
+    if (protocol.id === "anamnese") {
+      state.anamneseVitals = { pa: "", fc: "", fr: "", sato2: "" };
+      state.allergies = [];
+      state.allergyMenuOpen = false;
+      saveAllergies();
     }
-    parent.appendChild(resetRow);
+    if (protocol.id === "reavaliacao") {
+      state.reavaliacaoVitals = { pa: "", fc: "", fr: "", sato2: "" };
+      clearReavaliacaoDraft();
+    }
+    saveAnamneseDraft("Anamnese salva");
+    saveInternacaoDraft();
+    render();
+  });
+  clearTemplateButton.title = "Limpar template";
+  clearTemplateButton.setAttribute("aria-label", "Limpar template");
+  return clearTemplateButton;
+}
+
+function renderOptions(protocol, parent, headerActions) {
+  if (isEditable(protocol.id)) {
+
+    if (protocol.genderedTemplate) {
+      var genderControl = div("anamnese-gender-control");
+      genderControl.setAttribute("role", "group");
+      genderControl.setAttribute("aria-label", "Gênero da anamnese");
+      [
+        { value: "masculino", label: "Masculino", initial: "M" },
+        { value: "feminino", label: "Feminino", initial: "F" }
+      ].forEach(function (option) {
+        var selected = state.anamneseGender === option.value;
+        var button = textButton(
+          option.initial,
+          "text-btn gender-toggle" + (selected ? " active" : ""),
+          function () {
+            setAnamneseGender(option.value);
+          }
+        );
+        button.title = option.label;
+        button.setAttribute("aria-label", option.label);
+        button.setAttribute("aria-pressed", String(selected));
+        genderControl.appendChild(button);
+      });
+      headerActions.appendChild(genderControl);
+    }
 
     if (protocol.snippets && protocol.snippets.standardExam) {
       var otoOroBlock = div("section toggle-block");
@@ -63,89 +81,165 @@ function renderOptions(protocol, parent) {
       var snippets = protocol.snippets || {};
       var standardExam = snippets.standardExam && snippets.standardExam.text;
       var psychSnippets = snippets.psych || [];
-      var psychActive = psychSnippets.some(function (item) {
-        return (state.editableText || "").indexOf(item[1]) >= 0;
-      });
-      anamneseButtons.appendChild(textButton((snippets.standardExam && snippets.standardExam.label) || "Padrão", "text-btn" + (standardExam && (state.editableText || "").indexOf(standardExam) >= 0 ? " active" : ""), function () {
-        toggleAnamneseExam(standardExam);
-      }));
-      anamneseButtons.appendChild(textButton("Sinais vitais", "text-btn" + (state.openGroups.anamneseVitals ? " active" : ""), function () {
-        state.openGroups.anamneseVitals = !state.openGroups.anamneseVitals;
-        render();
-      }));
-      anamneseButtons.appendChild(textButton("Oto/Oro", "text-btn", function () {
-        state.openGroups.otoOro = !state.openGroups.otoOro;
-        render();
-      }));
-      anamneseButtons.appendChild(textButton("Psiq", "text-btn" + (state.openGroups.psych || psychActive ? " active" : ""), function () {
-        state.openGroups.psych = !state.openGroups.psych;
-        render();
-      }));
-      anamneseButtons.appendChild(textButton("Scores", "text-btn" + (state.openGroups.scores ? " active" : ""), function () {
-        state.openGroups.scores = !state.openGroups.scores;
-        render();
-      }));
-      var allergyControl = div("allergy-control anamnese-allergy-control");
-      allergyControl.appendChild(textButton("Alergia", "text-btn allergy-toggle", function () {
-        state.allergyMenuOpen = !state.allergyMenuOpen;
-        renderAllergyControls();
-        var allergySearch = el("allergySearch");
-        if (allergySearch) allergySearch.focus();
-      }));
-      var allergyMenu = div("allergy-menu hidden");
-      allergyMenu.id = "allergyMenu";
-      allergyMenu.setAttribute("aria-label", "Medicamentos com alergia");
-      allergyControl.querySelector("button").id = "allergyToggle";
-      allergyControl.appendChild(allergyMenu);
-      anamneseButtons.appendChild(allergyControl);
-      var atestadoControl = div("allergy-control anamnese-atestado-control");
-      atestadoControl.appendChild(textButton("Atestado", "text-btn atestado-toggle" + ((state.editableText || "").indexOf("Atestado medico:") >= 0 ? " active" : ""), function () {
-        state.openGroups.atestado = !state.openGroups.atestado;
-        render();
-      }));
-      var atestadoMenu = div("allergy-menu atestado-menu" + (state.openGroups.atestado ? "" : " hidden"));
-      ANAMNESE_ATTESTATION_OPTIONS.forEach(function (option) {
-        atestadoMenu.appendChild(textButton(option.label, "allergy-option", function () {
-          updateAnamneseAttestationInTemplate(option.text);
-          state.openGroups.atestado = false;
+      anamneseButtons.appendChild(
+        textButton(
+          "Sinais vitais",
+          "text-btn" + (state.openGroups.anamneseVitals ? " active" : ""),
+          function () {
+            state.openGroups.anamneseVitals = !state.openGroups.anamneseVitals;
+            render();
+          }
+        )
+      );
+      var physicalExamButton = textButton(
+        "Exame físico",
+        "text-btn" + (state.openGroups.physicalExam ? " active" : ""),
+        function () {
+          state.openGroups.physicalExam = !state.openGroups.physicalExam;
           render();
-        }));
+        }
+      );
+      physicalExamButton.setAttribute(
+        "aria-expanded",
+        String(Boolean(state.openGroups.physicalExam))
+      );
+      anamneseButtons.prepend(physicalExamButton);
+      anamneseButtons.appendChild(
+        textButton("Scores", "text-btn" + (state.openGroups.scores ? " active" : ""), function () {
+          state.openGroups.scores = !state.openGroups.scores;
+          render();
+        })
+      );
+      var hsvpControl = div("row hsvp-control");
+      var hsvpButton = textButton(
+        "HSVP",
+        "text-btn hsvp-toggle" + (state.openGroups.hsvp ? " active" : ""),
+        function () {
+          state.openGroups.hsvp = !state.openGroups.hsvp;
+          if (!state.openGroups.hsvp) state.openGroups.atestado = false;
+          render();
+        }
+      );
+      hsvpButton.setAttribute("aria-expanded", String(Boolean(state.openGroups.hsvp)));
+      hsvpButton.setAttribute("aria-controls", "hsvpOptions");
+      hsvpControl.appendChild(hsvpButton);
+      var hsvpOptions = div("row" + (state.openGroups.hsvp ? "" : " hidden"));
+      hsvpOptions.id = "hsvpOptions";
+      hsvpControl.appendChild(hsvpOptions);
+      headerActions.appendChild(hsvpControl);
+      var atestadoControl = div("allergy-control anamnese-atestado-control");
+      atestadoControl.appendChild(
+        textButton(
+          "Atestado",
+          "text-btn atestado-toggle" +
+            ((state.editableText || "").indexOf("Atestado medico:") >= 0 ? " active" : ""),
+          function () {
+            state.openGroups.atestado = !state.openGroups.atestado;
+            render();
+          }
+        )
+      );
+      var atestadoMenu = div(
+        "allergy-menu atestado-menu" + (state.openGroups.atestado ? "" : " hidden")
+      );
+      ANAMNESE_ATTESTATION_OPTIONS.forEach(function (option) {
+        atestadoMenu.appendChild(
+          textButton(option.label, "allergy-option", function () {
+            updateAnamneseAttestationInTemplate(option.text);
+            state.openGroups.atestado = false;
+            render();
+          })
+        );
       });
       if ((state.editableText || "").indexOf("Atestado medico:") >= 0) {
-        atestadoMenu.appendChild(textButton("Remover atestado", "allergy-option allergy-clear", function () {
-          updateAnamneseAttestationInTemplate("");
-          state.openGroups.atestado = false;
-          render();
-        }));
+        atestadoMenu.appendChild(
+          textButton("Remover atestado", "allergy-option allergy-clear", function () {
+            updateAnamneseAttestationInTemplate("");
+            state.openGroups.atestado = false;
+            render();
+          })
+        );
       }
       atestadoControl.appendChild(atestadoMenu);
-      anamneseButtons.appendChild(atestadoControl);
-      anamneseButtons.appendChild(textButton("Pré Tramal", "text-btn pre-med-toggle" + ((state.editableText || "").indexOf(ANAMNESE_PRE_MED_TRAMAL_TEXT) >= 0 ? " active" : ""), function () {
-        updateAnamnesePreMedicationInTemplate();
-        showToast("Pre medicacao inserida");
-        render();
-      }));
+      hsvpOptions.appendChild(atestadoControl);
+      hsvpOptions.appendChild(
+        textButton(
+          "Pré Tramal",
+          "text-btn pre-med-toggle" +
+            ((state.editableText || "").indexOf(ANAMNESE_PRE_MED_TRAMAL_TEXT) >= 0
+              ? " active"
+              : ""),
+          function () {
+            updateAnamnesePreMedicationInTemplate();
+            showToast("Pre medicacao inserida");
+            render();
+          }
+        )
+      );
       otoOroBlock.appendChild(anamneseButtons);
-      if (state.openGroups.otoOro) {
-        var examRow = div("row");
-        (snippets.otoOro || []).forEach(function (item) {
-          examRow.appendChild(textButton(item[0], "text-btn" + ((state.editableText || "").indexOf(item[1]) >= 0 ? " active" : ""), function () {
-            toggleAnamneseExam(item[1]);
-          }));
+      if (state.openGroups.physicalExam) {
+        var examCategories = [
+          {
+            label: "Otoscopia",
+            items: (snippets.otoOro || []).filter(function (item) {
+              return item[0].indexOf("Otoscopia") === 0;
+            })
+          },
+          {
+            label: "Oroscopia",
+            items: (snippets.otoOro || []).filter(function (item) {
+              return item[0].indexOf("Oroscopia") === 0;
+            })
+          },
+          { label: "Psiquiatria", items: psychSnippets }
+        ];
+        var examTabs = div("row");
+        examTabs.appendChild(
+          textButton(
+            (snippets.standardExam && snippets.standardExam.label) || "Padrão",
+            "text-btn" +
+              (standardExam && (state.editableText || "").indexOf(standardExam) >= 0
+                ? " active"
+                : ""),
+            function () {
+              toggleAnamneseExam(standardExam);
+            }
+          )
+        );
+
+        examCategories.forEach(function (category) {
+          var expanded = state.openGroups.physicalExamSection === category.label;
+          var categoryButton = textButton(
+            category.label,
+            "text-btn" + (expanded ? " active" : ""),
+            function () {
+              state.openGroups.physicalExamSection = expanded ? "" : category.label;
+              render();
+            }
+          );
+          categoryButton.setAttribute("aria-expanded", String(expanded));
+          examTabs.appendChild(categoryButton);
         });
-        otoOroBlock.appendChild(examRow);
+        otoOroBlock.appendChild(examTabs);
+        examCategories.forEach(function (category) {
+          if (state.openGroups.physicalExamSection !== category.label) return;
+          var examRow = div("row");
+          category.items.forEach(function (item) {
+            examRow.appendChild(
+              textButton(
+                item[0],
+                "text-btn" + ((state.editableText || "").indexOf(item[1]) >= 0 ? " active" : ""),
+                function () {
+                  toggleAnamneseExam(item[1]);
+                }
+              )
+            );
+          });
+          otoOroBlock.appendChild(examRow);
+        });
       }
       if (state.openGroups.anamneseVitals) {
         renderAnamneseVitals(otoOroBlock);
-      }
-      if (state.openGroups.psych) {
-        var psychRow = div("row");
-        psychSnippets.forEach(function (item) {
-          psychRow.appendChild(textButton(item[0], "text-btn" + ((state.editableText || "").indexOf(item[1]) >= 0 ? " active" : ""), function () {
-            toggleAnamneseExam(item[1]);
-          }));
-        });
-        otoOroBlock.appendChild(psychRow);
       }
       parent.appendChild(otoOroBlock);
     }
@@ -154,10 +248,12 @@ function renderOptions(protocol, parent) {
   if (Array.isArray(protocol.snippets)) {
     var admin = div("section row");
     (protocol.snippets || []).forEach(function (item) {
-      admin.appendChild(dotButton(item[0], function () {
-        state.editableText = item[1];
-        render();
-      }));
+      admin.appendChild(
+        dotButton(item[0], function () {
+          state.editableText = item[1];
+          render();
+        })
+      );
     });
     parent.appendChild(admin);
   }
@@ -165,30 +261,48 @@ function renderOptions(protocol, parent) {
   if (protocol.antibioticOptions) {
     var row = div("section row");
     protocol.antibioticOptions.forEach(function (opt, index) {
-      row.appendChild(dotButton(opt.label, function () {
-        state.selectedAntibiotic = index;
-        render();
-      }, index === state.selectedAntibiotic));
+      row.appendChild(
+        dotButton(
+          opt.label,
+          function () {
+            state.selectedAntibiotic = index;
+            render();
+          },
+          index === state.selectedAntibiotic
+        )
+      );
     });
     parent.appendChild(row);
   }
   if (protocol.options && protocol.options.length) {
     var row2 = div("section row");
     protocol.options.forEach(function (opt, index) {
-      row2.appendChild(dotButton(opt.label, function () {
-        state.selectedOption = index;
-        render();
-      }, index === state.selectedOption));
+      row2.appendChild(
+        dotButton(
+          opt.label,
+          function () {
+            state.selectedOption = index;
+            render();
+          },
+          index === state.selectedOption
+        )
+      );
     });
     parent.appendChild(row2);
   }
   if (protocol.orientationOptions && protocol.orientationOptions.length) {
     var orientationRow = div("section row");
     protocol.orientationOptions.forEach(function (opt, index) {
-      orientationRow.appendChild(dotButton(opt.label, function () {
-        state.selectedOrientationOption = index;
-        render();
-      }, index === state.selectedOrientationOption));
+      orientationRow.appendChild(
+        dotButton(
+          opt.label,
+          function () {
+            state.selectedOrientationOption = index;
+            render();
+          },
+          index === state.selectedOrientationOption
+        )
+      );
     });
     parent.appendChild(orientationRow);
   }
@@ -196,19 +310,38 @@ function renderOptions(protocol, parent) {
     var refs = div("section stack");
     var r1 = div("row");
     protocol.referralTemplates.forEach(function (template, index) {
-      r1.appendChild(dotButton(template.label, function () {
-        state.selectedReferral = index;
-        state.editableText = buildReferralText(template, state.referralMode);
-        render();
-      }, index === state.selectedReferral));
+      r1.appendChild(
+        dotButton(
+          template.label,
+          function () {
+            state.selectedReferral = index;
+            state.editableText = buildReferralText(template, state.referralMode);
+            render();
+          },
+          index === state.selectedReferral
+        )
+      );
     });
     var r2 = div("row");
-    [["Avaliacao ambulatorial", "ambulatorial"], ["Avaliacao urgente", "urgente"], ["Investigacao complementar", "investigacao"]].forEach(function (item) {
-      r2.appendChild(dotButton(item[0], function () {
-        state.referralMode = item[1];
-        state.editableText = buildReferralText(protocol.referralTemplates[state.selectedReferral], state.referralMode);
-        render();
-      }, item[1] === state.referralMode));
+    [
+      ["Avaliacao ambulatorial", "ambulatorial"],
+      ["Avaliacao urgente", "urgente"],
+      ["Investigacao complementar", "investigacao"]
+    ].forEach(function (item) {
+      r2.appendChild(
+        dotButton(
+          item[0],
+          function () {
+            state.referralMode = item[1];
+            state.editableText = buildReferralText(
+              protocol.referralTemplates[state.selectedReferral],
+              state.referralMode
+            );
+            render();
+          },
+          item[1] === state.referralMode
+        )
+      );
     });
     refs.appendChild(r1);
     refs.appendChild(r2);
@@ -216,28 +349,53 @@ function renderOptions(protocol, parent) {
   }
   (protocol.addOns || []).forEach(function (addOn) {
     var row = div("section row");
-    row.appendChild(textButton(state[addOn.stateKey] ? addOn.removeLabel : addOn.addLabel, "text-btn" + (state[addOn.stateKey] ? " active" : ""), function () {
-      state[addOn.stateKey] = !state[addOn.stateKey];
-      render();
-    }));
+    row.appendChild(
+      textButton(
+        state[addOn.stateKey] ? addOn.removeLabel : addOn.addLabel,
+        "text-btn" + (state[addOn.stateKey] ? " active" : ""),
+        function () {
+          state[addOn.stateKey] = !state[addOn.stateKey];
+          render();
+        }
+      )
+    );
     parent.appendChild(row);
   });
   var currentPrescription = getPrescription(protocol);
-  var hasStandaloneDipirona = /dipirona/i.test(currentPrescription.replace(/Escopolamina \+ dipirona/gi, ""));
+  var hasStandaloneDipirona = /dipirona/i.test(
+    currentPrescription.replace(/Escopolamina \+ dipirona/gi, "")
+  );
   if (!isEditable(protocol.id) && (hasStandaloneDipirona || state.useParacetamolAlt)) {
     var troca = div("section row");
-    troca.appendChild(textButton(state.useParacetamolAlt ? "Voltar para dipirona" : "Alergia a dipirona", "text-btn" + (state.useParacetamolAlt ? " active" : ""), function () {
-      state.useParacetamolAlt = !state.useParacetamolAlt;
-      render();
-    }));
+    troca.appendChild(
+      textButton(
+        state.useParacetamolAlt ? "Voltar para dipirona" : "Alergia a dipirona",
+        "text-btn" + (state.useParacetamolAlt ? " active" : ""),
+        function () {
+          state.useParacetamolAlt = !state.useParacetamolAlt;
+          render();
+        }
+      )
+    );
     parent.appendChild(troca);
   }
-  if (!isEditable(protocol.id) && (/escopolamina \+ dipirona/i.test(currentPrescription) || state.useEscopolaminaParacetamolAlt)) {
+  if (
+    !isEditable(protocol.id) &&
+    (/escopolamina \+ dipirona/i.test(currentPrescription) || state.useEscopolaminaParacetamolAlt)
+  ) {
     var trocaEscopolamina = div("section row");
-    trocaEscopolamina.appendChild(textButton(state.useEscopolaminaParacetamolAlt ? "Voltar para escopolamina + dipirona" : "Alergia a dipirona", "text-btn" + (state.useEscopolaminaParacetamolAlt ? " active" : ""), function () {
-      state.useEscopolaminaParacetamolAlt = !state.useEscopolaminaParacetamolAlt;
-      render();
-    }));
+    trocaEscopolamina.appendChild(
+      textButton(
+        state.useEscopolaminaParacetamolAlt
+          ? "Voltar para escopolamina + dipirona"
+          : "Alergia a dipirona",
+        "text-btn" + (state.useEscopolaminaParacetamolAlt ? " active" : ""),
+        function () {
+          state.useEscopolaminaParacetamolAlt = !state.useEscopolaminaParacetamolAlt;
+          render();
+        }
+      )
+    );
     parent.appendChild(trocaEscopolamina);
   }
 }
@@ -250,16 +408,24 @@ function renderCollapsibleSections(protocol, body) {
   var content = div("free-topic-content");
   sections.forEach(function (section) {
     var key = section.key;
-    tabs.appendChild(textButton(section.label, "text-btn free-topic-btn" + (state.openGroups[key] ? " active" : ""), function () {
-      state.openGroups[key] = !state.openGroups[key];
-      render();
-    }));
+    tabs.appendChild(
+      textButton(
+        section.label,
+        "text-btn free-topic-btn" + (state.openGroups[key] ? " active" : ""),
+        function () {
+          state.openGroups[key] = !state.openGroups[key];
+          render();
+        }
+      )
+    );
     if (state.openGroups[key]) {
       var row = div("row");
       (section.items || []).forEach(function (item) {
-        row.appendChild(dotButton(item[0], function () {
-          addTextToEditable(item[0], item[1]);
-        }));
+        row.appendChild(
+          dotButton(item[0], function () {
+            addTextToEditable(item[0], item[1]);
+          })
+        );
       });
       content.appendChild(row);
     }
@@ -310,17 +476,19 @@ function renderAnamneseVitals(parent) {
   });
   panel.appendChild(grid);
   var actions = div("row");
-  actions.appendChild(textButton("Preencher", "text-btn primary-btn", function () {
-    var paInput = panel.querySelector("input");
-    if (paInput) {
-      state.anamneseVitals.pa = normalizeReavaliacaoPa(paInput.value);
-      paInput.value = state.anamneseVitals.pa;
-    }
-    updateAnamneseVitalsInTemplate();
-    var editor = document.querySelector("textarea.anamnese-editor");
-    if (editor) editor.value = state.editableText;
-    showToast("Sinais vitais preenchidos");
-  }));
+  actions.appendChild(
+    textButton("Preencher", "text-btn vitals-fill-button", function () {
+      var paInput = panel.querySelector("input");
+      if (paInput) {
+        state.anamneseVitals.pa = normalizeReavaliacaoPa(paInput.value);
+        paInput.value = state.anamneseVitals.pa;
+      }
+      updateAnamneseVitalsInTemplate();
+      var editor = document.querySelector("textarea.anamnese-editor");
+      if (editor) editor.value = state.editableText;
+      showToast("Sinais vitais preenchidos");
+    })
+  );
   panel.appendChild(actions);
   parent.appendChild(panel);
 }
@@ -331,10 +499,7 @@ function renderReavaliacaoVitals(body) {
   var titleWrap = div("");
   var title = div("panel-title");
   title.textContent = "Sinais vitais";
-  var hint = div("panel-hint");
-  hint.textContent = "Preencha para inserir automaticamente no template de reavaliacao.";
   titleWrap.appendChild(title);
-  titleWrap.appendChild(hint);
   header.appendChild(titleWrap);
   panel.appendChild(header);
 
@@ -390,34 +555,41 @@ function renderHighRiskReavaliacao(body) {
   var titleWrap = div("");
   var title = div("panel-title");
   title.textContent = "Medicacao de alto risco";
-  var hint = div("panel-hint");
-  hint.textContent = "Insere reavaliacao obrigatoria apos opioide, sedativo ou antipsicotico sedativo.";
   titleWrap.appendChild(title);
-  titleWrap.appendChild(hint);
   header.appendChild(titleWrap);
-  header.appendChild(textButton("Alto risco", "text-btn high-risk-toggle" + (state.openGroups.highRisk ? " active" : ""), function () {
-    state.openGroups.highRisk = !state.openGroups.highRisk;
-    render();
-  }));
+  header.appendChild(
+    textButton(
+      "Alto risco",
+      "text-btn high-risk-toggle" + (state.openGroups.highRisk ? " active" : ""),
+      function () {
+        state.openGroups.highRisk = !state.openGroups.highRisk;
+        render();
+      }
+    )
+  );
   panel.appendChild(header);
 
   if (state.openGroups.highRisk) {
     var row = div("row high-risk-options");
     HIGH_RISK_MEDICATION_OPTIONS.forEach(function (option) {
-      row.appendChild(textButton(option.label, "text-btn", function () {
-        updateHighRiskReavaliacao(option);
-        state.openGroups.highRisk = false;
-        showToast("Reavaliacao de alto risco inserida");
-        render();
-      }));
+      row.appendChild(
+        textButton(option.label, "text-btn", function () {
+          updateHighRiskReavaliacao(option);
+          state.openGroups.highRisk = false;
+          showToast("Reavaliacao de alto risco inserida");
+          render();
+        })
+      );
     });
     if ((state.editableText || "").indexOf("medicacao de alto risco") >= 0) {
-      row.appendChild(textButton("Remover alto risco", "text-btn danger-btn", function () {
-        updateHighRiskReavaliacao(null);
-        state.openGroups.highRisk = false;
-        showToast("Reavaliacao removida");
-        render();
-      }));
+      row.appendChild(
+        textButton("Remover alto risco", "text-btn danger-btn", function () {
+          updateHighRiskReavaliacao(null);
+          state.openGroups.highRisk = false;
+          showToast("Reavaliacao removida");
+          render();
+        })
+      );
     }
     panel.appendChild(row);
   }
@@ -428,31 +600,40 @@ function renderEditable(protocol, body) {
   if (protocol.freeGroupsEnabled) renderFreeGroups(body);
   if (protocol.collapsibleSections) renderCollapsibleSections(protocol, body);
   if (protocol.id === "reavaliacao") renderReavaliacaoVitals(body);
-  if (protocol.id === "reavaliacao") renderHighRiskReavaliacao(body);
+  if (protocol.id === "reavaliacao" && state.openGroups.hsvpReavaliacao)
+    renderHighRiskReavaliacao(body);
   if (protocol.labTranscription) {
     var lab = div("panel stack reavaliacao-lab-panel");
     var header = div("reavaliacao-panel-head");
     var titleWrap = div("");
     var label = div("panel-title");
     label.textContent = "Exames laboratoriais";
-    var hint = div("panel-hint");
-    hint.textContent = "Cole o resultado bruto; use Auto para detectar a origem ou escolha manualmente.";
     titleWrap.appendChild(label);
-    titleWrap.appendChild(hint);
     var sourceRow = div("row lab-source-row");
     (protocol.labSources || []).forEach(function (source) {
       var hiddenClass = " manual-source-hidden";
-      sourceRow.appendChild(textButton(source.label, "text-btn lab-source-btn " + source.className + hiddenClass + (state.labSource === source.source ? " active" : ""), function () {
-        transcribeCurrentLabs(input, source.source);
-        saveReavaliacaoDraft();
-        showToast("Transcrito: " + labSourceLabel());
-        render();
-      }));
+      sourceRow.appendChild(
+        textButton(
+          source.label,
+          "text-btn lab-source-btn " +
+            source.className +
+            hiddenClass +
+            (state.labSource === source.source ? " active" : ""),
+          function () {
+            transcribeCurrentLabs(input, source.source);
+            saveReavaliacaoDraft();
+            showToast("Transcrito: " + labSourceLabel());
+            render();
+          }
+        )
+      );
     });
     header.appendChild(titleWrap);
     header.appendChild(sourceRow);
     var input = document.createElement("textarea");
     input.className = "small lab-input";
+    input.rows = 1;
+    input.setAttribute("aria-label", "Texto do exame laboratorial");
     input.placeholder = "Cole aqui o texto do exame";
     input.value = state.labInput || "";
     input.oninput = function () {
@@ -460,8 +641,9 @@ function renderEditable(protocol, body) {
       if (!state.labInput.trim()) {
         state.labOutput = "";
         state.labDetectedSource = "";
-        output.textContent = "Cole o exame acima para transcrever automaticamente.";
-        sourceBadge.textContent = "Origem: " + (state.labSource === "auto" ? "aguardando detecção" : labSourceLabel());
+        output.textContent = "";
+        sourceBadge.textContent =
+          "Origem: " + (state.labSource === "auto" ? "aguardando detecção" : labSourceLabel());
         saveReavaliacaoDraft();
         return;
       }
@@ -482,28 +664,37 @@ function renderEditable(protocol, body) {
     };
     var output = document.createElement("pre");
     output.className = "lab-output";
-    output.textContent = state.labOutput || "Cole o exame acima para transcrever automaticamente.";
+    output.textContent = state.labOutput || "";
     var sourceBadge = div("lab-detected-source");
-    sourceBadge.textContent = "Origem: " + (state.labDetectedSource || (state.labSource === "auto" ? "aguardando detecção" : labSourceLabel()));
+    sourceBadge.textContent =
+      "Origem: " +
+      (state.labDetectedSource ||
+        (state.labSource === "auto" ? "aguardando detecção" : labSourceLabel()));
     var actions = div("row");
-    actions.appendChild(textButton("Copiar resultado", "text-btn primary-btn", function () {
-      transcribeCurrentLabs(input);
-      saveReavaliacaoDraft();
-      copyText(state.labOutput);
-      render();
-    }));
-    actions.appendChild(textButton("Inserir no template", "text-btn", function () {
-      state.labInput = input.value;
-      insertLabOutputIntoReavaliacao();
-      render();
-    }));
-    actions.appendChild(textButton("Limpar exames", "text-btn", function () {
-      state.labInput = "";
-      state.labOutput = "";
-      state.labDetectedSource = "";
-      saveReavaliacaoDraft();
-      render();
-    }));
+    actions.appendChild(
+      textButton("Copiar resultado", "text-btn primary-btn", function () {
+        transcribeCurrentLabs(input);
+        saveReavaliacaoDraft();
+        copyText(state.labOutput);
+        render();
+      })
+    );
+    actions.appendChild(
+      textButton("Inserir no template", "text-btn", function () {
+        state.labInput = input.value;
+        insertLabOutputIntoReavaliacao();
+        render();
+      })
+    );
+    actions.appendChild(
+      textButton("Limpar exames", "text-btn", function () {
+        state.labInput = "";
+        state.labOutput = "";
+        state.labDetectedSource = "";
+        saveReavaliacaoDraft();
+        render();
+      })
+    );
     lab.appendChild(header);
     lab.appendChild(input);
     lab.appendChild(actions);
@@ -516,13 +707,12 @@ function renderEditable(protocol, body) {
     lab.appendChild(preview);
     body.appendChild(lab);
   }
-  if (protocol.labTranscription) {
-    var templateTitle = div("panel-title template-title");
-    templateTitle.textContent = "Template de reavaliacao";
-    body.appendChild(templateTitle);
-  }
   var area = document.createElement("textarea");
-  area.className = protocol.labTranscription ? "template-editor" : (protocol.id === "anamnese" ? "anamnese-editor" : "");
+  area.className = protocol.labTranscription
+    ? "template-editor"
+    : protocol.id === "anamnese"
+      ? "anamnese-editor"
+      : "";
   area.value = state.editableText;
   area.oninput = function () {
     if (protocol.id === "anamnese" && area.value.indexOf("/") >= 0) {
@@ -532,10 +722,17 @@ function renderEditable(protocol, body) {
       area.setSelectionRange(cursorStart, cursorEnd);
     }
     state.editableText = area.value;
+    if (protocol.id === "anamnese") syncInlineAllergies(area);
     saveAnamneseDraft("Anamnese salva");
     saveReavaliacaoDraft();
+    saveInternacaoDraft();
   };
-  body.appendChild(area);
+  if (protocol.id === "anamnese") {
+    mountInlineAllergies(area, body);
+    if (typeof mountHmaAi === "function") mountHmaAi(area, body);
+  } else {
+    body.appendChild(area);
+  }
 }
 
 function renderAtestaditeEditor(protocol, body) {
@@ -549,12 +746,15 @@ function renderAtestaditeEditor(protocol, body) {
     title.textContent = section.label;
     head.appendChild(title);
     if (section.copySeparate) {
-      head.appendChild(textButton("Copiar " + section.label.toLowerCase(), "text-btn", function () {
-        copyText(getAtestaditeSectionText(section));
-      }));
+      head.appendChild(
+        textButton("Copiar " + section.label.toLowerCase(), "text-btn", function () {
+          copyText(getAtestaditeSectionText(section));
+        })
+      );
     }
     var area = document.createElement("textarea");
-    area.className = "atestadite-editor" + (section.key === "anamnese" ? " atestadite-anamnese-editor" : "");
+    area.className =
+      "atestadite-editor" + (section.key === "anamnese" ? " atestadite-anamnese-editor" : "");
     area.value = state.atestaditeTexts[section.key] || "";
     area.oninput = function () {
       state.atestaditeTexts[section.key] = area.value;
@@ -569,7 +769,8 @@ function renderProtocol(protocol) {
   var content = el("content");
   content.innerHTML = "";
   if (!protocol) return;
-  if (isEditable(protocol.id) && state.editableText === "") state.editableText = getInitialText(protocol);
+  if (isEditable(protocol.id) && protocol.id !== "internacao" && state.editableText === "")
+    state.editableText = getInitialText(protocol);
 
   var card = div("card");
   var header = div("header");
@@ -578,13 +779,30 @@ function renderProtocol(protocol) {
   h.textContent = protocol.title;
   titleBox.appendChild(h);
   var actions = div("header-actions");
-  actions.appendChild(textButton("Copiar tudo", "text-btn primary-btn", function () { copyText(finalText(protocol)); }));
+  if (isEditable(protocol.id)) actions.appendChild(createClearTemplateButton(protocol));
   var headerLeft = div("header-left");
   headerLeft.appendChild(titleBox);
   headerLeft.appendChild(actions);
   header.appendChild(headerLeft);
   card.appendChild(header);
-  renderOptions(protocol, card);
+  renderOptions(protocol, card, actions);
+  if (protocol.id === "reavaliacao") {
+    var hsvpButton = textButton(
+      "HSVP",
+      "text-btn hsvp-toggle" + (state.openGroups.hsvpReavaliacao ? " active" : ""),
+      function () {
+        state.openGroups.hsvpReavaliacao = !state.openGroups.hsvpReavaliacao;
+        render();
+      }
+    );
+    hsvpButton.setAttribute("aria-expanded", String(Boolean(state.openGroups.hsvpReavaliacao)));
+    actions.appendChild(hsvpButton);
+  }
+  actions.appendChild(
+    textButton("Copiar", "text-btn copy-all-button", function () {
+      copyText(finalText(protocol));
+    })
+  );
 
   var body = div("body stack");
   if (protocol.atestaditeSections) {
@@ -638,7 +856,10 @@ function renderAtestaditeSidebar(items) {
   if (app) app.classList.toggle("atestadite-hidden", !state.atestaditeSidebarVisible);
   if (visibilityToggle) {
     visibilityToggle.textContent = "Atestadite";
-    visibilityToggle.setAttribute("aria-expanded", state.atestaditeSidebarVisible ? "true" : "false");
+    visibilityToggle.setAttribute(
+      "aria-expanded",
+      state.atestaditeSidebarVisible ? "true" : "false"
+    );
     visibilityToggle.onclick = function () {
       state.atestaditeSidebarVisible = !state.atestaditeSidebarVisible;
       render();

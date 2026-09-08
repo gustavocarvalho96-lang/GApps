@@ -94,7 +94,9 @@ clearDoneButton?.addEventListener("click", () => {
 });
 
 clearAllButton?.addEventListener("click", () => {
-  const confirmed = window.confirm("Encerrar o plantão e apagar todos os cards salvos neste computador?");
+  const confirmed = window.confirm(
+    "Encerrar o plantão e apagar todos os cards salvos neste computador?"
+  );
 
   if (!confirmed) return;
 
@@ -284,7 +286,9 @@ taskList?.addEventListener("click", (event) => {
     const groupTasksList = tasks.filter((task) => getTaskGroupId(task) === card.dataset.groupId);
 
     if (groupTasksList.length === 1) {
-      window.alert("Este card tem apenas uma solicitação. Use Excluir card para apagar o paciente inteiro.");
+      window.alert(
+        "Este card tem apenas uma solicitação. Use Excluir card para apagar o paciente inteiro."
+      );
       return;
     }
 
@@ -297,7 +301,11 @@ taskList?.addEventListener("click", (event) => {
     return;
   }
 
-  if (action?.closest(".card-add-form") || action?.closest(".card-edit-form") || action?.closest(".subtask-edit-form")) {
+  if (
+    action?.closest(".card-add-form") ||
+    action?.closest(".card-edit-form") ||
+    action?.closest(".subtask-edit-form")
+  ) {
     return;
   }
 
@@ -344,7 +352,7 @@ taskList?.addEventListener("submit", (event) => {
         ...task,
         patient,
         diagnosis: clean(data.get("diagnosis")),
-        note: clean(data.get("note")),
+        note: clean(data.get("note"))
       };
     });
 
@@ -366,7 +374,7 @@ taskList?.addEventListener("submit", (event) => {
       return {
         ...task,
         description,
-        type: data.get("type"),
+        type: data.get("type")
       };
     });
 
@@ -391,7 +399,7 @@ taskList?.addEventListener("submit", (event) => {
     type: data.get("type"),
     note: mainTask.note || "",
     done: false,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date().toISOString()
   });
 
   saveTasks("Pendência adicionada ao paciente");
@@ -459,7 +467,7 @@ function getPendingItemData(patient, diagnosis, note) {
       type: item.querySelector('[name="type"]').value,
       note,
       done: false,
-      createdAt: new Date(now + index).toISOString(),
+      createdAt: new Date(now + index).toISOString()
     }))
     .filter((task) => task.patient && task.description);
 }
@@ -494,7 +502,9 @@ function getVisibleGroups() {
       const isComplete = group.tasks.every((task) => task.done);
       const haystack = normalize(
         group.tasks
-          .map((task) => [task.patient, task.diagnosis, task.description, task.type, task.note].join(" "))
+          .map((task) =>
+            [task.patient, task.diagnosis, task.description, task.type, task.note].join(" ")
+          )
           .join(" ")
       );
 
@@ -513,7 +523,7 @@ function groupTasks(taskItems) {
     if (!groups.has(groupId)) {
       groups.set(groupId, {
         id: groupId,
-        tasks: [],
+        tasks: []
       });
     }
 
@@ -543,7 +553,9 @@ function sortTasks(a, b) {
 
 function updateCounters() {
   const openTasks = tasks.filter((task) => !task.done);
-  const completeGroups = groupTasks(tasks).filter((group) => group.tasks.every((task) => task.done));
+  const completeGroups = groupTasks(tasks).filter((group) =>
+    group.tasks.every((task) => task.done)
+  );
   openCount.textContent = openTasks.length;
   lateCount.textContent = completeGroups.length;
 }
@@ -554,7 +566,7 @@ function updateListCopy() {
   const copy = {
     open: ["Pacientes pendentes", ""],
     all: ["Todas as pendências", ""],
-    done: ["Pacientes completos", ""],
+    done: ["Pacientes completos", ""]
   };
 
   listTitle.textContent = copy[activeFilter][0];
@@ -579,7 +591,10 @@ function buildSubtasks(taskItems) {
     checkbox.type = "checkbox";
     checkbox.checked = task.done;
     checkbox.dataset.taskId = task.id;
-    checkbox.setAttribute("aria-label", task.done ? "Pendência feita" : "Marcar pendência como feita");
+    checkbox.setAttribute(
+      "aria-label",
+      task.done ? "Pendência feita" : "Marcar pendência como feita"
+    );
 
     const content = document.createElement("span");
     content.className = "subtask-content";
@@ -666,7 +681,7 @@ function formatTime(value) {
 
   return date.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
-    minute: "2-digit",
+    minute: "2-digit"
   });
 }
 
@@ -701,7 +716,7 @@ function createBackupPayload() {
     app: "GPendencias",
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    tasks,
+    tasks
   };
 }
 
@@ -729,7 +744,9 @@ function restoreBackupText(text, message) {
   try {
     payload = JSON.parse(text);
   } catch {
-    window.alert("Backup inválido. Cole o texto completo do backup ou importe um arquivo JSON válido.");
+    window.alert(
+      "Backup inválido. Cole o texto completo do backup ou importe um arquivo JSON válido."
+    );
     return;
   }
 
@@ -739,7 +756,9 @@ function restoreBackupText(text, message) {
     return;
   }
 
-  const confirmed = window.confirm("Restaurar este backup vai substituir os cards atuais neste navegador. Continuar?");
+  const confirmed = window.confirm(
+    "Restaurar este backup vai substituir os cards atuais neste navegador. Continuar?"
+  );
   if (!confirmed) return;
 
   tasks = restoredTasks;

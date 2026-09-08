@@ -8,12 +8,17 @@ const port = Number(process.env.PORT || 5173);
 const types = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8"
 };
 
 createServer((request, response) => {
   const url = new URL(request.url || "/", `http://${request.headers.host}`);
-  const requestedPath = url.pathname === "/" ? "/GPendencias.html" : url.pathname === "/cards.html" ? "/Apps/GPendencias/cards.html" : url.pathname;
+  const requestedPath =
+    url.pathname === "/"
+      ? "/GPendencias.html"
+      : url.pathname === "/cards.html"
+        ? "/Apps/GPendencias/cards.html"
+        : url.pathname;
   const filePath = normalize(join(root, decodeURIComponent(requestedPath)));
 
   if (!filePath.startsWith(root) || !existsSync(filePath)) {
@@ -23,7 +28,7 @@ createServer((request, response) => {
   }
 
   response.writeHead(200, {
-    "content-type": types[extname(filePath)] || "application/octet-stream",
+    "content-type": types[extname(filePath)] || "application/octet-stream"
   });
   createReadStream(filePath).pipe(response);
 }).listen(port, "127.0.0.1", () => {

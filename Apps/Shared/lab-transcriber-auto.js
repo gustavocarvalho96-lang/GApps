@@ -82,30 +82,57 @@ function automaticMatchValue(source, regex) {
 
 function automaticExamResult(text, labels) {
   var section = automaticSection(text, labels, [
-    "Hemograma Completo", "Tempo e atividade Protrombina", "TTPA - Tempo de Tromboplastina Parcial Ativada",
-    "Ureia, sérica", "Dosagem sérica de Creatinina", "Sódio", "Potássio", "Magnésio", "Bilirrubinas",
-    "TGO/AST", "TGP/ALT", "Gama Glutamil Transferase", "Fosfatase Alcalina", "Amilase", "Urina I",
-    "Liberado por", "Pedido :"
+    "Hemograma Completo",
+    "Tempo e atividade Protrombina",
+    "TTPA - Tempo de Tromboplastina Parcial Ativada",
+    "Ureia, sérica",
+    "Dosagem sérica de Creatinina",
+    "Sódio",
+    "Potássio",
+    "Magnésio",
+    "Bilirrubinas",
+    "TGO/AST",
+    "TGP/ALT",
+    "Gama Glutamil Transferase",
+    "Fosfatase Alcalina",
+    "Amilase",
+    "Urina I",
+    "Liberado por",
+    "Pedido :"
   ]);
   if (!section) return "";
-  return automaticMatchValue(section, /Resultado\s+([<>]?\s*\d+(?:[.,]\d+)?\s*(?:mg\/dL|mmol\/L|U\/L|UI\/L|ng\/L|mL\/min\/1,73 m2)?)/i);
+  return automaticMatchValue(
+    section,
+    /Resultado\s+([<>]?\s*\d+(?:[.,]\d+)?\s*(?:mg\/dL|mmol\/L|U\/L|UI\/L|ng\/L|mL\/min\/1,73 m2)?)/i
+  );
 }
 
 function automaticLineValue(section, label, unitPattern) {
   var escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  var regex = new RegExp(escaped + "\\s+((?:[<>]?\\s*\\d+(?:[.,]\\d+)?|Inferior a\\s*\\d+(?:[.,]\\d+)?)\\s*" + unitPattern + ")", "i");
+  var regex = new RegExp(
+    escaped +
+      "\\s+((?:[<>]?\\s*\\d+(?:[.,]\\d+)?|Inferior a\\s*\\d+(?:[.,]\\d+)?)\\s*" +
+      unitPattern +
+      ")",
+    "i"
+  );
   return automaticMatchValue(section, regex);
 }
 
 function transcribeJundiaiPdfLabs(rawText) {
   var text = String(rawText || "");
   var patient = automaticMatchValue(text, /Paciente\s*:\s*(.*?)\s+CNS\s*:/i) || "NOME DO PACIENTE";
-  var date = automaticMatchValue(text, /Coleta:\s*(\d{2}\/\d{2}\/\d{4})/i) ||
+  var date =
+    automaticMatchValue(text, /Coleta:\s*(\d{2}\/\d{2}\/\d{4})/i) ||
     automaticMatchValue(text, /Data Entrada:\s*(\d{2}\/\d{2}\/\d{4})/i) ||
     "DATA";
   var items = [];
 
-  var hemograma = automaticSection(text, ["Hemograma Completo"], ["Tempo e atividade Protrombina", "Ureia, sérica", "Pedido :"]);
+  var hemograma = automaticSection(
+    text,
+    ["Hemograma Completo"],
+    ["Tempo e atividade Protrombina", "Ureia, sérica", "Pedido :"]
+  );
   if (hemograma) {
     var hparts = [];
     var hb = automaticLineValue(hemograma, "Hemoglobina", "g\\/dL");
@@ -119,7 +146,11 @@ function transcribeJundiaiPdfLabs(rawText) {
     if (hparts.length) automaticPush(items, "hemograma (" + hparts.join("; ") + ")");
   }
 
-  var tap = automaticSection(text, ["Tempo e atividade Protrombina"], ["Ureia, sérica", "Dosagem sérica de Creatinina", "Pedido :"]);
+  var tap = automaticSection(
+    text,
+    ["Tempo e atividade Protrombina"],
+    ["Ureia, sérica", "Dosagem sérica de Creatinina", "Pedido :"]
+  );
   if (tap) {
     var coagParts = [];
     var tp = automaticLineValue(tap, "Tempo", "segundos");
@@ -144,7 +175,11 @@ function transcribeJundiaiPdfLabs(rawText) {
     if (value) automaticPush(items, config[1] + " " + value);
   });
 
-  var creatinina = automaticSection(text, ["Dosagem sérica de Creatinina"], ["Sódio", "Potássio", "Bilirrubinas", "Pedido :"]);
+  var creatinina = automaticSection(
+    text,
+    ["Dosagem sérica de Creatinina"],
+    ["Sódio", "Potássio", "Bilirrubinas", "Pedido :"]
+  );
   var creatininaValue = automaticLineValue(creatinina, "Creatinina", "mg\\/dL");
   if (creatininaValue) automaticPush(items, "creatinina " + creatininaValue);
 
@@ -153,7 +188,11 @@ function transcribeJundiaiPdfLabs(rawText) {
     var bt = automaticLineValue(bilis, "Bilirrubina Total", "mg\\/dL");
     var bd = automaticLineValue(bilis, "Bilirrubina Direta", "mg\\/dL");
     var bi = automaticLineValue(bilis, "Bilirrubina Indireta", "mg\\/dL");
-    if (bt || bi || bd) automaticPush(items, "BT " + (bt || "") + " (BI = " + (bi || "") + "; BD = " + (bd || "") + ")");
+    if (bt || bi || bd)
+      automaticPush(
+        items,
+        "BT " + (bt || "") + " (BI = " + (bi || "") + "; BD = " + (bd || "") + ")"
+      );
   }
 
   var urina = automaticSection(text, ["Urina I"], ["Pedido :", "ASSINATURA DIGITAL"]);
@@ -170,11 +209,20 @@ function transcribeJundiaiPdfLabs(rawText) {
     if (uparts.length) automaticPush(items, "urina tipo I (" + uparts.join("; ") + ")");
   }
 
-  return patient + " - Laboratorios (" + date + "): " + (items.length ? items.join("; ") : transcribeJundiaiLabs(rawText));
+  return (
+    patient +
+    " - Laboratorios (" +
+    date +
+    "): " +
+    (items.length ? items.join("; ") : transcribeJundiaiLabs(rawText))
+  );
 }
 
 function sobamHeaderSearch(value) {
-  return jundiaiSearchText(value).replace(/serica|serico|soro/g, "").replace(/\s+/g, " ").trim();
+  return jundiaiSearchText(value)
+    .replace(/serica|serico|soro/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function sobamPatient(rawText) {
@@ -185,7 +233,8 @@ function sobamPatient(rawText) {
 
 function sobamDate(rawText) {
   var text = String(rawText || "");
-  var match = text.match(/Coleta\s*:\s*(\d{2}\/\d{2}\/\d{4})/i) ||
+  var match =
+    text.match(/Coleta\s*:\s*(\d{2}\/\d{2}\/\d{4})/i) ||
     text.match(/Data\/Hora Atend\.\s*:\s*(\d{2}\/\d{2}\/\d{4})/i);
   return match && match[1] ? match[1] : "DATA";
 }
@@ -193,12 +242,26 @@ function sobamDate(rawText) {
 function sobamSections(rawText) {
   var lines = String(rawText || "").split(/\r?\n/);
   var headers = [
-    "UREIA SÉRICA", "UREIA SERICA", "CREATININA SÉRICA", "CREATININA SERICA",
-    "ASPARTATO AMINO TRANSFERASE", "ALANINA AMINO TRANSFERASE",
-    "BILIRRUBINA TOTAL E FRAÇÕES", "BILIRRUBINA TOTAL E FRACOES",
-    "HEMOGRAMA", "URINA TIPO 1", "URINA TIPO I", "SÓDIO", "SODIO",
-    "POTÁSSIO", "POTASSIO", "PROTEÍNA C REATIVA", "PROTEINA C REATIVA",
-    "AMILASE", "FOSFATASE ALCALINA", "GAMA GLUTAMIL TRANSFERASE"
+    "UREIA SÉRICA",
+    "UREIA SERICA",
+    "CREATININA SÉRICA",
+    "CREATININA SERICA",
+    "ASPARTATO AMINO TRANSFERASE",
+    "ALANINA AMINO TRANSFERASE",
+    "BILIRRUBINA TOTAL E FRAÇÕES",
+    "BILIRRUBINA TOTAL E FRACOES",
+    "HEMOGRAMA",
+    "URINA TIPO 1",
+    "URINA TIPO I",
+    "SÓDIO",
+    "SODIO",
+    "POTÁSSIO",
+    "POTASSIO",
+    "PROTEÍNA C REATIVA",
+    "PROTEINA C REATIVA",
+    "AMILASE",
+    "FOSFATASE ALCALINA",
+    "GAMA GLUTAMIL TRANSFERASE"
   ];
   var starts = [];
   for (var i = 0; i < lines.length; i += 1) {
@@ -217,7 +280,9 @@ function sobamSections(rawText) {
   for (var k = 0; k < starts.length; k += 1) {
     sections.push({
       label: starts[k].label,
-      text: lines.slice(starts[k].index, starts[k + 1] ? starts[k + 1].index : lines.length).join("\n")
+      text: lines
+        .slice(starts[k].index, starts[k + 1] ? starts[k + 1].index : lines.length)
+        .join("\n")
     });
   }
   return sections;
@@ -234,14 +299,22 @@ function sobamFindSection(sections, labels) {
 }
 
 function sobamResult(section) {
-  var match = String(section || "").match(/Resultado\s*:\s*([<>]?\s*\d{1,3}(?:\.\d{3})*(?:[,.]\d+)?\s*(?:mg\/dL|U\/L|UI\/L|mmol\/L|mEq\/L|ng\/L|pg\/mL)?)/i);
+  var match = String(section || "").match(
+    /Resultado\s*:\s*([<>]?\s*\d{1,3}(?:\.\d{3})*(?:[,.]\d+)?\s*(?:mg\/dL|U\/L|UI\/L|mmol\/L|mEq\/L|ng\/L|pg\/mL)?)/i
+  );
   return match && match[1] ? normalizeText(match[1]) : "";
 }
 
 function sobamLineValue(section, label, unitPattern) {
   var escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   var unit = unitPattern || "(?:mg\\/dL|g\\/dL|%|fL|pg|\\/mm[³3]|\\/mL|\\/µL|\\/uL|U\\/L|UI\\/L)?";
-  var regex = new RegExp(escaped + "[.\\s]*:\\s*([<>]?\\s*\\d{1,3}(?:\\.\\d{3})*(?:[,.]\\d+)?\\s*" + unit + "|Negativo|Positivo|Ausente|Presentes?)", "i");
+  var regex = new RegExp(
+    escaped +
+      "[.\\s]*:\\s*([<>]?\\s*\\d{1,3}(?:\\.\\d{3})*(?:[,.]\\d+)?\\s*" +
+      unit +
+      "|Negativo|Positivo|Ausente|Presentes?)",
+    "i"
+  );
   var match = String(section || "").match(regex);
   return match && match[1] ? normalizeText(match[1]) : "";
 }
@@ -260,8 +333,12 @@ function transcribeSobamLabs(rawText) {
   if (hemograma) {
     var hparts = [];
     var hb = sobamLineValue(hemograma, "Hemoglobina", "g\\/dL");
-    var ht = sobamLineValue(hemograma, "Hematócrito", "%") || sobamLineValue(hemograma, "HematÃ³crito", "%");
-    var leu = sobamLineValue(hemograma, "Leucócitos", "\\/mm[³3]") || sobamLineValue(hemograma, "LeucÃ³citos", "\\/mm[³3]");
+    var ht =
+      sobamLineValue(hemograma, "Hematócrito", "%") ||
+      sobamLineValue(hemograma, "HematÃ³crito", "%");
+    var leu =
+      sobamLineValue(hemograma, "Leucócitos", "\\/mm[³3]") ||
+      sobamLineValue(hemograma, "LeucÃ³citos", "\\/mm[³3]");
     var plaq = sobamLineValue(hemograma, "Plaquetas", "\\/mm[³3]");
     if (hb) hparts.push("Hb " + hb);
     if (ht) hparts.push("Ht " + ht);
@@ -292,7 +369,8 @@ function transcribeSobamLabs(rawText) {
     var bt = sobamLineValue(bilis, "BILIRRUBINA TOTAL", "mg\\/dL");
     var bd = sobamLineValue(bilis, "BILIRRUBINA DIRETA", "mg\\/dL");
     var bi = sobamLineValue(bilis, "BILIRRUBINA INDIRETA", "mg\\/dL");
-    if (bt || bi || bd) push("BT " + (bt || "") + " (BI = " + (bi || "") + "; BD = " + (bd || "") + ")");
+    if (bt || bi || bd)
+      push("BT " + (bt || "") + " (BI = " + (bi || "") + "; BD = " + (bd || "") + ")");
   }
 
   var urina = sobamFindSection(sections, ["URINA TIPO 1", "URINA TIPO I"]);
@@ -300,11 +378,18 @@ function transcribeSobamLabs(rawText) {
     var uparts = [];
     var dens = sobamLineValue(urina, "Densidade", "");
     var ph = sobamLineValue(urina, "pH", "");
-    var prot = sobamLineValue(urina, "Proteínas", "mg\\/dL") || sobamLineValue(urina, "ProteÃ­nas", "mg\\/dL");
+    var prot =
+      sobamLineValue(urina, "Proteínas", "mg\\/dL") ||
+      sobamLineValue(urina, "ProteÃ­nas", "mg\\/dL");
     var nitrito = sobamLineValue(urina, "Nitrito", "");
-    var uleu = sobamLineValue(urina, "Leucócitos", "\\/mL") || sobamLineValue(urina, "LeucÃ³citos", "\\/mL");
-    var uhem = sobamLineValue(urina, "Eritrócitos", "\\/mL") || sobamLineValue(urina, "EritrÃ³citos", "\\/mL");
-    var ubac = sobamLineValue(urina, "Bactérias", "\\/µL|\\/uL") || sobamLineValue(urina, "BactÃ©rias", "\\/µL|\\/uL");
+    var uleu =
+      sobamLineValue(urina, "Leucócitos", "\\/mL") || sobamLineValue(urina, "LeucÃ³citos", "\\/mL");
+    var uhem =
+      sobamLineValue(urina, "Eritrócitos", "\\/mL") ||
+      sobamLineValue(urina, "EritrÃ³citos", "\\/mL");
+    var ubac =
+      sobamLineValue(urina, "Bactérias", "\\/µL|\\/uL") ||
+      sobamLineValue(urina, "BactÃ©rias", "\\/µL|\\/uL");
     if (dens) uparts.push("densidade " + dens);
     if (ph) uparts.push("pH " + ph);
     if (prot) uparts.push("proteina " + prot);
@@ -315,18 +400,25 @@ function transcribeSobamLabs(rawText) {
     if (uparts.length) push("urina tipo I (" + uparts.join("; ") + ")");
   }
 
-  return patient + " - Laboratorios (" + date + "): " + (items.length ? items.join("; ") : transcribeCampoLimpoLabs(rawText));
+  return (
+    patient +
+    " - Laboratorios (" +
+    date +
+    "): " +
+    (items.length ? items.join("; ") : transcribeCampoLimpoLabs(rawText))
+  );
 }
 
 function transcribeAutomaticLabs(rawText) {
   var source = detectAutomaticLabSource(rawText);
-  var output = source === "sobam"
-    ? transcribeSobamLabs(rawText)
-    : source === "jundiai-pdf"
-    ? transcribeJundiaiPdfLabs(rawText)
-    : source === "jundiai"
-      ? transcribeJundiaiLabs(rawText)
-      : transcribeCampoLimpoLabs(rawText);
+  var output =
+    source === "sobam"
+      ? transcribeSobamLabs(rawText)
+      : source === "jundiai-pdf"
+        ? transcribeJundiaiPdfLabs(rawText)
+        : source === "jundiai"
+          ? transcribeJundiaiLabs(rawText)
+          : transcribeCampoLimpoLabs(rawText);
   return { source: source, label: automaticLabSourceName(source), output: output };
 }
 

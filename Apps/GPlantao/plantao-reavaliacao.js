@@ -22,7 +22,8 @@ function transcribeCurrentLabs(input, source) {
 }
 
 function labSourceLabel() {
-  if (state.labSource === "auto") return "Auto: " + (state.labDetectedSource || "aguardando detecção");
+  if (state.labSource === "auto")
+    return "Auto: " + (state.labDetectedSource || "aguardando detecção");
   if (state.labSource === "jundiai") return "Jundiai";
   if (state.labSource === "sobam") return "SOBAM";
   return "Campo Limpo";
@@ -34,7 +35,11 @@ var HIGH_RISK_MEDICATION_OPTIONS = [
 ];
 
 function highRiskText(option) {
-  return "Paciente reavaliado as ______ apos administracao de " + option.label + ", indicada por necessidade clinica de analgesia e controle de dor importante. No momento, apresenta resposta terapeutica satisfatoria  sinais vitais: PA | FC | FR | SATO2, nivel de consciencia preservado, responsivo, dor EVA __/10 , sem sinais de depressao respiratoria, rebaixamento persistente do nivel de consciencia, hipotensao, dessaturacao ou outros eventos adversos. Sem necessidade de dose adicional ou mudanca de conduta no momento.";
+  return (
+    "Paciente reavaliado as ______ apos administracao de " +
+    option.label +
+    ", indicada por necessidade clinica de analgesia e controle de dor importante. No momento, apresenta resposta terapeutica satisfatoria  sinais vitais: PA | FC | FR | SATO2, nivel de consciencia preservado, responsivo, dor EVA __/10 , sem sinais de depressao respiratoria, rebaixamento persistente do nivel de consciencia, hipotensao, dessaturacao ou outros eventos adversos. Sem necessidade de dose adicional ou mudanca de conduta no momento."
+  );
 }
 
 function formatReavaliacaoVitals() {
@@ -99,7 +104,9 @@ function setHighRiskReavaliacaoBlock(text, blockText) {
   if (!blockText) return next;
   var conductPattern = /\n\s*#\s*Conduta\s*:/i;
   if (conductPattern.test(next)) {
-    return next.replace(conductPattern, "\n" + blockText + "\n\n# Conduta :").replace(/\n{3,}/g, "\n\n");
+    return next
+      .replace(conductPattern, "\n" + blockText + "\n\n# Conduta :")
+      .replace(/\n{3,}/g, "\n\n");
   }
   return next.trimEnd() + "\n\n" + blockText;
 }
@@ -107,7 +114,10 @@ function setHighRiskReavaliacaoBlock(text, blockText) {
 function updateHighRiskReavaliacao(option) {
   var editor = document.querySelector("textarea.template-editor");
   var source = editor ? editor.value : state.editableText;
-  state.editableText = setHighRiskReavaliacaoBlock(source || "", option ? highRiskText(option) : "");
+  state.editableText = setHighRiskReavaliacaoBlock(
+    source || "",
+    option ? highRiskText(option) : ""
+  );
   if (editor) editor.value = state.editableText;
   saveReavaliacaoDraft();
 }
@@ -126,10 +136,7 @@ function insertLabOutputIntoReavaliacao() {
     var beforeLabs = text.slice(0, labsIndex + labsMarker.length).trimEnd();
     var existingLabs = text.slice(labsIndex + labsMarker.length, imageIndex).trim();
     var labsText = existingLabs ? existingLabs + "\n" + output : output;
-    state.editableText =
-      beforeLabs +
-      "\n" + labsText + "\n\n" +
-      text.slice(imageIndex).trimStart();
+    state.editableText = beforeLabs + "\n" + labsText + "\n\n" + text.slice(imageIndex).trimStart();
     saveReavaliacaoDraft();
     showToast("Exames inseridos");
     return;
