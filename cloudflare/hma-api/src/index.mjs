@@ -29,6 +29,22 @@ function extractOutput(data) {
     .map(item => item.text).join("\n").trim();
 }
 
+async function verifyToken(provided, expected) {
+  const encoder = new TextEncoder();
+  const [providedHash, expectedHash] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(provided)),
+    crypto.subtle.digest("SHA-256", encoder.encode(expected))
+  ]);
+  if (typeof crypto.subtle.timingSafeEqual === "function") {
+    return crypto.subtle.timingSafeEqual(providedHash, expectedHash);
+  }
+  const left = new Uint8Array(providedHash);
+  const right = new Uint8Array(expectedHash);
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) difference |= left[index] ^ right[index];
+  return difference === 0;
+}
+
 export async function handleRequest(request, env, fetchImpl = fetch) {
   const url = new URL(request.url);
   const origin = request.headers.get("Origin") || "";
@@ -39,7 +55,9 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: responseHeaders(origin) });
   if (request.method !== "POST") return json(405, { error: "Use POST." }, origin);
   if (!env.OPENAI_API_KEY || !env.APP_TOKEN) return json(503, { error: "Servidor ainda não configurado." }, origin);
-  if (request.headers.get("Authorization") !== `Bearer ${env.APP_TOKEN}`) return json(401, { error: "Código de acesso inválido." }, origin);
+  const authorization = request.headers.get("Authorization") || "";
+  const providedToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  if (!(await verifyToken(providedToken, env.APP_TOKEN))) return json(401, { error: "Código de acesso inválido." }, origin);
   if (!(request.headers.get("Content-Type") || "").toLowerCase().startsWith("application/json")) return json(415, { error: "Conteúdo inválido." }, origin);
   if (env.HMA_RATE_LIMITER) {
     const key = request.headers.get("CF-Connecting-IP") || "unknown";

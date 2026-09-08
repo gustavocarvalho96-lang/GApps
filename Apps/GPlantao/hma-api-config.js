@@ -1,5 +1,4 @@
 window.GPLANTAO_HMA_API = {
-  // Preencher após publicar o Cloudflare Worker.
-  url: "",
+  url: "https://gplantao-hma-api.gustavocarvalho96.workers.dev/api/hma",
   tokenStorageKey: "gplantao-hma-api-token-v1"
 };

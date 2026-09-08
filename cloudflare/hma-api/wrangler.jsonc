@@ -3,7 +3,9 @@
   "name": "gplantao-hma-api",
   "main": "src/index.mjs",
   "compatibility_date": "2026-09-08",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 },
   "vars": {
     "ALLOWED_ORIGIN": "https://gustavocarvalho96-lang.github.io",
     "OPENAI_MODEL": "gpt-5.4-mini"
