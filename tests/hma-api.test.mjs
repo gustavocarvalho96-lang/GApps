@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
-import { handleRequest, HMA_INSTRUCTIONS } from "../cloudflare/hma-api/src/index.mjs";
+import { appendAlarmNegatives, handleRequest, HMA_INSTRUCTIONS } from "../cloudflare/hma-api/src/index.mjs";
 
 const origin = "https://gustavocarvalho96-lang.github.io";
 const env = {
@@ -40,7 +40,7 @@ test("Worker envia somente a HMA e desativa armazenamento", async () => {
   };
   const response = await handleRequest(hmaRequest(" tosse há 3 dias "), env, fetchImpl);
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { text: "Refere tosse há três dias.", alarmSigns: ["dispneia", "dor torácica"] });
+  assert.deepEqual(await response.json(), { text: "Refere tosse há três dias. Nega dispneia e dor torácica.", alarmSigns: ["dispneia", "dor torácica"] });
   assert.equal(response.headers.get("access-control-allow-origin"), origin);
 });
 
@@ -58,7 +58,7 @@ test("Worker valida conteúdo, tamanho e preflight", async () => {
   assert.equal((await handleRequest(request, env)).status, 204);
 });
 
-test("Interface extrai apenas HMA e exige aplicação manual", async () => {
+test("Interface extrai apenas HMA e aplica a revisão com alarmes já incluídos", async () => {
   const make = () => {
     const node = { children: [], hidden: false, appendChild(child) { this.children.push(child); }, setAttribute() {} };
     Object.defineProperty(node, "innerHTML", { set() { node.children = []; } });
@@ -75,12 +75,12 @@ test("Interface extrai apenas HMA e exige aplicação manual", async () => {
     localStorage: { getItem(key) { return storage.get(key) || null; }, setItem(key, value) { storage.set(key, value); }, removeItem(key) { storage.delete(key); } },
     state: { editableText: source }, saveAnamneseDraft() { saved++; },
     textButton(label, cls, action) { return { ...make(), label, action }; },
-    async fetch(url, options) { sent = { url, options }; return Response.json({ text: "Refere tosse.", alarmSigns: ["dispneia"] }); }
+    async fetch(url, options) { sent = { url, options }; return Response.json({ text: "Refere tosse. Nega dispneia.", alarmSigns: ["dispneia"] }); }
   });
   vm.runInContext(await readFile(new URL("../Apps/GPlantao/plantao-hma-ia.js", import.meta.url), "utf8"), context);
   const body = make();
   context.mountHmaAi(area, body);
-  const [actions, status, preview, alarmBox] = body.children[0].children;
+  const [actions, status, preview] = body.children[0].children;
   const [revise, apply] = actions.children;
   await revise.action();
   assert.equal(sent.url, "https://worker.example/api/hma");
@@ -93,17 +93,14 @@ test("Interface extrai apenas HMA e exige aplicação manual", async () => {
   assert.match(status.textContent, /mudou/);
   area.value = source;
   await revise.action();
-  assert.equal(preview.value, "Refere tosse.");
-  assert.equal(alarmBox.hidden, false);
-  alarmBox.children[2].children[0].children[0].checked = true;
+  assert.equal(preview.value, "Refere tosse. Nega dispneia.");
+  assert.match(status.textContent, /retire manualmente/);
   apply.action();
   assert.equal(area.value, "# HMA : Refere tosse. Nega dispneia.\n# AP : asma");
   assert.equal(saved, 1);
 });
 
-test("Interface acrescenta somente negativas confirmadas", async () => {
-  const context = {};
-  vm.runInNewContext(await readFile(new URL("../Apps/GPlantao/plantao-hma-ia.js", import.meta.url), "utf8"), context);
-  assert.equal(context.appendConfirmedHmaNegatives("Refere cefaleia", []), "Refere cefaleia");
-  assert.equal(context.appendConfirmedHmaNegatives("Refere cefaleia", ["déficit focal", "síncope"]), "Refere cefaleia. Nega déficit focal e síncope.");
+test("Worker acrescenta todas as negativas sugeridas", () => {
+  assert.equal(appendAlarmNegatives("Refere cefaleia", []), "Refere cefaleia");
+  assert.equal(appendAlarmNegatives("Refere cefaleia", ["déficit focal", "síncope"]), "Refere cefaleia. Nega déficit focal e síncope.");
 });

@@ -8,19 +8,6 @@ function findHmaSection(text) {
   return { start: start, end: end, text: text.slice(start, end).trim() };
 }
 
-function joinHmaAlarmSigns(items) {
-  if (!items.length) return "";
-  if (items.length === 1) return items[0];
-  return items.slice(0, -1).join(", ") + " e " + items[items.length - 1];
-}
-
-function appendConfirmedHmaNegatives(text, items) {
-  if (!items.length) return text.trim();
-  var revised = text.trim();
-  if (revised && !/[.!?]$/.test(revised)) revised += ".";
-  return revised + (revised ? " " : "") + "Nega " + joinHmaAlarmSigns(items) + ".";
-}
-
 function mountHmaAi(area, body) {
   var panel = div("panel stack hma-ai-panel");
   var actions = div("row");
@@ -31,50 +18,6 @@ function mountHmaAi(area, body) {
   preview.setAttribute("aria-label", "HMA revisada pela IA");
   preview.rows = 6;
   preview.hidden = true;
-  var alarmBox = div("hma-ai-alarm-box");
-  alarmBox.hidden = true;
-  var alarmTitle = div("hma-ai-alarm-title");
-  alarmTitle.textContent = "Sinais de alarme relacionados à queixa";
-  var alarmHelp = div("hma-ai-alarm-help");
-  alarmHelp.textContent = "Marque somente os itens que foram perguntados e negados pelo paciente.";
-  var alarmList = div("hma-ai-alarm-list");
-  var alarmSummary = div("hma-ai-alarm-summary");
-  var alarmChoices = [];
-  alarmBox.appendChild(alarmTitle);
-  alarmBox.appendChild(alarmHelp);
-  alarmBox.appendChild(alarmList);
-  alarmBox.appendChild(alarmSummary);
-
-  function confirmedAlarmSigns() {
-    return alarmChoices.filter(function (choice) { return choice.input.checked; }).map(function (choice) { return choice.value; });
-  }
-
-  function updateAlarmSummary() {
-    var confirmed = confirmedAlarmSigns();
-    alarmSummary.textContent = confirmed.length ? "Será acrescentado: Nega " + joinHmaAlarmSigns(confirmed) + "." : "Nenhum sinal adicional será acrescentado.";
-  }
-
-  function renderAlarmSigns(items) {
-    alarmList.innerHTML = "";
-    alarmChoices = [];
-    (items || []).forEach(function (item) {
-      if (typeof item !== "string" || !item.trim()) return;
-      var value = item.trim();
-      var label = document.createElement("label");
-      label.className = "hma-ai-alarm-option";
-      var input = document.createElement("input");
-      input.type = "checkbox";
-      input.onchange = updateAlarmSummary;
-      var text = document.createElement("span");
-      text.textContent = "Confirmo que nega: " + value;
-      label.appendChild(input);
-      label.appendChild(text);
-      alarmList.appendChild(label);
-      alarmChoices.push({ input: input, value: value });
-    });
-    alarmBox.hidden = alarmChoices.length === 0;
-    updateAlarmSummary();
-  }
   var original = null;
   var apply = textButton("Aplicar na HMA", "text-btn", function () {
     if (area.value !== original) {
@@ -84,12 +27,10 @@ function mountHmaAi(area, body) {
     }
     var section = findHmaSection(area.value);
     if (!section || !preview.value.trim()) return;
-    var finalText = appendConfirmedHmaNegatives(preview.value, confirmedAlarmSigns());
-    area.value = area.value.slice(0, section.start) + finalText + area.value.slice(section.end);
+    area.value = area.value.slice(0, section.start) + preview.value.trim() + area.value.slice(section.end);
     state.editableText = area.value;
     saveAnamneseDraft("HMA revisada salva");
     preview.hidden = true;
-    alarmBox.hidden = true;
     apply.hidden = true;
     discard.hidden = true;
     status.textContent = "HMA atualizada.";
@@ -97,8 +38,7 @@ function mountHmaAi(area, body) {
   apply.hidden = true;
   var discard = textButton("Descartar sugestão", "text-btn", function () {
     preview.value = "";
-    renderAlarmSigns([]);
-    preview.hidden = apply.hidden = discard.hidden = alarmBox.hidden = true;
+    preview.hidden = apply.hidden = discard.hidden = true;
     status.textContent = "Sugestão descartada.";
   });
   discard.hidden = true;
@@ -130,9 +70,8 @@ function mountHmaAi(area, body) {
       if (typeof result.text !== "string" || !result.text.trim()) throw new Error("A API não retornou uma revisão válida.");
       if (!area.isConnected) return;
       preview.value = result.text;
-      renderAlarmSigns(Array.isArray(result.alarmSigns) ? result.alarmSigns : []);
       preview.hidden = apply.hidden = discard.hidden = false;
-      status.textContent = "Confira a redação e confirme apenas os sinais realmente negados antes de aplicar.";
+      status.textContent = "Confira a redação. Os sinais de alarme foram incluídos; retire manualmente os que não forem pertinentes antes de aplicar.";
     } catch (error) {
       status.textContent = error.name === "TimeoutError" ? "A revisão demorou demais. Tente novamente." : error.message === "Failed to fetch" ? "Não foi possível conectar ao servidor de IA." : error.message;
     } finally { revise.disabled = false; }
@@ -143,6 +82,5 @@ function mountHmaAi(area, body) {
   panel.appendChild(actions);
   panel.appendChild(status);
   panel.appendChild(preview);
-  panel.appendChild(alarmBox);
   body.appendChild(panel);
 }

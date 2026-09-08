@@ -41,6 +41,18 @@ function extractOutput(data) {
     .map(item => item.text).join("\n").trim();
 }
 
+function joinAlarmSigns(items) {
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(", ")} e ${items.at(-1)}`;
+}
+
+export function appendAlarmNegatives(text, items) {
+  const revised = text.trim();
+  if (!items.length) return revised;
+  const punctuated = revised && !/[.!?]$/.test(revised) ? `${revised}.` : revised;
+  return `${punctuated}${punctuated ? " " : ""}Nega ${joinAlarmSigns(items)}.`;
+}
+
 async function verifyToken(provided, expected) {
   const encoder = new TextEncoder();
   const [providedHash, expectedHash] = await Promise.all([
@@ -112,7 +124,7 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
     .map(item => item.replace(/^\s*nega\s+/i, "").replace(/[.;]+\s*$/, "").trim().slice(0, 120))
     .filter(Boolean)
     .slice(0, 6);
-  return json(200, { text: review.text.trim(), alarmSigns }, origin);
+  return json(200, { text: appendAlarmNegatives(review.text, alarmSigns), alarmSigns }, origin);
 }
 
 export default { fetch(request, env) { return handleRequest(request, env); } };
