@@ -8,8 +8,30 @@ function findHmaSection(text) {
   return { start: start, end: end, text: text.slice(start, end).trim() };
 }
 
-function mountHmaAi(area, body) {
-  var panel = div("panel stack hma-ai-panel");
+function mountHmaAi(area, body, headerActions) {
+  var overlay = div("hma-ai-overlay");
+  overlay.hidden = true;
+  var panel = div("hma-ai-popup");
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-modal", "true");
+  panel.setAttribute("aria-label", "Reescrever HMA com inteligência artificial");
+  var popupHeader = div("hma-ai-popup-header");
+  var popupTitle = div("hma-ai-popup-title");
+  popupTitle.textContent = "Reescrever HMA com IA";
+  var robotButton;
+
+  function setPopupOpen(open) {
+    overlay.hidden = !open;
+    robotButton.setAttribute("aria-expanded", String(open));
+  }
+
+  var close = textButton("×", "text-btn hma-ai-close", function () {
+    setPopupOpen(false);
+  });
+  close.setAttribute("aria-label", "Fechar janela da IA");
+  popupHeader.appendChild(popupTitle);
+  popupHeader.appendChild(close);
+
   var actions = div("row");
   var status = div("hma-ai-status");
   status.setAttribute("role", "status");
@@ -34,6 +56,7 @@ function mountHmaAi(area, body) {
     apply.hidden = true;
     discard.hidden = true;
     status.textContent = "HMA atualizada.";
+    setPopupOpen(false);
   });
   apply.hidden = true;
   var discard = textButton("Descartar sugestão", "text-btn", function () {
@@ -79,8 +102,21 @@ function mountHmaAi(area, body) {
   actions.appendChild(revise);
   actions.appendChild(apply);
   actions.appendChild(discard);
+  panel.appendChild(popupHeader);
   panel.appendChild(actions);
   panel.appendChild(status);
   panel.appendChild(preview);
-  body.appendChild(panel);
+  overlay.appendChild(panel);
+  overlay.onclick = function (event) {
+    if (event.target === overlay) setPopupOpen(false);
+  };
+  body.appendChild(overlay);
+
+  robotButton = textButton("🤖", "text-btn hma-ai-toggle", function () {
+    setPopupOpen(overlay.hidden);
+  });
+  robotButton.title = "Reescrever HMA com IA";
+  robotButton.setAttribute("aria-label", "Abrir ou ocultar reescrita da HMA com IA");
+  robotButton.setAttribute("aria-expanded", "false");
+  headerActions.appendChild(robotButton);
 }

@@ -603,7 +603,7 @@ function renderHighRiskReavaliacao(body) {
   body.appendChild(panel);
 }
 
-function renderEditable(protocol, body) {
+function renderEditable(protocol, body, headerActions) {
   if (protocol.freeGroupsEnabled) renderFreeGroups(body);
   if (protocol.collapsibleSections) renderCollapsibleSections(protocol, body);
   if (protocol.id === "reavaliacao") renderReavaliacaoVitals(body);
@@ -736,7 +736,7 @@ function renderEditable(protocol, body) {
   };
   if (protocol.id === "anamnese") {
     mountInlineAllergies(area, body);
-    if (typeof mountHmaAi === "function") mountHmaAi(area, body);
+    if (typeof mountHmaAi === "function") mountHmaAi(area, body, headerActions);
   } else {
     body.appendChild(area);
   }
@@ -815,7 +815,7 @@ function renderProtocol(protocol) {
   if (protocol.atestaditeSections) {
     renderAtestaditeEditor(protocol, body);
   } else if (isEditable(protocol.id)) {
-    renderEditable(protocol, body);
+    renderEditable(protocol, body, actions);
   } else {
     var panel = div("panel");
     var t = div("panel-title");

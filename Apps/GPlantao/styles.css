@@ -1043,41 +1043,88 @@ textarea:focus {
   box-shadow: 0 0 0 4px rgba(15, 118, 110, .12);
 }
 
-.hma-ai-alarm-box {
-  padding: 12px;
-  border: 1px solid #f1c56b;
-  border-radius: 12px;
-  background: #fffaf0;
+.text-btn.hma-ai-toggle {
+  width: 32px;
+  height: 29px;
+  padding: 0;
+  border-color: #e2e8f0;
+  background: transparent;
+  color: #64748b;
+  font-size: 17px;
+  line-height: 1;
+  box-shadow: none;
 }
 
-.hma-ai-alarm-title {
-  color: #7c4a03;
-  font-weight: 700;
+.text-btn.hma-ai-toggle:hover,
+.text-btn.hma-ai-toggle[aria-expanded="true"] {
+  border-color: rgba(15, 118, 110, .22);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
-.hma-ai-alarm-help,
-.hma-ai-alarm-summary {
-  margin-top: 5px;
-  color: #667085;
-  font-size: .88rem;
+.text-btn.hma-ai-toggle[aria-expanded="true"] {
+  position: relative;
+  z-index: 1001;
 }
 
-.hma-ai-alarm-list {
+.card:has(.hma-ai-overlay:not([hidden])) > .header {
+  position: relative;
+  z-index: 1001;
+}
+
+.hma-ai-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: grid;
-  gap: 7px;
-  margin-top: 10px;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, .42);
+  backdrop-filter: blur(3px);
 }
 
-.hma-ai-alarm-option {
+.hma-ai-overlay[hidden] {
+  display: none;
+}
+
+.hma-ai-popup {
+  display: grid;
+  width: min(720px, 100%);
+  max-height: calc(100vh - 40px);
+  gap: 14px;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid rgba(217, 225, 236, .95);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .25);
+}
+
+.hma-ai-popup-header {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  color: #344054;
-  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
 }
 
-.hma-ai-alarm-option input {
-  margin-top: 3px;
+.hma-ai-popup-title {
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.text-btn.hma-ai-close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-color: #e2e8f0;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.hma-ai-popup textarea {
+  min-height: 230px;
+  resize: vertical;
 }
 
 .lab-source-row {

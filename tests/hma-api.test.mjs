@@ -79,8 +79,15 @@ test("Interface extrai apenas HMA e aplica a revisão com alarmes já incluídos
   });
   vm.runInContext(await readFile(new URL("../Apps/GPlantao/plantao-hma-ia.js", import.meta.url), "utf8"), context);
   const body = make();
-  context.mountHmaAi(area, body);
-  const [actions, status, preview] = body.children[0].children;
+  const headerActions = make();
+  context.mountHmaAi(area, body, headerActions);
+  const robotButton = headerActions.children[0];
+  const overlay = body.children[0];
+  assert.equal(robotButton.label, "🤖");
+  assert.equal(overlay.hidden, true);
+  robotButton.action();
+  assert.equal(overlay.hidden, false);
+  const [, actions, status, preview] = overlay.children[0].children;
   const [revise, apply] = actions.children;
   await revise.action();
   assert.equal(sent.url, "https://worker.example/api/hma");
