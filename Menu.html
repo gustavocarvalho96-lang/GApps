@@ -22,8 +22,6 @@
       --fluxo-strong: #6d28d9;
       --pendencias: #c27a14;
       --pendencias-strong: #9a5f10;
-      --calendario: #b45309;
-      --calendario-strong: #92400e;
       --soft: #ecfdf5;
       --shadow: 0 18px 45px rgba(15, 34, 48, 0.09);
       font-family: Inter, "Segoe UI", Arial, sans-serif;
@@ -112,7 +110,6 @@
     .brand-dot:nth-child(2) { background: var(--transcritor); }
     .brand-dot:nth-child(3) { background: var(--fluxo); }
     .brand-dot:nth-child(4) { background: var(--pendencias); }
-    .brand-dot:nth-child(5) { background: var(--calendario); }
 
     .brand-dot:hover,
     .brand-dot:focus-visible {
@@ -168,14 +165,6 @@
       --card-color-strong: var(--pendencias-strong);
     }
 
-    .card:nth-child(5) {
-      --card-color: var(--calendario);
-      --card-color-strong: var(--calendario-strong);
-      width: 220px;
-      grid-column: 1 / -1;
-      justify-self: center;
-    }
-
     .card:hover,
     .card:focus-visible {
       color: #ffffff;
@@ -201,19 +190,6 @@
       flex: 0 0 auto;
       display: block;
       object-fit: contain;
-    }
-
-    .calendar-logo {
-      width: 34px;
-      height: 32px;
-      display: grid;
-      place-items: center;
-      border: 3px solid currentColor;
-      border-radius: 7px;
-      font-size: 16px;
-      font-weight: 900;
-      line-height: 1;
-      margin-right: 6px;
     }
 
     .card h2 {
@@ -254,6 +230,10 @@
 
     .sensitive-dot::before {
       background: rgba(15, 34, 48, 0.16);
+    }
+
+    .sensitive-dot.cloudflare-test {
+      right: 34px;
     }
 
     .sensitive-dot:hover,
@@ -508,12 +488,11 @@
         <img class="brand-logo" src="Apps/Shared/logo-stethoscope-c.svg" alt="">
         <h1 class="brand-title">Apps</h1>
         <div class="brand-separator" aria-hidden="true"></div>
-        <div id="brandApps" class="brand-apps" aria-label="5 aplicativos">
+        <div id="brandApps" class="brand-apps" aria-label="4 aplicativos">
           <a class="brand-dot" href="GPlantao.html" title="Plantão" aria-label="Abrir Plantão"></a>
           <a class="brand-dot" href="GTranscritor.html" title="Transcritor" aria-label="Abrir Transcritor"></a>
           <a class="brand-dot" href="GFluxo.html" title="Fluxo" aria-label="Abrir Fluxo"></a>
           <a class="brand-dot" href="GPendencias.html" title="Pendências" aria-label="Abrir Pendências"></a>
-          <a class="brand-dot" href="https://calendario-plantoes-teste.gustavocarvalho96.workers.dev/" title="Calendário teste" aria-label="Abrir calendário de teste"></a>
         </div>
       </div>
     </header>
@@ -547,14 +526,14 @@
         </div>
       </a>
 
-      <a class="card" href="https://calendario-plantoes-teste.gustavocarvalho96.workers.dev/">
-        <div class="card-brand">
-          <span class="calendar-logo" aria-hidden="true">31</span>
-          <h2>Calendário teste</h2>
-        </div>
-      </a>
     </section>
   </main>
+  <a
+    class="sensitive-dot cloudflare-test"
+    href="https://calendario-plantoes-teste.gustavocarvalho96.workers.dev/"
+    aria-label="Abrir calendário de teste no Cloudflare"
+    title="Calendário de teste no Cloudflare"
+  ></a>
   <a
     class="sensitive-dot"
     href="https://calendario-plantoes.gustavocarvalho96.chatgpt.site/"
