@@ -54,11 +54,17 @@ function formatReavaliacaoVitals() {
 
 function normalizeReavaliacaoPa(value) {
   var cleaned = (value || "").trim();
-  var digits = cleaned.replace(/\D/g, "");
-  if (/^\d{4,6}$/.test(digits)) {
-    return digits.slice(0, digits.length - 2) + "x" + digits.slice(-2);
+  var separated = cleaned.match(/^(\d*)\s*[xX×\/]\s*(\d*)$/);
+  if (separated) {
+    var systolic = separated[1].slice(0, 3);
+    var diastolic = separated[2].slice(0, 3);
+    return systolic + "x" + diastolic;
   }
-  return cleaned;
+  var digits = cleaned.replace(/\D/g, "");
+  if (digits.length <= 3) return digits;
+  if (digits.length === 4) return digits.slice(0, 2) + "x" + digits.slice(2);
+  if (digits.length === 5) return digits.slice(0, 3) + "x" + digits.slice(3);
+  return digits.slice(0, 3) + "x" + digits.slice(3, 6);
 }
 
 function updateReavaliacaoVitalsInTemplate() {

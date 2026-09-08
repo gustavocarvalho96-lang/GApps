@@ -455,11 +455,17 @@ function renderAnamneseVitals(parent) {
     var input = document.createElement("input");
     input.type = "text";
     input.inputMode = field.key === "pa" ? "text" : "numeric";
+    if (field.key === "pa") input.maxLength = 7;
     input.placeholder = field.placeholder;
     input.value = (state.anamneseVitals && state.anamneseVitals[field.key]) || "";
     input.oninput = function () {
       if (!state.anamneseVitals) state.anamneseVitals = { pa: "", fc: "", fr: "", sato2: "" };
-      state.anamneseVitals[field.key] = input.value.trim();
+      var value = input.value.trim();
+      if (field.key === "pa") {
+        value = normalizeReavaliacaoPa(value);
+        input.value = value;
+      }
+      state.anamneseVitals[field.key] = value;
       saveAnamneseDraft("Anamnese salva");
     };
     input.onblur = function () {
@@ -517,12 +523,13 @@ function renderReavaliacaoVitals(body) {
     var input = document.createElement("input");
     input.type = "text";
     input.inputMode = field.key === "pa" ? "text" : "numeric";
+    if (field.key === "pa") input.maxLength = 7;
     input.placeholder = field.placeholder;
     input.value = (state.reavaliacaoVitals && state.reavaliacaoVitals[field.key]) || "";
     input.oninput = function () {
       if (!state.reavaliacaoVitals) state.reavaliacaoVitals = { pa: "", fc: "", fr: "", sato2: "" };
       var value = input.value.trim();
-      if (field.key === "pa" && /^\d{5,6}$/.test(value.replace(/\D/g, ""))) {
+      if (field.key === "pa") {
         value = normalizeReavaliacaoPa(value);
         input.value = value;
       }
