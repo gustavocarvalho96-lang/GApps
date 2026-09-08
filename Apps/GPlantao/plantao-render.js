@@ -559,28 +559,31 @@ function renderReavaliacaoVitals(body) {
 function renderHighRiskReavaliacao(body) {
   var panel = div("panel stack high-risk-panel");
   var header = div("reavaliacao-panel-head");
-  var titleWrap = div("");
+  var titleWrap = div("high-risk-title-wrap");
   var title = div("panel-title");
-  title.textContent = "Medicacao de alto risco";
+  title.textContent = "Medicação de alto risco";
+  var description = div("high-risk-description");
+  description.textContent = "Registro de reavaliação após analgesia opioide";
   titleWrap.appendChild(title);
+  titleWrap.appendChild(description);
   header.appendChild(titleWrap);
-  header.appendChild(
-    textButton(
-      "Alto risco",
-      "text-btn high-risk-toggle" + (state.openGroups.highRisk ? " active" : ""),
-      function () {
-        state.openGroups.highRisk = !state.openGroups.highRisk;
-        render();
-      }
-    )
+  var highRiskToggle = textButton(
+    state.openGroups.highRisk ? "Ocultar opções" : "Selecionar medicação",
+    "text-btn high-risk-toggle" + (state.openGroups.highRisk ? " active" : ""),
+    function () {
+      state.openGroups.highRisk = !state.openGroups.highRisk;
+      render();
+    }
   );
+  highRiskToggle.setAttribute("aria-expanded", String(Boolean(state.openGroups.highRisk)));
+  header.appendChild(highRiskToggle);
   panel.appendChild(header);
 
   if (state.openGroups.highRisk) {
     var row = div("row high-risk-options");
     HIGH_RISK_MEDICATION_OPTIONS.forEach(function (option) {
       row.appendChild(
-        textButton(option.label, "text-btn", function () {
+        textButton(option.label, "text-btn high-risk-medication-btn", function () {
           updateHighRiskReavaliacao(option);
           state.openGroups.highRisk = false;
           showToast("Reavaliacao de alto risco inserida");
