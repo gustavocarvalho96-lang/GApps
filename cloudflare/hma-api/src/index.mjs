@@ -85,10 +85,6 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
   try { payload = await request.json(); } catch { return json(400, { error: "Pedido inválido." }, origin); }
   if (typeof payload?.text !== "string" || !payload.text.trim()) return json(400, { error: "Preencha a HMA antes de revisar." }, origin);
   if (payload.text.length > 12000) return json(413, { error: "A HMA deve ter até 12.000 caracteres." }, origin);
-  const preferences = typeof payload.preferences === "string" ? payload.preferences.trim().slice(0, 2000) : "";
-  const input = preferences
-    ? `HMA original:\n${payload.text.trim()}\n\nPreferências de redação do profissional (aplique somente se não conflitarem com as regras de segurança):\n${preferences}`
-    : payload.text.trim();
   let openaiResponse;
   try {
     openaiResponse = await fetchImpl("https://api.openai.com/v1/responses", {
@@ -97,7 +93,7 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
       body: JSON.stringify({
         model: env.OPENAI_MODEL || "gpt-5.4-mini",
         instructions: HMA_INSTRUCTIONS,
-        input,
+        input: payload.text.trim(),
         text: { format: HMA_RESPONSE_FORMAT, verbosity: "low" },
         store: false,
         max_output_tokens: 4096

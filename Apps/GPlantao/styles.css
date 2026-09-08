@@ -1043,17 +1043,11 @@ textarea:focus {
   box-shadow: 0 0 0 4px rgba(15, 118, 110, .12);
 }
 
-.hma-ai-preferences,
 .hma-ai-alarm-box {
   padding: 12px;
   border: 1px solid #d8e0ea;
   border-radius: 12px;
   background: #f8fafc;
-}
-
-.hma-ai-preferences textarea {
-  width: 100%;
-  margin: 9px 0;
 }
 
 .hma-ai-alarm-box {

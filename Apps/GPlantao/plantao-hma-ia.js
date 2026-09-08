@@ -31,27 +31,6 @@ function mountHmaAi(area, body) {
   preview.setAttribute("aria-label", "HMA revisada pela IA");
   preview.rows = 6;
   preview.hidden = true;
-  var preferencesButton = textButton("Preferências da IA", "text-btn", function () {
-    preferencesBox.hidden = !preferencesBox.hidden;
-  });
-  var preferencesBox = div("hma-ai-preferences");
-  preferencesBox.hidden = true;
-  var preferencesHelp = div("hma-ai-alarm-help");
-  preferencesHelp.textContent = "Escreva suas regras de estilo. Elas ficam salvas somente neste navegador.";
-  var preferences = document.createElement("textarea");
-  preferences.setAttribute("aria-label", "Preferências da IA para HMA");
-  preferences.rows = 4;
-  preferences.maxLength = 2000;
-  preferences.placeholder = "Ex.: organizar em ordem cronológica; usar linguagem médica objetiva; evitar repetições.";
-  preferences.value = localStorage.getItem("gplantao-hma-ai-preferences-v1") || "";
-  var savePreferences = textButton("Salvar preferências", "text-btn", function () {
-    localStorage.setItem("gplantao-hma-ai-preferences-v1", preferences.value.trim());
-    status.textContent = "Preferências da IA salvas neste navegador.";
-  });
-  preferencesBox.appendChild(preferencesHelp);
-  preferencesBox.appendChild(preferences);
-  preferencesBox.appendChild(savePreferences);
-
   var alarmBox = div("hma-ai-alarm-box");
   alarmBox.hidden = true;
   var alarmTitle = div("hma-ai-alarm-title");
@@ -143,7 +122,7 @@ function mountHmaAi(area, body) {
     revise.disabled = true;
     status.textContent = "Revisando a redação da HMA…";
     try {
-      var response = await fetch(apiUrl, { method: "POST", headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json" }, body: JSON.stringify({ text: section.text, preferences: preferences.value.trim() }), signal: AbortSignal.timeout(55000) });
+      var response = await fetch(apiUrl, { method: "POST", headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json" }, body: JSON.stringify({ text: section.text }), signal: AbortSignal.timeout(55000) });
       if (!(response.headers.get("content-type") || "").includes("application/json")) throw new Error("O servidor da IA retornou uma resposta inválida.");
       var result = await response.json();
       if (response.status === 401) localStorage.removeItem(tokenKey);
@@ -159,13 +138,11 @@ function mountHmaAi(area, body) {
     } finally { revise.disabled = false; }
   });
   actions.appendChild(revise);
-  actions.appendChild(preferencesButton);
   actions.appendChild(apply);
   actions.appendChild(discard);
   panel.appendChild(actions);
   panel.appendChild(status);
   panel.appendChild(preview);
-  panel.appendChild(preferencesBox);
   panel.appendChild(alarmBox);
   body.appendChild(panel);
 }

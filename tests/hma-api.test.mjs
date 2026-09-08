@@ -80,14 +80,12 @@ test("Interface extrai apenas HMA e exige aplicação manual", async () => {
   vm.runInContext(await readFile(new URL("../Apps/GPlantao/plantao-hma-ia.js", import.meta.url), "utf8"), context);
   const body = make();
   context.mountHmaAi(area, body);
-  const [actions, status, preview, preferencesBox, alarmBox] = body.children[0].children;
-  const [revise, preferencesButton, apply] = actions.children;
+  const [actions, status, preview, alarmBox] = body.children[0].children;
+  const [revise, apply] = actions.children;
   await revise.action();
   assert.equal(sent.url, "https://worker.example/api/hma");
   assert.equal(sent.options.headers.Authorization, "Bearer app-test");
-  assert.deepEqual(JSON.parse(sent.options.body), { text: "tosse", preferences: "" });
-  preferencesButton.action();
-  assert.equal(preferencesBox.hidden, false);
+  assert.deepEqual(JSON.parse(sent.options.body), { text: "tosse" });
   assert.equal(area.value, source);
   area.value += " alterada";
   apply.action();
