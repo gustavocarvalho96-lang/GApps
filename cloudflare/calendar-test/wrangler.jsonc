@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "calendario-plantoes-teste",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "calendario-plantoes-teste",
+      "database_id": "91598272-3f47-4c46-8b07-2b9ae30e347f",
+      "migrations_dir": "drizzle"
+    }
+  ]
+}

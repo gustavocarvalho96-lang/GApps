@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1785175623595,
+      "tag": "0000_moaning_black_bird",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785175980404,
+      "tag": "0001_import_excel_2026",
+      "breakpoints": true
+    }
+  ]
+}
