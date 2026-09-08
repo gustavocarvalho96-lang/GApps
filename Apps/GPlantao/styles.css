@@ -1043,6 +1043,54 @@ textarea:focus {
   box-shadow: 0 0 0 4px rgba(15, 118, 110, .12);
 }
 
+.hma-ai-preferences,
+.hma-ai-alarm-box {
+  padding: 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.hma-ai-preferences textarea {
+  width: 100%;
+  margin: 9px 0;
+}
+
+.hma-ai-alarm-box {
+  border-color: #f1c56b;
+  background: #fffaf0;
+}
+
+.hma-ai-alarm-title {
+  color: #7c4a03;
+  font-weight: 700;
+}
+
+.hma-ai-alarm-help,
+.hma-ai-alarm-summary {
+  margin-top: 5px;
+  color: #667085;
+  font-size: .88rem;
+}
+
+.hma-ai-alarm-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.hma-ai-alarm-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #344054;
+  cursor: pointer;
+}
+
+.hma-ai-alarm-option input {
+  margin-top: 3px;
+}
+
 .lab-source-row {
   justify-content: flex-end;
 }
