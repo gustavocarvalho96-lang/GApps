@@ -1,5 +1,15 @@
 # Servidor online da HMA
 
+## Alterar a lógica da IA
+
+Edite `HMA_INSTRUCTIONS.txt` em um editor de texto. Depois sincronize as regras com:
+
+```powershell
+node scripts/sync-instructions.mjs
+```
+
+O arquivo gerado em `src/hma-instructions.generated.mjs` é usado pelo Worker. Após a sincronização, publique uma nova versão do Worker.
+
 Este Cloudflare Worker recebe somente o trecho da HMA, valida a origem e o código de acesso, limita chamadas por IP e envia o texto à Responses API da OpenAI com `store: false`. A chave da OpenAI nunca deve ser colocada no GitHub.
 
 Configurações públicas em `wrangler.jsonc`: `ALLOWED_ORIGIN` é a origem autorizada do GitHub Pages e `OPENAI_MODEL` pode ser alterado depois sem mudar a interface.
