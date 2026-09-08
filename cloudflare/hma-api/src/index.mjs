@@ -43,7 +43,7 @@ function extractOutput(data) {
 
 function joinAlarmSigns(items) {
   if (items.length === 1) return items[0];
-  return `${items.slice(0, -1).join(", ")} e ${items.at(-1)}`;
+  return `${items.slice(0, -1).join(", nega ")} e nega ${items.at(-1)}`;
 }
 
 export function appendAlarmNegatives(text, items) {

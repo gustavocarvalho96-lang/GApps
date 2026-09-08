@@ -40,7 +40,7 @@ test("Worker envia somente a HMA e desativa armazenamento", async () => {
   };
   const response = await handleRequest(hmaRequest(" tosse há 3 dias "), env, fetchImpl);
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { text: "Refere tosse há três dias. Nega dispneia e dor torácica.", alarmSigns: ["dispneia", "dor torácica"] });
+  assert.deepEqual(await response.json(), { text: "Refere tosse há três dias. Nega dispneia e nega dor torácica.", alarmSigns: ["dispneia", "dor torácica"] });
   assert.equal(response.headers.get("access-control-allow-origin"), origin);
 });
 
@@ -102,5 +102,6 @@ test("Interface extrai apenas HMA e aplica a revisão com alarmes já incluídos
 
 test("Worker acrescenta todas as negativas sugeridas", () => {
   assert.equal(appendAlarmNegatives("Refere cefaleia", []), "Refere cefaleia");
-  assert.equal(appendAlarmNegatives("Refere cefaleia", ["déficit focal", "síncope"]), "Refere cefaleia. Nega déficit focal e síncope.");
+  assert.equal(appendAlarmNegatives("Refere cefaleia", ["déficit focal", "síncope"]), "Refere cefaleia. Nega déficit focal e nega síncope.");
+  assert.equal(appendAlarmNegatives("Refere odinofagia.", ["dispneia", "sialorreia", "disfonia"]), "Refere odinofagia. Nega dispneia, nega sialorreia e nega disfonia.");
 });
