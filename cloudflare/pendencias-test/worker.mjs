@@ -1,3 +1,8 @@
+import PAGE_HTML from "./site/GPendencias.html";
+import APP_JS from "./site/Apps/GPendencias/app.js.txt";
+import APP_CSS from "./site/Apps/GPendencias/styles.css";
+import APP_LOGO from "./site/Apps/Shared/logo-stethoscope-c.svg";
+
 const ALLOWED_ORIGINS = new Set([
   "https://gustavocarvalho96-lang.github.io",
 ]);
@@ -38,8 +43,31 @@ export default {
     }
 
     const url = new URL(request.url);
-    if (url.pathname === "/") {
+    if (url.pathname === "/api/health") {
       return json(request, { service: "GPendencias", status: "online" });
+    }
+    if (url.pathname === "/" || url.pathname === "/GPendencias.html") {
+      return new Response(PAGE_HTML, {
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" }
+      });
+    }
+    if (url.pathname === "/Apps/GPendencias/app.js") {
+      return new Response(APP_JS, {
+        headers: { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "no-store" }
+      });
+    }
+    if (url.pathname === "/Apps/GPendencias/styles.css") {
+      return new Response(APP_CSS, {
+        headers: { "Content-Type": "text/css; charset=utf-8", "Cache-Control": "no-store" }
+      });
+    }
+    if (url.pathname === "/Apps/Shared/logo-stethoscope-c.svg") {
+      return new Response(APP_LOGO, {
+        headers: { "Content-Type": "image/svg+xml; charset=utf-8", "Cache-Control": "public, max-age=86400" }
+      });
+    }
+    if (url.pathname === "/Menu.html") {
+      return Response.redirect("https://gustavocarvalho96-lang.github.io/GApps/Menu.html", 302);
     }
     if (url.pathname !== "/api/tasks") return json(request, { error: "Não encontrado" }, 404);
 

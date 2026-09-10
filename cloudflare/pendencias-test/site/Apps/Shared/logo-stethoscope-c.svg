@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Logo estetoscopio G">
+  <defs>
+    <radialGradient id="diaphragm" cx="42%" cy="34%" r="66%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.42" stop-color="#d9dedc"/>
+      <stop offset="1" stop-color="#8b9692"/>
+    </radialGradient>
+  </defs>
+
+  <path
+    d="M206 66C116 84 53 159 53 276c0 119 88 199 213 199 53 0 99-13 132-38"
+    fill="none"
+    stroke="#08265f"
+    stroke-width="28"
+    stroke-linecap="round"
+  />
+  <path
+    d="M206 66C116 84 53 159 53 276c0 119 88 199 213 199 53 0 99-13 132-38"
+    fill="none"
+    stroke="#0f8c83"
+    stroke-width="10"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M246 254h144c31 0 54 23 54 54v88"
+    fill="none"
+    stroke="#08265f"
+    stroke-width="28"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M246 254h144c31 0 54 23 54 54v88"
+    fill="none"
+    stroke="#0f8c83"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <path
+    d="M309 62c74 9 124 66 124 155"
+    fill="none"
+    stroke="#8a9698"
+    stroke-width="22"
+    stroke-linecap="round"
+  />
+  <path
+    d="M309 62c74 9 124 66 124 155"
+    fill="none"
+    stroke="#d5dbdc"
+    stroke-width="8"
+    stroke-linecap="round"
+  />
+
+  <rect x="190" y="46" width="55" height="34" rx="12" transform="rotate(-12 217.5 63)" fill="#08265f"/>
+  <rect x="287" y="46" width="55" height="34" rx="12" transform="rotate(12 314.5 63)" fill="#08265f"/>
+  <rect x="244" y="59" width="14" height="32" rx="5" transform="rotate(-12 251 75)" fill="#9aa3a4"/>
+  <rect x="274" y="59" width="14" height="32" rx="5" transform="rotate(12 281 75)" fill="#9aa3a4"/>
+
+  <circle cx="405" cy="405" r="58" fill="#ffffff" stroke="#08265f" stroke-width="24"/>
+  <circle cx="405" cy="405" r="38" fill="#0f8c83"/>
+  <circle cx="405" cy="405" r="25" fill="url(#diaphragm)"/>
+</svg>
