@@ -1,7 +1,10 @@
-const STORAGE_KEY = "pendencias-plantao-v1";
-const BACKUP_INDEX_KEY = "pendencias-plantao-backup-index-v1";
-const BACKUP_PREFIX = "pendencias-plantao-backup-";
+const LEGACY_STORAGE_KEY = "pendencias-plantao-v1";
+const BACKUP_INDEX_BASE = "pendencias-plantao-backup-index-v1";
+const BACKUP_PREFIX_BASE = "pendencias-plantao-backup-";
 const BACKUP_VERSION = 1;
+const ACTIVE_SESSION_KEY = "gpendencias-cloudflare-session-v1";
+const MIGRATED_LOCAL_KEY = "gpendencias-cloudflare-local-migrated-v1";
+const API_URL = "https://gpendencias-teste.gustavocarvalho96.workers.dev/api/tasks";
 
 const form = document.querySelector("#task-form");
 const taskList = document.querySelector("#task-list");
@@ -31,10 +34,34 @@ const openCount = document.querySelector("#open-count");
 const lateCount = document.querySelector("#late-count");
 const toggleFormButton = document.querySelector("#toggle-form-button");
 const workspaceLayout = document.querySelector(".workspace-layout");
+const sessionScreen = document.querySelector("#session-screen");
+const sessionForm = document.querySelector("#session-form");
+const sessionPassword = document.querySelector("#session-password");
+const sessionError = document.querySelector("#session-error");
+const sessionButton = document.querySelector("#session-button");
 
-let tasks = loadTasks();
+let activeSession = readRememberedSession();
+let tasks = activeSession ? loadTasks() : [];
 let activeFilter = "open";
 let saveStatusTimer;
+let cloudSaveTimer;
+let cloudUpdatedAt = 0;
+let cloudSavePending = false;
+
+sessionForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const password = clean(new FormData(sessionForm).get("password"));
+  await connectSession(password);
+});
+
+sessionButton?.addEventListener("click", async () => {
+  if (cloudSaveTimer) {
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer = undefined;
+    await pushTasksToCloud(activeSession, tasks);
+  }
+  showSessionScreen();
+});
 
 form?.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -48,7 +75,7 @@ form?.addEventListener("submit", (event) => {
   if (newTasks.length === 0) return;
 
   tasks.unshift(...newTasks);
-  saveTasks(`${newTasks.length} pendência(s) salva(s) neste computador`);
+  saveTasks(`${newTasks.length} pendência(s) salva(s)`);
   form.reset();
   resetPendingItems();
   document.querySelector("#patient-input").focus();
@@ -95,7 +122,7 @@ clearDoneButton?.addEventListener("click", () => {
 
 clearAllButton?.addEventListener("click", () => {
   const confirmed = window.confirm(
-    "Encerrar o plantão e apagar todos os cards salvos neste computador?"
+    `Encerrar o plantão e apagar todos os cards da sessão ${activeSession}?`
   );
 
   if (!confirmed) return;
@@ -107,7 +134,7 @@ clearAllButton?.addEventListener("click", () => {
 
 saveButton?.addEventListener("click", () => {
   closeBackupMenu();
-  saveTasks("Tudo salvo neste computador");
+  saveTasks("Tudo salvo na sessão online");
   render();
 });
 
@@ -196,7 +223,7 @@ taskList?.addEventListener("click", (event) => {
 
   if ((!action && !checkbox) || !card) return;
 
-  let message = "Alteração salva neste computador";
+  let message = "Alteração salva";
 
   if (action?.classList.contains("options-button")) {
     const menu = card.querySelector(".card-options-menu");
@@ -696,19 +723,178 @@ function normalize(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function loadTasks() {
+function readRememberedSession() {
+  const value = localStorage.getItem(ACTIVE_SESSION_KEY) || "";
+  return /^[1-9]$/.test(value) ? value : "";
+}
+
+function sessionStorageKey(session = activeSession) {
+  return session ? `${LEGACY_STORAGE_KEY}-sessao-${session}` : LEGACY_STORAGE_KEY;
+}
+
+function backupIndexKey(session = activeSession) {
+  return session ? `${BACKUP_INDEX_BASE}-sessao-${session}` : BACKUP_INDEX_BASE;
+}
+
+function backupPrefix(session = activeSession) {
+  return session ? `${BACKUP_PREFIX_BASE}sessao-${session}-` : BACKUP_PREFIX_BASE;
+}
+
+function readTasksFromKey(key) {
   try {
-    const storedTasks = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const storedTasks = JSON.parse(localStorage.getItem(key));
     return Array.isArray(storedTasks) ? storedTasks : [];
   } catch {
     return [];
   }
 }
 
-function saveTasks(message = "Salvo neste computador") {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+function loadTasks() {
+  return readTasksFromKey(sessionStorageKey());
+}
+
+function saveTasks(message = "Alteração salva") {
+  localStorage.setItem(sessionStorageKey(), JSON.stringify(tasks));
   saveDatedBackup();
-  showSaveStatus(message);
+  queueCloudSave(message);
+}
+
+async function sessionRequest(session, options = {}) {
+  const headers = new Headers(options.headers);
+  headers.set("Authorization", `Bearer ${session}`);
+  return fetch(API_URL, { ...options, headers });
+}
+
+async function connectSession(password, { automatic = false } = {}) {
+  if (!/^[1-9]$/.test(password)) {
+    sessionError.textContent = "Digite somente um número de 1 a 9.";
+    return false;
+  }
+
+  const submitButton = sessionForm?.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  sessionError.textContent = "Conectando...";
+
+  try {
+    const response = await sessionRequest(password);
+    if (!response.ok) throw new Error("Não foi possível acessar esta sessão.");
+    const data = await response.json();
+    const remoteTasks = Array.isArray(data.tasks) ? data.tasks : [];
+    const savedForSession = readTasksFromKey(sessionStorageKey(password));
+    const legacyTasks = readTasksFromKey(LEGACY_STORAGE_KEY);
+    let nextTasks = remoteTasks;
+    let uploadLocalTasks = false;
+
+    if (remoteTasks.length === 0 && savedForSession.length > 0) {
+      nextTasks = savedForSession;
+      uploadLocalTasks = true;
+    } else if (
+      remoteTasks.length === 0 &&
+      legacyTasks.length > 0 &&
+      localStorage.getItem(MIGRATED_LOCAL_KEY) !== "true"
+    ) {
+      const migrate = window.confirm(
+        `Existem ${legacyTasks.length} pendência(s) salvas neste computador. Deseja enviá-las para a sessão ${password}?`
+      );
+      localStorage.setItem(MIGRATED_LOCAL_KEY, "true");
+      if (migrate) {
+        nextTasks = legacyTasks;
+        uploadLocalTasks = true;
+      }
+    }
+
+    activeSession = password;
+    tasks = nextTasks;
+    cloudUpdatedAt = Number(data.updatedAt || 0);
+    localStorage.setItem(ACTIVE_SESSION_KEY, password);
+    localStorage.setItem(sessionStorageKey(), JSON.stringify(tasks));
+    sessionButton.textContent = `Sessão ${password}`;
+    sessionScreen.hidden = true;
+    sessionForm.reset();
+    render();
+
+    if (uploadLocalTasks) {
+      await pushTasksToCloud(password, tasks);
+    } else {
+      showSaveStatus(`Sessão ${password} sincronizada`);
+    }
+    return true;
+  } catch (error) {
+    sessionError.textContent = navigator.onLine
+      ? error.message
+      : "Sem conexão com a internet.";
+    if (automatic) localStorage.removeItem(ACTIVE_SESSION_KEY);
+    return false;
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+}
+
+function showSessionScreen() {
+  sessionError.textContent = "";
+  sessionPassword.value = "";
+  sessionScreen.hidden = false;
+  window.setTimeout(() => sessionPassword.focus(), 0);
+}
+
+function queueCloudSave(message) {
+  if (!activeSession) {
+    showSaveStatus("Salvo localmente; selecione uma sessão");
+    return;
+  }
+  clearTimeout(cloudSaveTimer);
+  cloudSavePending = true;
+  showSaveStatus(`${message}. Salvando sessão ${activeSession}...`, { persistent: true });
+  const session = activeSession;
+  const snapshot = structuredClone(tasks);
+  cloudSaveTimer = window.setTimeout(() => {
+    cloudSaveTimer = undefined;
+    pushTasksToCloud(session, snapshot);
+  }, 500);
+}
+
+async function pushTasksToCloud(session, snapshot) {
+  if (!session) return false;
+  try {
+    const response = await sessionRequest(session, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tasks: snapshot })
+    });
+    if (!response.ok) throw new Error("Falha ao salvar");
+    const data = await response.json();
+    if (session === activeSession) {
+      cloudUpdatedAt = Number(data.updatedAt || Date.now());
+      cloudSavePending = false;
+      showSaveStatus(`Sessão ${session} sincronizada`);
+    }
+    return true;
+  } catch {
+    if (session === activeSession) {
+      cloudSavePending = false;
+      showSaveStatus("Falha na sincronização; cópia local preservada", { persistent: true });
+    }
+    return false;
+  }
+}
+
+async function refreshFromCloud() {
+  if (!activeSession || cloudSavePending || document.hidden) return;
+  const session = activeSession;
+  try {
+    const response = await sessionRequest(session);
+    if (!response.ok) return;
+    const data = await response.json();
+    const updatedAt = Number(data.updatedAt || 0);
+    if (session !== activeSession || updatedAt <= cloudUpdatedAt) return;
+    tasks = Array.isArray(data.tasks) ? data.tasks : [];
+    cloudUpdatedAt = updatedAt;
+    localStorage.setItem(sessionStorageKey(), JSON.stringify(tasks));
+    render();
+    showSaveStatus(`Sessão ${session} atualizada`);
+  } catch {
+    // O próximo ciclo tentará novamente; a cópia local continua disponível.
+  }
 }
 
 function createBackupPayload() {
@@ -771,7 +957,7 @@ function saveDatedBackup() {
 
   try {
     const dateKey = todayKey();
-    const backupKey = `${BACKUP_PREFIX}${dateKey}`;
+    const backupKey = `${backupPrefix()}${dateKey}`;
     const payload = createBackupPayload();
     localStorage.setItem(backupKey, JSON.stringify(payload));
 
@@ -779,7 +965,7 @@ function saveDatedBackup() {
     if (!dates.includes(dateKey)) {
       dates.unshift(dateKey);
       dates.sort((a, b) => b.localeCompare(a));
-      localStorage.setItem(BACKUP_INDEX_KEY, JSON.stringify(dates));
+      localStorage.setItem(backupIndexKey(), JSON.stringify(dates));
     }
   } catch {
     // O backup datado é uma proteção extra; o salvamento principal já aconteceu.
@@ -788,7 +974,7 @@ function saveDatedBackup() {
 
 function loadBackupDates() {
   try {
-    const dates = JSON.parse(localStorage.getItem(BACKUP_INDEX_KEY));
+    const dates = JSON.parse(localStorage.getItem(backupIndexKey()));
     return Array.isArray(dates) ? dates.filter(Boolean) : [];
   } catch {
     return [];
@@ -806,7 +992,7 @@ function restoreDatedBackup() {
   if (!selectedDate) return;
 
   const dateKey = selectedDate.trim();
-  const backupText = localStorage.getItem(`${BACKUP_PREFIX}${dateKey}`);
+  const backupText = localStorage.getItem(`${backupPrefix()}${dateKey}`);
   if (!backupText) {
     window.alert("Não encontrei backup para esta data.");
     return;
@@ -859,17 +1045,21 @@ function todayKey() {
   return `${year}-${month}-${day}`;
 }
 
-function showSaveStatus(message) {
+function showSaveStatus(message, { persistent = false } = {}) {
   if (!saveStatus) return;
 
   saveStatus.textContent = message;
   saveStatus.classList.add("is-fresh");
 
   clearTimeout(saveStatusTimer);
-  saveStatusTimer = setTimeout(() => {
-    saveStatus.textContent = "Salvo neste computador";
-    saveStatus.classList.remove("is-fresh");
-  }, 1800);
+  if (!persistent) {
+    saveStatusTimer = setTimeout(() => {
+      saveStatus.textContent = activeSession
+        ? `Sessão ${activeSession} sincronizada`
+        : "Selecione uma sessão";
+      saveStatus.classList.remove("is-fresh");
+    }, 1800);
+  }
 }
 
 updatePendingItemControls();
@@ -877,3 +1067,9 @@ updateClock();
 setInterval(updateClock, 30000);
 saveDatedBackup();
 render();
+if (activeSession) {
+  connectSession(activeSession, { automatic: true });
+} else {
+  showSessionScreen();
+}
+setInterval(refreshFromCloud, 12000);

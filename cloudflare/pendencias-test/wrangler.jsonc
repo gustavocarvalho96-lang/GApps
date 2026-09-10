@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "gpendencias-teste",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-10",
+  "workers_dev": true,
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "gpendencias-teste",
+      "database_id": "e3d8302f-494d-4596-9561-eaa04b8e7ca6"
+    }
+  ]
+}

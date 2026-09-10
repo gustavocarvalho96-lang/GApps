@@ -26,6 +26,98 @@ body {
   line-height: 1.45;
 }
 
+.session-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(23, 33, 27, 0.42);
+  backdrop-filter: blur(8px);
+}
+
+.session-screen[hidden] {
+  display: none;
+}
+
+.session-panel {
+  width: min(390px, 100%);
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 28px 80px rgba(23, 33, 27, 0.22);
+}
+
+.session-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 900;
+}
+
+.session-eyebrow {
+  margin-bottom: 5px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.session-panel h2 {
+  margin-bottom: 8px;
+  font-size: 1.35rem;
+}
+
+.session-panel > p:not(.session-eyebrow, .session-error) {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.session-panel label {
+  display: grid;
+  gap: 6px;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.session-panel input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 13px;
+  color: var(--ink);
+  background: #fbfdfb;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.session-panel .primary-button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.session-error {
+  min-height: 20px;
+  margin: 7px 0 0;
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+.session-button {
+  font-weight: 800;
+}
+
 button,
 input,
 select,

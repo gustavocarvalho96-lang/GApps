@@ -18,7 +18,8 @@
           </div>
           <p class="current-clock">Horário do computador: <strong id="current-clock">--:--</strong></p>
           <div class="form-actions top-actions">
-            <span class="save-status" id="save-status">Salvo neste computador</span>
+            <span class="save-status" id="save-status">Conectando ao Cloudflare</span>
+            <button class="ghost-button session-button" type="button" id="session-button">Sessão</button>
             <button class="toggle-form-button" type="button" id="toggle-form-button" aria-expanded="true">Fechar cadastro</button>
             <div class="backup-menu">
               <button class="ghost-button backup-menu-button" type="button" id="backup-menu-button" aria-expanded="false">Backup</button>
@@ -134,6 +135,21 @@
 
       </div>
     </main>
+
+    <section class="session-screen" id="session-screen" role="dialog" aria-modal="true" aria-labelledby="session-title">
+      <form class="session-panel" id="session-form">
+        <div class="session-mark" aria-hidden="true">P</div>
+        <p class="session-eyebrow">Pendências online</p>
+        <h2 id="session-title">Acessar uma sessão</h2>
+        <p>Digite uma senha de <strong>1 a 9</strong>. Pessoas que usarem a mesma senha compartilharão as mesmas pendências.</p>
+        <label>
+          <span>Senha da sessão</span>
+          <input id="session-password" name="password" type="password" inputmode="numeric" pattern="[1-9]" maxlength="1" autocomplete="off" required autofocus>
+        </label>
+        <p class="session-error" id="session-error" role="alert"></p>
+        <button class="primary-button" type="submit">Entrar</button>
+      </form>
+    </section>
 
     <template id="pending-item-template">
       <article class="pending-item">
