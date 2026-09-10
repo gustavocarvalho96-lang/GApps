@@ -1,250 +1,500 @@
 <!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pendências</title>
-    <link rel="stylesheet" href="Apps/GPendencias/styles.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pendências · Plantão</title>
+    <link rel="stylesheet" href="Apps/GPendencias/styles.css" />
   </head>
   <body>
     <main class="app-shell">
-      <section class="topbar" aria-labelledby="app-title">
+      <header class="topbar">
+        <a class="home-link" href="Menu.html" aria-label="Voltar ao menu"
+          >← Menu</a
+        >
+        <div class="app-brand">
+          <img src="Apps/Shared/logo-stethoscope-c.svg" alt="" />
+          <h1>Pendências</h1>
+        </div>
+        <div class="connection">
+          <button id="session-button" class="ghost-button" type="button">
+            Sessão</button
+          ><span id="save-status" role="status">Conectando…</span
+          ><button id="retry-sync" type="button" hidden>
+            Tentar novamente
+          </button>
+        </div>
+        <span id="current-clock" class="clock"></span>
+      </header>
+      <section class="shift-heading">
         <div>
-          <div class="app-brand">
-            <img class="app-brand-logo" src="Apps/Shared/logo-stethoscope-c.svg" alt="" aria-hidden="true">
-            <div>
-          <h1 id="app-title">Pendências</h1>
+          <p class="eyebrow">ACOMPANHAMENTO DO PLANTÃO</p>
+          <h2>O que precisa acontecer.</h2>
+          <p class="shift-summary">
+            <strong id="open-count">0</strong> pendências ·
+            <span id="patient-count">0</span> pacientes em acompanhamento ·
+            <strong id="late-count">0</strong> concluídos
+          </p>
+        </div>
+        <div class="main-actions">
+          <button id="handoff-button" type="button">Passar plantão</button
+          ><button
+            id="toggle-form-button"
+            class="primary-button"
+            type="button"
+            aria-haspopup="dialog"
+          >
+            + Paciente
+          </button>
+          <div class="backup-menu">
+            <button
+              class="ghost-button"
+              id="backup-menu-button"
+              type="button"
+              aria-expanded="false"
+              aria-label="Mais ações"
+            >
+              •••
+            </button>
+            <div id="backup-menu-panel" class="backup-menu-panel" hidden>
+              <button id="save-button" type="button">Sincronizar agora</button
+              ><button id="export-button" type="button">Exportar backup</button
+              ><button id="import-button" type="button">Importar backup</button
+              ><button id="copy-backup-button" type="button">
+                Copiar backup</button
+              ><button id="restore-backup-button" type="button">
+                Restaurar texto de backup</button
+              ><button id="restore-date-button" type="button">
+                Restaurar por data
+              </button>
+              <hr />
+              <button id="clear-done-button" type="button">
+                Limpar concluídos</button
+              ><button
+                id="clear-all-button"
+                class="danger-ghost-button"
+                type="button"
+              >
+                Encerrar plantão
+              </button>
             </div>
-          </div>
-          <p class="current-clock">Horário do computador: <strong id="current-clock">--:--</strong></p>
-          <div class="form-actions top-actions">
-            <span class="save-status" id="save-status">Conectando ao Cloudflare</span>
-            <button class="ghost-button session-button" type="button" id="session-button">Sessão</button>
-            <button class="toggle-form-button" type="button" id="toggle-form-button" aria-expanded="true">Fechar cadastro</button>
-            <div class="backup-menu">
-              <button class="ghost-button backup-menu-button" type="button" id="backup-menu-button" aria-expanded="false">Backup</button>
-              <div class="backup-menu-panel" id="backup-menu-panel" hidden>
-                <button class="ghost-button" type="button" id="save-button">Salvar agora</button>
-                <button class="ghost-button" type="button" id="export-button">Exportar</button>
-                <button class="ghost-button" type="button" id="import-button">Importar</button>
-                <button class="ghost-button" type="button" id="copy-backup-button">Copiar backup</button>
-                <button class="ghost-button" type="button" id="restore-backup-button">Restaurar backup</button>
-                <button class="ghost-button" type="button" id="restore-date-button">Restaurar data</button>
-              </div>
-              <input class="backup-file-input" id="import-file-input" type="file" accept="application/json,.json">
-            </div>
-            <button class="ghost-button" type="button" id="clear-done-button">Limpar completos</button>
-            <button class="danger-ghost-button" type="button" id="clear-all-button">Encerrar plantão</button>
+            <input
+              id="import-file-input"
+              type="file"
+              accept="application/json,.json"
+              hidden
+            />
           </div>
         </div>
-        <div class="shift-summary" aria-label="Resumo das pendências">
-          <span><strong id="open-count">0</strong> Pendentes</span>
-          <span><strong id="late-count">0</strong> Completos</span>
-        </div>
-        <a class="home-link" href="Menu.html">Menu</a>
       </section>
-
-      <div class="workspace-layout form-only">
-      <section class="entry-band" aria-labelledby="form-title">
-        <form id="task-form" class="task-form">
-          <div class="form-header">
-            <h2 id="form-title">Nova pendência</h2>
-          </div>
-
-          <div class="form-section">
-            <div class="section-label">
-              <h3>Dados do paciente</h3>
+      <div id="conflict-banner" class="conflict-banner" role="alert" hidden>
+        Há edições diferentes no mesmo item.
+        <button id="review-conflicts" type="button">Revisar alterações</button>
+      </div>
+      <div class="workspace-layout">
+        <section class="cards-workspace">
+          <section class="controls" aria-label="Filtros e busca">
+            <div class="filter-group" aria-label="Status">
+              <button
+                class="filter-button is-active"
+                type="button"
+                data-filter="open"
+                aria-pressed="true"
+              >
+                Em aberto</button
+              ><button
+                class="filter-button"
+                type="button"
+                data-filter="attention"
+                aria-pressed="false"
+              >
+                Atenção <span id="attention-count">0</span></button
+              ><button
+                class="filter-button"
+                type="button"
+                data-filter="done"
+                aria-pressed="false"
+              >
+                Concluídos</button
+              ><button
+                class="filter-button"
+                type="button"
+                data-filter="all"
+                aria-pressed="false"
+              >
+                Todos
+              </button>
             </div>
-            <div class="patient-grid">
-              <label>
-                <span>Paciente</span>
-                <input id="patient-input" name="patient" type="text" placeholder="Paciente ou leito" autocomplete="off" required>
-              </label>
-
-              <label>
-                <span>Hipótese diagnóstica <small>HD</small></span>
-                <input id="diagnosis-input" name="diagnosis" type="text" placeholder="Hipótese diagnóstica">
-              </label>
+            <label class="search-box"
+              ><span class="sr-only">Buscar paciente ou pendência</span
+              ><input
+                id="search-input"
+                type="search"
+                placeholder="Buscar paciente, leito ou pendência…"
+            /></label>
+          </section>
+          <section class="list-area" aria-labelledby="list-title">
+            <div class="list-header">
+              <h2 id="list-title">Pacientes em acompanhamento</h2>
+              <p id="list-context">Prioridades e horários primeiro</p>
             </div>
-          </div>
-
-          <div class="pending-section">
-            <div class="pending-section-header">
-              <h3>Solicitações deste paciente</h3>
-            </div>
-
-            <div id="pending-items" class="pending-items">
-              <article class="pending-item">
-                <div class="pending-item-header">
-                  <strong>Pendência 1</strong>
-                  <label class="inline-type-field">
-                    <span>Tipo</span>
-                    <select name="type">
-                      <option>Exame</option>
-                      <option>Reavalia&ccedil;&atilde;o</option>
-                      <option>Medica&ccedil;&atilde;o</option>
-                      <option>Interconsulta</option>
-                      <option>Alta / transfer&ecirc;ncia</option>
-                      <option>Outro</option>
-                    </select>
-                  </label>
-                  <button class="ghost-button remove-item-button" type="button">Remover</button>
-                </div>
-
-                <label>
-                  <span>Solicitação</span>
-                  <textarea name="task" rows="3" placeholder="Solicitação pendente" required></textarea>
-                </label>
-
-              </article>
-            </div>
-          </div>
-
-          <div class="submit-bar">
-            <button class="ghost-button" type="button" id="add-item-button">Adicionar outra solicitação</button>
-            <button class="primary-button" type="submit">Adicionar Paciente</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="cards-workspace">
-        <section class="controls" aria-label="Filtros e busca">
-          <label class="search-box hidden-search">
-            <span>Buscar</span>
-            <input id="search-input" type="search" placeholder="Paciente, leito, HD, exame ou observação">
-          </label>
-
-          <div class="filter-group" role="tablist" aria-label="Status">
-            <button class="filter-button is-active" type="button" data-filter="open">Pendentes</button>
-            <button class="filter-button" type="button" data-filter="all">Todas</button>
-            <button class="filter-button" type="button" data-filter="done">Completas</button>
-          </div>
+            <div id="task-list" class="task-list"></div>
+            <div id="empty-state" class="empty-state" hidden></div>
+          </section>
         </section>
-
-        <section class="list-area" aria-labelledby="list-title">
-          <div class="list-header">
-            <h2 id="list-title">Pacientes pendentes</h2>
-            <p id="list-context">Cards permanecem até você limpar ou excluir.</p>
-          </div>
-
-          <div id="task-list" class="task-list" aria-live="polite"></div>
-
-          <div id="empty-state" class="empty-state" hidden></div>
-        </section>
-      </section>
-
       </div>
     </main>
-
-    <section class="session-screen" id="session-screen" role="dialog" aria-modal="true" aria-labelledby="session-title">
-      <form class="session-panel" id="session-form">
-        <div class="session-mark" aria-hidden="true">P</div>
-        <p class="session-eyebrow">Pendências online</p>
-        <h2 id="session-title">Acessar uma sessão</h2>
-        <p>Digite uma senha de <strong>1 a 9</strong>. Pessoas que usarem a mesma senha compartilharão as mesmas pendências.</p>
-        <label>
-          <span>Senha da sessão</span>
-          <input id="session-password" name="password" type="password" inputmode="numeric" pattern="[1-9]" maxlength="1" autocomplete="off" required autofocus>
-        </label>
-        <p class="session-error" id="session-error" role="alert"></p>
-        <button class="primary-button" type="submit">Entrar</button>
-        <button class="ghost-button session-cancel-button" type="button" id="session-cancel-button" hidden>Continuar na sessão atual</button>
-      </form>
-    </section>
-
-    <template id="pending-item-template">
-      <article class="pending-item">
-        <div class="pending-item-header">
-          <strong></strong>
-          <label class="inline-type-field">
-            <span>Tipo</span>
-            <select name="type">
-              <option>Exame</option>
-              <option>Reavalia&ccedil;&atilde;o</option>
-              <option>Medica&ccedil;&atilde;o</option>
-              <option>Interconsulta</option>
-              <option>Alta / transfer&ecirc;ncia</option>
-              <option>Outro</option>
-            </select>
-          </label>
-          <button class="ghost-button remove-item-button" type="button">Remover</button>
+    <dialog id="entry-dialog" aria-labelledby="form-title">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">ACOMPANHAMENTO</p>
+          <h2 id="form-title">Adicionar paciente</h2>
         </div>
-
-        <label>
-          <span>Solicitação</span>
-          <textarea name="task" rows="3" placeholder="Solicitação pendente" required></textarea>
+        <button
+          type="button"
+          data-close="entry-dialog"
+          aria-label="Fechar cadastro"
+        >
+          ✕
+        </button>
+      </div>
+      <form id="task-form" class="task-form">
+        <div class="patient-grid">
+          <label
+            ><span>Paciente ou leito</span
+            ><input
+              name="patient"
+              id="patient-input"
+              required
+              maxlength="180"
+              placeholder="Ex.: Leito 04 · identificação" /></label
+          ><label
+            ><span>Contexto / hipótese diagnóstica</span
+            ><input
+              name="diagnosis"
+              maxlength="1000"
+              placeholder="Resumo que ajuda a entender a pendência"
+          /></label>
+        </div>
+        <div class="patient-grid">
+          <label
+            ><span>Próximo passo <small>opcional</small></span
+            ><input
+              name="nextAction"
+              maxlength="1000"
+              placeholder="O que fazer quando a pendência resolver" /></label
+          ><label
+            ><span>Responsável <small>opcional</small></span
+            ><input
+              name="owner"
+              maxlength="180"
+              placeholder="Quem acompanha este paciente"
+          /></label>
+        </div>
+        <details class="extra-fields">
+          <summary>Observações adicionais</summary>
+          <label
+            ><span>Observações para a equipe</span
+            ><textarea name="note" rows="2" maxlength="3000"></textarea>
+          </label>
+        </details>
+        <div id="pending-items" class="pending-items">
+          <article class="pending-item">
+            <div class="pending-item-header">
+              <strong>Pendência</strong
+              ><button class="ghost-button remove-item-button" type="button">
+                Remover
+              </button>
+            </div>
+            <label
+              ><span>Pendência</span
+              ><textarea
+                name="task"
+                rows="2"
+                required
+                maxlength="3000"
+                placeholder="Ex.: Conferir resultado do exame solicitado"
+              ></textarea>
+            </label>
+            <div class="form-grid">
+              <label
+                ><span>Tipo</span
+                ><select name="type">
+                  <option>Exame</option>
+                  <option>Reavaliação</option>
+                  <option>Medicação</option>
+                  <option>Interconsulta</option>
+                  <option>Alta / transferência</option>
+                  <option>Outro</option>
+                </select></label
+              ><label
+                ><span>Rever em <small>opcional</small></span
+                ><input name="dueAt" type="datetime-local" /></label
+              ><label
+                ><span>Prioridade</span
+                ><select name="priority">
+                  <option value="normal">Normal</option>
+                  <option value="high">Priorizar</option>
+                </select></label
+              >
+            </div>
+          </article>
+        </div>
+        <div class="submit-bar">
+          <button id="add-item-button" type="button">+ Outra pendência</button
+          ><button class="primary-button" type="submit">
+            Adicionar paciente
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="session-screen" aria-labelledby="session-title">
+      <form id="session-form" class="session-panel">
+        <div class="session-mark">P</div>
+        <p class="eyebrow">PENDÊNCIAS ONLINE</p>
+        <h2 id="session-title">Seu plantão, em equipe.</h2>
+        <p>A mesma senha abre a mesma sessão em outros dispositivos.</p>
+        <label
+          ><span>Senha da sessão de teste (1 a 9)</span
+          ><input
+            id="session-password"
+            name="password"
+            type="password"
+            inputmode="numeric"
+            pattern="[1-9]"
+            maxlength="1"
+            autocomplete="off"
+            required
+            autofocus
+        /></label>
+        <p class="test-notice">
+          Ambiente de teste com senhas simples. Utilize dados fictícios.
+        </p>
+        <p id="session-error" role="alert"></p>
+        <button class="primary-button" type="submit">Entrar na sessão</button
+        ><button id="session-cancel-button" type="button" hidden>
+          Voltar à sessão atual
+        </button>
+      </form>
+    </dialog>
+    <dialog id="handoff-dialog" aria-labelledby="handoff-title">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">CONTINUIDADE DO CUIDADO</p>
+          <h2 id="handoff-title">Passagem de plantão</h2>
+        </div>
+        <button
+          type="button"
+          data-close="handoff-dialog"
+          aria-label="Fechar passagem"
+        >
+          ✕
+        </button>
+      </div>
+      <p>Selecione os pacientes. Revise o resumo antes de compartilhar.</p>
+      <div id="handoff-selection" class="handoff-selection"></div>
+      <label
+        ><span>Resumo para o colega</span
+        ><textarea id="handoff-text" rows="12"></textarea>
+      </label>
+      <p id="handoff-status" role="status"></p>
+      <div class="submit-bar">
+        <small>Copiar mantém as pendências abertas.</small
+        ><button id="copy-handoff" class="primary-button" type="button">
+          Copiar passagem
+        </button>
+      </div>
+    </dialog>
+    <dialog id="conflict-dialog" aria-labelledby="conflict-title">
+      <div class="dialog-heading">
+        <h2 id="conflict-title">Revisar edições simultâneas</h2>
+        <button
+          type="button"
+          data-close="conflict-dialog"
+          aria-label="Fechar revisão"
+        >
+          ✕
+        </button>
+      </div>
+      <p>
+        O mesmo campo mudou em dois dispositivos. Escolha qual versão deve
+        permanecer. As outras alterações serão preservadas.
+      </p>
+      <form id="conflict-form">
+        <div id="conflict-items"></div>
+        <button class="primary-button" type="submit">
+          Aplicar escolhas e sincronizar
+        </button>
+      </form>
+    </dialog>
+    <template id="pending-item-template"
+      ><article class="pending-item">
+        <div class="pending-item-header">
+          <strong>Pendência</strong
+          ><button class="ghost-button remove-item-button" type="button">
+            Remover
+          </button>
+        </div>
+        <label
+          ><span>Pendência</span
+          ><textarea
+            name="task"
+            rows="2"
+            required
+            maxlength="3000"
+            placeholder="Ex.: Conferir resultado do exame solicitado"
+          ></textarea>
         </label>
-
-      </article>
-    </template>
-
-    <template id="task-template">
-      <article class="task-card">
+        <div class="form-grid">
+          <label
+            ><span>Tipo</span
+            ><select name="type">
+              <option>Exame</option>
+              <option>Reavaliação</option>
+              <option>Medicação</option>
+              <option>Interconsulta</option>
+              <option>Alta / transferência</option>
+              <option>Outro</option>
+            </select></label
+          ><label
+            ><span>Rever em <small>opcional</small></span
+            ><input name="dueAt" type="datetime-local" /></label
+          ><label
+            ><span>Prioridade</span
+            ><select name="priority">
+              <option value="normal">Normal</option>
+              <option value="high">Priorizar</option>
+            </select></label
+          >
+        </div>
+      </article></template
+    >
+    <template id="task-template"
+      ><article class="task-card">
         <div class="task-main">
           <div class="task-title-row">
-            <h3></h3>
-            <span class="created-time"></span>
-            <span class="diagnosis-pill"></span>
+            <div class="patient-heading">
+              <h3></h3>
+              <span class="diagnosis-pill"></span>
+            </div>
+            <span class="created-time" hidden></span>
             <div class="task-actions">
-              <button class="options-button" type="button" aria-expanded="false">Opções</button>
+              <button
+                class="options-button"
+                type="button"
+                aria-expanded="false"
+                aria-label="Ações do paciente"
+              >
+                •••
+              </button>
               <div class="card-options-menu" hidden>
-                <button class="add-subtask-button" type="button">Adicionar pendência</button>
-                <button class="edit-card-button" type="button">Editar paciente</button>
-                <button class="delete-button" type="button" aria-label="Excluir card">Excluir card</button>
+                <button class="add-subtask-button" type="button">
+                  Adicionar pendência</button
+                ><button class="edit-card-button" type="button">
+                  Editar paciente</button
+                ><button
+                  class="delete-button danger-ghost-button"
+                  type="button"
+                >
+                  Excluir paciente
+                </button>
               </div>
             </div>
           </div>
-          <p class="task-description"></p>
+          <p class="task-description" hidden></p>
           <div class="subtask-list"></div>
           <div class="task-meta"></div>
           <p class="task-note"></p>
         </div>
         <form class="card-edit-form" hidden>
           <div class="patient-grid">
-            <label>
-              <span>Paciente</span>
-              <input name="patient" type="text" required>
-            </label>
-            <label>
-              <span>Hipótese diagnóstica <small>HD</small></span>
-              <input name="diagnosis" type="text">
-            </label>
+            <label
+              ><span>Paciente ou leito</span
+              ><input
+                name="patient"
+                required
+                maxlength="180"
+                placeholder="Ex.: Leito 04 · identificação" /></label
+            ><label
+              ><span>Contexto / hipótese diagnóstica</span
+              ><input
+                name="diagnosis"
+                maxlength="1000"
+                placeholder="Resumo que ajuda a entender a pendência"
+            /></label>
           </div>
-          <label>
-            <span>Observação</span>
-            <input name="note" type="text">
-          </label>
+          <div class="patient-grid">
+            <label
+              ><span>Próximo passo <small>opcional</small></span
+              ><input
+                name="nextAction"
+                maxlength="1000"
+                placeholder="O que fazer quando a pendência resolver" /></label
+            ><label
+              ><span>Responsável <small>opcional</small></span
+              ><input
+                name="owner"
+                maxlength="180"
+                placeholder="Quem acompanha este paciente"
+            /></label>
+          </div>
+          <details class="extra-fields">
+            <summary>Observações adicionais</summary>
+            <label
+              ><span>Observações para a equipe</span
+              ><textarea name="note" rows="2" maxlength="3000"></textarea>
+            </label>
+          </details>
           <div class="inline-actions">
-            <button class="primary-button" type="submit">Salvar paciente</button>
-            <button class="ghost-button cancel-card-edit-button" type="button">Cancelar</button>
+            <button class="primary-button" type="submit">Salvar paciente</button
+            ><button class="cancel-card-edit-button" type="button">
+              Cancelar
+            </button>
           </div>
         </form>
         <form class="card-add-form" hidden>
-          <label>
-            <span>Nova solicitação</span>
-            <textarea name="task" rows="2" placeholder="Solicitação pendente" required></textarea>
+          <label
+            ><span>Pendência</span
+            ><textarea
+              name="task"
+              rows="2"
+              required
+              maxlength="3000"
+              placeholder="Ex.: Conferir resultado do exame solicitado"
+            ></textarea>
           </label>
           <div class="form-grid">
-            <label>
-              <span>Tipo</span>
-              <select name="type">
+            <label
+              ><span>Tipo</span
+              ><select name="type">
                 <option>Exame</option>
-                <option>Reavalia&ccedil;&atilde;o</option>
-                <option>Medica&ccedil;&atilde;o</option>
+                <option>Reavaliação</option>
+                <option>Medicação</option>
                 <option>Interconsulta</option>
-                <option>Alta / transfer&ecirc;ncia</option>
+                <option>Alta / transferência</option>
                 <option>Outro</option>
-              </select>
-            </label>
+              </select></label
+            ><label
+              ><span>Rever em <small>opcional</small></span
+              ><input name="dueAt" type="datetime-local" /></label
+            ><label
+              ><span>Prioridade</span
+              ><select name="priority">
+                <option value="normal">Normal</option>
+                <option value="high">Priorizar</option>
+              </select></label
+            >
           </div>
           <div class="inline-actions">
-            <button class="primary-button" type="submit">Salvar pendência</button>
-            <button class="ghost-button cancel-subtask-button" type="button">Cancelar</button>
+            <button class="primary-button" type="submit">
+              Salvar pendência</button
+            ><button class="cancel-subtask-button" type="button">
+              Cancelar
+            </button>
           </div>
         </form>
-      </article>
-    </template>
-
-    <script src="Apps/GPendencias/app.js"></script>
+      </article></template
+    >
+    <script type="module" src="Apps/GPendencias/app.js"></script>
   </body>
 </html>

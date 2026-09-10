@@ -1,10 +1,11 @@
+import { equal, validTasks, mergeTasks } from "./sync-core.mjs";
 const LEGACY_STORAGE_KEY = "pendencias-plantao-v1";
 const BACKUP_INDEX_BASE = "pendencias-plantao-backup-index-v1";
 const BACKUP_PREFIX_BASE = "pendencias-plantao-backup-";
 const BACKUP_VERSION = 1;
 const ACTIVE_SESSION_KEY = "gpendencias-cloudflare-session-v1";
-const MIGRATED_LOCAL_KEY = "gpendencias-cloudflare-local-migrated-v1";
-const API_URL = "https://gpendencias-teste.gustavocarvalho96.workers.dev/api/tasks";
+const API_URL =
+  "https://gpendencias-teste.gustavocarvalho96.workers.dev/api/tasks";
 
 const form = document.querySelector("#task-form");
 const taskList = document.querySelector("#task-list");
@@ -33,7 +34,6 @@ const currentClock = document.querySelector("#current-clock");
 const openCount = document.querySelector("#open-count");
 const lateCount = document.querySelector("#late-count");
 const toggleFormButton = document.querySelector("#toggle-form-button");
-const workspaceLayout = document.querySelector(".workspace-layout");
 const sessionScreen = document.querySelector("#session-screen");
 const sessionForm = document.querySelector("#session-form");
 const sessionPassword = document.querySelector("#session-password");
@@ -41,14 +41,38 @@ const sessionError = document.querySelector("#session-error");
 const sessionButton = document.querySelector("#session-button");
 const sessionCancelButton = document.querySelector("#session-cancel-button");
 
-let activeSession = readRememberedSession();
-let tasks = activeSession ? loadTasks() : [];
+let activeSession = "";
+let tasks = [];
 let activeFilter = "open";
-let saveStatusTimer;
 let cloudSaveTimer;
-let cloudUpdatedAt = 0;
 let cloudSavePending = false;
 let cloudSaveGeneration = 0;
+let cloudRevision = 0;
+let baseTasks = [];
+let syncInFlight = false;
+let syncConflicts = [];
+let connected = false;
+const entryDialog = document.querySelector("#entry-dialog");
+const handoffDialog = document.querySelector("#handoff-dialog");
+const conflictDialog = document.querySelector("#conflict-dialog");
+const clientId =
+  sessionStorage.getItem("gpendencias-client-v2") || crypto.randomUUID();
+sessionStorage.setItem("gpendencias-client-v2", clientId);
+const outboxKey = (session) =>
+  "gpendencias-outbox-v2-" + session + "-" + clientId;
+const fieldNames = {
+  patient: "Paciente",
+  diagnosis: "Contexto",
+  description: "Pendência",
+  note: "Observações",
+  nextAction: "Próximo passo",
+  owner: "Responsável",
+  done: "Conclusão",
+  dueAt: "Horário",
+  priority: "Prioridade",
+  type: "Tipo",
+  "*": "Item completo",
+};
 
 sessionForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -56,18 +80,28 @@ sessionForm?.addEventListener("submit", async (event) => {
   await connectSession(password);
 });
 
-sessionButton?.addEventListener("click", async () => {
-  if (cloudSaveTimer) {
-    clearTimeout(cloudSaveTimer);
-    cloudSaveTimer = undefined;
-    await pushTasksToCloud(activeSession, tasks, cloudSaveGeneration);
+sessionButton?.addEventListener("click", () => {
+  if (syncInFlight || cloudSavePending) {
+    window.alert(
+      "Há alterações aguardando sincronização. Sincronize ou revise os conflitos antes de trocar de sessão.",
+    );
+    return;
   }
   showSessionScreen();
 });
-
 sessionCancelButton?.addEventListener("click", () => {
-  if (activeSession) sessionScreen.hidden = true;
+  if (connected) sessionScreen.close();
 });
+sessionScreen.addEventListener("cancel", (event) => {
+  if (!connected) event.preventDefault();
+});
+document
+  .querySelectorAll("[data-close]")
+  .forEach((button) =>
+    button.addEventListener("click", () =>
+      document.getElementById(button.dataset.close).close(),
+    ),
+  );
 
 form?.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -84,7 +118,7 @@ form?.addEventListener("submit", (event) => {
   saveTasks(`${newTasks.length} pendência(s) salva(s)`);
   form.reset();
   resetPendingItems();
-  document.querySelector("#patient-input").focus();
+  entryDialog.close();
   render();
 });
 
@@ -109,7 +143,10 @@ pendingItems?.addEventListener("click", (event) => {
 filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     activeFilter = button.dataset.filter;
-    filterButtons.forEach((item) => item.classList.toggle("is-active", item === button));
+    filterButtons.forEach((item) => {
+      item.classList.toggle("is-active", item === button);
+      item.setAttribute("aria-pressed", String(item === button));
+    });
     render();
   });
 });
@@ -118,9 +155,15 @@ clearDoneButton?.addEventListener("click", () => {
   const completeGroupIds = new Set(
     groupTasks(tasks)
       .filter((group) => group.tasks.every((task) => task.done))
-      .map((group) => group.id)
+      .map((group) => group.id),
   );
 
+  if (
+    !completeGroupIds.size ||
+    !window.confirm("Remover os pacientes concluídos da sessão compartilhada?")
+  )
+    return;
+  saveDatedBackup();
   tasks = tasks.filter((task) => !completeGroupIds.has(getTaskGroupId(task)));
   saveTasks("Cards completos foram limpos");
   render();
@@ -128,11 +171,12 @@ clearDoneButton?.addEventListener("click", () => {
 
 clearAllButton?.addEventListener("click", () => {
   const confirmed = window.confirm(
-    `Encerrar o plantão e apagar todos os cards da sessão ${activeSession}?`
+    `Encerrar o plantão e apagar todos os cards da sessão ${activeSession}?`,
   );
 
   if (!confirmed) return;
 
+  saveDatedBackup();
   tasks = [];
   saveTasks("Plantão encerrado");
   render();
@@ -140,8 +184,8 @@ clearAllButton?.addEventListener("click", () => {
 
 saveButton?.addEventListener("click", () => {
   closeBackupMenu();
-  saveTasks("Tudo salvo na sessão online");
-  render();
+  if (cloudSavePending) void pushTasksToCloud();
+  else void refreshFromCloud();
 });
 
 exportButton?.addEventListener("click", () => {
@@ -174,7 +218,7 @@ copyBackupButton?.addEventListener("click", async () => {
 
   try {
     await copyText(backupText);
-    showSaveStatus("Backup copiado");
+    updateSyncState();
   } catch {
     window.prompt("Copie o backup abaixo:", backupText);
   }
@@ -182,7 +226,9 @@ copyBackupButton?.addEventListener("click", async () => {
 
 restoreBackupButton?.addEventListener("click", () => {
   closeBackupMenu();
-  const backupText = window.prompt("Cole aqui o backup copiado ou o conteúdo do arquivo JSON:");
+  const backupText = window.prompt(
+    "Cole aqui o backup copiado ou o conteúdo do arquivo JSON:",
+  );
   if (!backupText) return;
 
   restoreBackupText(backupText, "Backup restaurado");
@@ -200,13 +246,16 @@ backupMenuButton?.addEventListener("click", () => {
 });
 
 toggleFormButton?.addEventListener("click", () => {
-  const isClosed = workspaceLayout.classList.toggle("is-form-closed");
-  toggleFormButton.textContent = isClosed ? "Abrir cadastro" : "Fechar cadastro";
-  toggleFormButton.setAttribute("aria-expanded", String(!isClosed));
+  entryDialog.showModal();
+  document.querySelector("#patient-input").focus();
 });
 
 document.addEventListener("click", (event) => {
-  if (backupMenuPanel && !backupMenuPanel.hidden && !event.target.closest(".backup-menu")) {
+  if (
+    backupMenuPanel &&
+    !backupMenuPanel.hidden &&
+    !event.target.closest(".backup-menu")
+  ) {
     closeBackupMenu();
   }
 
@@ -251,7 +300,9 @@ taskList?.addEventListener("click", (event) => {
 
   if (action?.classList.contains("edit-card-button")) {
     const editForm = card.querySelector(".card-edit-form");
-    const groupTasksList = tasks.filter((task) => getTaskGroupId(task) === card.dataset.groupId);
+    const groupTasksList = tasks.filter(
+      (task) => getTaskGroupId(task) === card.dataset.groupId,
+    );
     const mainTask = groupTasksList[0];
 
     if (!mainTask) return;
@@ -259,6 +310,8 @@ taskList?.addEventListener("click", (event) => {
     editForm.elements.patient.value = mainTask.patient || "";
     editForm.elements.diagnosis.value = mainTask.diagnosis || "";
     editForm.elements.note.value = mainTask.note || "";
+    editForm.elements.nextAction.value = mainTask.nextAction || "";
+    editForm.elements.owner.value = mainTask.owner || "";
     editForm.hidden = false;
     closeCardOptionMenus();
     editForm.elements.patient.focus();
@@ -299,6 +352,8 @@ taskList?.addEventListener("click", (event) => {
     });
     editForm.elements.task.value = task.description || "";
     editForm.elements.type.value = task.type || "Exame";
+    editForm.elements.dueAt.value = toLocalInput(task.dueAt);
+    editForm.elements.priority.value = task.priority || "normal";
     editForm.hidden = false;
     subtask.classList.add("is-editing");
     editForm.elements.task.focus();
@@ -316,11 +371,13 @@ taskList?.addEventListener("click", (event) => {
 
   if (action?.classList.contains("delete-subtask-button")) {
     const subtask = action.closest(".subtask-item");
-    const groupTasksList = tasks.filter((task) => getTaskGroupId(task) === card.dataset.groupId);
+    const groupTasksList = tasks.filter(
+      (task) => getTaskGroupId(task) === card.dataset.groupId,
+    );
 
     if (groupTasksList.length === 1) {
       window.alert(
-        "Este card tem apenas uma solicitação. Use Excluir card para apagar o paciente inteiro."
+        "Este card tem apenas uma solicitação. Use Excluir card para apagar o paciente inteiro.",
       );
       return;
     }
@@ -351,10 +408,14 @@ taskList?.addEventListener("click", (event) => {
   }
 
   if (action?.classList.contains("delete-button")) {
-    const confirmed = window.confirm("Excluir este card e todas as solicitações do paciente?");
+    const confirmed = window.confirm(
+      "Excluir este card e todas as solicitações do paciente?",
+    );
     if (!confirmed) return;
 
-    tasks = tasks.filter((item) => getTaskGroupId(item) !== card.dataset.groupId);
+    tasks = tasks.filter(
+      (item) => getTaskGroupId(item) !== card.dataset.groupId,
+    );
     message = "Card removido";
   }
 
@@ -385,7 +446,9 @@ taskList?.addEventListener("submit", (event) => {
         ...task,
         patient,
         diagnosis: clean(data.get("diagnosis")),
-        note: clean(data.get("note"))
+        note: clean(data.get("note")),
+        nextAction: clean(data.get("nextAction")),
+        owner: clean(data.get("owner")),
       };
     });
 
@@ -407,7 +470,9 @@ taskList?.addEventListener("submit", (event) => {
       return {
         ...task,
         description,
-        type: data.get("type")
+        type: data.get("type"),
+        dueAt: readDue(data.get("dueAt")),
+        priority: data.get("priority") || "normal",
       };
     });
 
@@ -416,7 +481,9 @@ taskList?.addEventListener("submit", (event) => {
     return;
   }
 
-  const groupTasksList = tasks.filter((task) => getTaskGroupId(task) === card.dataset.groupId);
+  const groupTasksList = tasks.filter(
+    (task) => getTaskGroupId(task) === card.dataset.groupId,
+  );
   const mainTask = groupTasksList[0];
   const data = new FormData(addForm);
   const description = clean(data.get("task"));
@@ -431,8 +498,12 @@ taskList?.addEventListener("submit", (event) => {
     description,
     type: data.get("type"),
     note: mainTask.note || "",
+    nextAction: mainTask.nextAction || "",
+    owner: mainTask.owner || "",
+    dueAt: readDue(data.get("dueAt")),
+    priority: data.get("priority") || "normal",
     done: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   });
 
   saveTasks("Pendência adicionada ao paciente");
@@ -440,6 +511,11 @@ taskList?.addEventListener("submit", (event) => {
 });
 
 function render() {
+  const focusedTask = document.activeElement?.classList.contains(
+    "subtask-checkbox",
+  )
+    ? document.activeElement.dataset.taskId
+    : null;
   updateCounters();
   updateListCopy();
 
@@ -453,10 +529,12 @@ function render() {
   visibleGroups.forEach((group) => {
     const mainTask = group.tasks[0];
     const isComplete = group.tasks.every((task) => task.done);
-    const isPartiallyDone = group.tasks.some((task) => task.done) && !isComplete;
+    const isPartiallyDone =
+      group.tasks.some((task) => task.done) && !isComplete;
     const card = template.content.firstElementChild.cloneNode(true);
     card.dataset.groupId = group.id;
     card.classList.toggle("is-done", isComplete);
+    card.classList.toggle("needs-attention", group.tasks.some(needsAttention));
     card.classList.toggle("is-partial", isPartiallyDone);
 
     card.querySelector("h3").textContent = mainTask.patient;
@@ -470,13 +548,31 @@ function render() {
     if (mainTask.diagnosis) {
       const hdSpan = document.createElement("span");
       hdSpan.className = "diagnosis-hd";
-      hdSpan.textContent = `HD: ${mainTask.diagnosis}`;
+      hdSpan.textContent = mainTask.diagnosis;
       diagnosisPill.append(hdSpan);
     }
-    diagnosisPill.hidden = false;
+    diagnosisPill.hidden = !mainTask.diagnosis;
     card.querySelector(".task-description").hidden = true;
-    card.querySelector(".subtask-list").replaceChildren(...buildSubtasks(group.tasks));
-    card.querySelector(".task-meta").replaceChildren();
+    card
+      .querySelector(".subtask-list")
+      .replaceChildren(...buildSubtasks(group.tasks));
+    const meta = card.querySelector(".task-meta");
+    const count = document.createElement("span");
+    count.textContent = isComplete
+      ? "Todas concluídas"
+      : group.tasks.filter((t) => !t.done).length + " em aberto";
+    meta.append(count);
+    if (mainTask.owner) {
+      const owner = document.createElement("span");
+      owner.textContent = "Responsável: " + mainTask.owner;
+      meta.append(owner);
+    }
+    if (mainTask.nextAction) {
+      const next = document.createElement("span");
+      next.className = "next-action";
+      next.textContent = "Próximo passo → " + mainTask.nextAction;
+      meta.append(next);
+    }
 
     const note = card.querySelector(".task-note");
     note.textContent = mainTask.note ? `Obs.: ${mainTask.note}` : "";
@@ -484,6 +580,10 @@ function render() {
 
     taskList.append(card);
   });
+  if (focusedTask)
+    [...taskList.querySelectorAll(".subtask-checkbox")]
+      .find((input) => input.dataset.taskId === focusedTask)
+      ?.focus({ preventScroll: true });
 }
 
 function getPendingItemData(patient, diagnosis, note) {
@@ -499,8 +599,12 @@ function getPendingItemData(patient, diagnosis, note) {
       description: clean(item.querySelector('[name="task"]').value),
       type: item.querySelector('[name="type"]').value,
       note,
+      nextAction: clean(form.elements.nextAction.value),
+      owner: clean(form.elements.owner.value),
+      dueAt: readDue(item.querySelector('[name="dueAt"]').value),
+      priority: item.querySelector('[name="priority"]').value,
       done: false,
-      createdAt: new Date(now + index).toISOString()
+      createdAt: new Date(now + index).toISOString(),
     }))
     .filter((task) => task.patient && task.description);
 }
@@ -536,11 +640,21 @@ function getVisibleGroups() {
       const haystack = normalize(
         group.tasks
           .map((task) =>
-            [task.patient, task.diagnosis, task.description, task.type, task.note].join(" ")
+            [
+              task.patient,
+              task.diagnosis,
+              task.description,
+              task.type,
+              task.note,
+              task.nextAction,
+              task.owner,
+            ].join(" "),
           )
-          .join(" ")
+          .join(" "),
       );
 
+      if (activeFilter === "attention" && !group.tasks.some(needsAttention))
+        return false;
       if (activeFilter === "done" && !isComplete) return false;
       if (activeFilter === "open" && isComplete) return false;
       return haystack.includes(query);
@@ -556,7 +670,7 @@ function groupTasks(taskItems) {
     if (!groups.has(groupId)) {
       groups.set(groupId, {
         id: groupId,
-        tasks: []
+        tasks: [],
       });
     }
 
@@ -576,7 +690,25 @@ function sortGroups(a, b) {
 
   if (aComplete !== bComplete) return aComplete ? 1 : -1;
 
-  return new Date(b.tasks[0].createdAt) - new Date(a.tasks[0].createdAt);
+  const score = (group) =>
+    group.tasks.some((t) => !t.done && t.priority === "high")
+      ? 0
+      : group.tasks.some(isOverdue)
+        ? 1
+        : 2;
+  const due = (group) =>
+    Math.min(
+      ...group.tasks
+        .filter((t) => !t.done && t.dueAt)
+        .map((t) => new Date(t.dueAt).getTime()),
+      Infinity,
+    );
+  return (
+    score(a) - score(b) ||
+    due(a) - due(b) ||
+    0 ||
+    new Date(a.tasks[0].createdAt) - new Date(b.tasks[0].createdAt)
+  );
 }
 
 function sortTasks(a, b) {
@@ -587,23 +719,53 @@ function sortTasks(a, b) {
 function updateCounters() {
   const openTasks = tasks.filter((task) => !task.done);
   const completeGroups = groupTasks(tasks).filter((group) =>
-    group.tasks.every((task) => task.done)
+    group.tasks.every((task) => task.done),
   );
   openCount.textContent = openTasks.length;
   lateCount.textContent = completeGroups.length;
+  document.querySelector("#patient-count").textContent =
+    groupTasks(tasks).length - completeGroups.length;
+  document.querySelector("#attention-count").textContent = groupTasks(
+    tasks,
+  ).filter((g) => g.tasks.some(needsAttention)).length;
 }
 
 function updateListCopy() {
   if (!listTitle || !listContext) return;
 
   const copy = {
-    open: ["Pacientes pendentes", ""],
+    open: ["Pacientes em acompanhamento", "Prioridades e horários primeiro"],
+    attention: [
+      "Pacientes que pedem atenção",
+      "Prioridade marcada ou horário atingido",
+    ],
     all: ["Todas as pendências", ""],
-    done: ["Pacientes completos", ""]
+    done: ["Pacientes completos", ""],
   };
 
   listTitle.textContent = copy[activeFilter][0];
   listContext.textContent = copy[activeFilter][1];
+  emptyState.replaceChildren();
+  const title = document.createElement("strong");
+  title.textContent = searchInput.value
+    ? "Nenhum resultado"
+    : activeFilter === "attention"
+      ? "Nenhuma atenção sinalizada"
+      : activeFilter === "done"
+        ? "Nenhum paciente concluído"
+        : "Tudo em dia por aqui.";
+  const subtitle = document.createElement("p");
+  subtitle.textContent = searchInput.value
+    ? "Tente outro nome, leito ou termo."
+    : "Cadastre um paciente para acompanhar as próximas ações do plantão.";
+  emptyState.append(title, subtitle);
+  if (!tasks.length) {
+    const button = document.createElement("button");
+    button.textContent = "+ Adicionar primeiro paciente";
+    button.className = "primary-button";
+    button.onclick = () => toggleFormButton.click();
+    emptyState.append(button);
+  }
 }
 
 function buildSubtasks(taskItems) {
@@ -615,7 +777,7 @@ function buildSubtasks(taskItems) {
     const row = document.createElement("div");
     row.className = "subtask-row";
 
-    const checkWrapper = document.createElement("div");
+    const checkWrapper = document.createElement("label");
     checkWrapper.className = "subtask-check";
     checkWrapper.classList.toggle("is-checked", task.done);
 
@@ -626,7 +788,7 @@ function buildSubtasks(taskItems) {
     checkbox.dataset.taskId = task.id;
     checkbox.setAttribute(
       "aria-label",
-      task.done ? "Pendência feita" : "Marcar pendência como feita"
+      (task.done ? "Reabrir: " : "Concluir: ") + task.description,
     );
 
     const content = document.createElement("span");
@@ -636,7 +798,17 @@ function buildSubtasks(taskItems) {
     description.textContent = task.description;
 
     const details = document.createElement("small");
-    details.textContent = `${task.type} · ${formatTime(task.createdAt)}`;
+    details.textContent = [
+      task.type,
+      !task.done && task.priority === "high" ? "Priorizar" : "",
+      task.dueAt
+        ? (isOverdue(task) ? "Horário atingido · " : "Rever · ") +
+          formatDue(task.dueAt)
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    details.classList.toggle("due-late", needsAttention(task));
 
     content.append(description, details);
     checkWrapper.append(checkbox, content);
@@ -677,6 +849,8 @@ function buildSubtasks(taskItems) {
             <option>Outro</option>
           </select>
         </label>
+        <label><span>Rever em</span><input name="dueAt" type="datetime-local"></label>
+        <label><span>Prioridade</span><select name="priority"><option value="normal">Normal</option><option value="high">Priorizar</option></select></label>
       </div>
       <div class="inline-actions">
         <button class="primary-button" type="submit">Salvar</button>
@@ -686,19 +860,6 @@ function buildSubtasks(taskItems) {
 
     item.append(row, editForm);
     return item;
-  });
-}
-
-function buildGroupMeta(taskItems) {
-  const total = taskItems.length;
-  const done = taskItems.filter((task) => task.done).length;
-  const open = total - done;
-  const parts = [`${done}/${total} itens feitos`, open ? `${open} faltando` : "Completo"];
-
-  return parts.map((text) => {
-    const span = document.createElement("span");
-    span.textContent = text;
-    return span;
   });
 }
 
@@ -714,7 +875,7 @@ function formatTime(value) {
 
   return date.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   });
 }
 
@@ -729,13 +890,10 @@ function normalize(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function readRememberedSession() {
-  const value = localStorage.getItem(ACTIVE_SESSION_KEY) || "";
-  return /^[1-9]$/.test(value) ? value : "";
-}
-
 function sessionStorageKey(session = activeSession) {
-  return session ? `${LEGACY_STORAGE_KEY}-sessao-${session}` : LEGACY_STORAGE_KEY;
+  return session
+    ? `${LEGACY_STORAGE_KEY}-sessao-${session}`
+    : LEGACY_STORAGE_KEY;
 }
 
 function backupIndexKey(session = activeSession) {
@@ -743,168 +901,241 @@ function backupIndexKey(session = activeSession) {
 }
 
 function backupPrefix(session = activeSession) {
-  return session ? `${BACKUP_PREFIX_BASE}sessao-${session}-` : BACKUP_PREFIX_BASE;
+  return session
+    ? `${BACKUP_PREFIX_BASE}sessao-${session}-`
+    : BACKUP_PREFIX_BASE;
 }
 
-function readTasksFromKey(key) {
+function persistState() {
   try {
-    const storedTasks = JSON.parse(localStorage.getItem(key));
-    return Array.isArray(storedTasks) ? storedTasks : [];
+    // Keep base and local edits together so retries can distinguish changes from old cache.
+    if (cloudSavePending)
+      localStorage.setItem(
+        outboxKey(activeSession),
+        JSON.stringify({
+          base: baseTasks,
+          tasks,
+          revision: cloudRevision,
+          conflicts: syncConflicts,
+        }),
+      );
+    else localStorage.removeItem(outboxKey(activeSession));
+    localStorage.setItem(sessionStorageKey(), JSON.stringify(tasks));
+    return true;
   } catch {
-    return [];
+    showSaveStatus(
+      "Armazenamento local indisponível. Mantenha esta aba aberta até sincronizar.",
+    );
+    return false;
   }
 }
 
-function loadTasks() {
-  return readTasksFromKey(sessionStorageKey());
-}
-
-function saveTasks(message = "Alteração salva") {
-  localStorage.setItem(sessionStorageKey(), JSON.stringify(tasks));
+function saveTasks() {
+  cloudSavePending = true;
+  cloudSaveGeneration++;
+  const stored = persistState();
   saveDatedBackup();
-  queueCloudSave(message);
+  if (stored) showSaveStatus("Salvando alterações…");
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(() => void pushTasksToCloud(), 350);
 }
 
 async function sessionRequest(session, options = {}) {
   const headers = new Headers(options.headers);
   headers.set("Authorization", `Bearer ${session}`);
-  return fetch(API_URL, { ...options, headers });
+  return fetch(API_URL, {
+    ...options,
+    headers,
+    signal: AbortSignal.timeout(15000),
+    cache: "no-store",
+  });
 }
 
-async function connectSession(password, { automatic = false } = {}) {
+async function connectSession(password) {
   if (!/^[1-9]$/.test(password)) {
-    sessionError.textContent = "Digite somente um número de 1 a 9.";
+    sessionError.textContent = "Digite um número de 1 a 9.";
     return false;
   }
-
-  const submitButton = sessionForm?.querySelector('button[type="submit"]');
-  if (submitButton) submitButton.disabled = true;
-  sessionError.textContent = "Conectando...";
-
+  const submit = sessionForm.querySelector('[type="submit"]');
+  submit.disabled = true;
+  sessionError.textContent = "Conectando…";
   try {
     const response = await sessionRequest(password);
-    if (!response.ok) throw new Error("Não foi possível acessar esta sessão.");
+    if (!response.ok)
+      throw new Error("Não foi possível acessar esta sessão. Tente novamente.");
     const data = await response.json();
-    const remoteTasks = Array.isArray(data.tasks) ? data.tasks : [];
-    const savedForSession = readTasksFromKey(sessionStorageKey(password));
-    const legacyTasks = readTasksFromKey(LEGACY_STORAGE_KEY);
-    let nextTasks = remoteTasks;
-    let uploadLocalTasks = false;
-
-    if (remoteTasks.length === 0 && savedForSession.length > 0) {
-      nextTasks = savedForSession;
-      uploadLocalTasks = true;
-    } else if (
-      remoteTasks.length === 0 &&
-      legacyTasks.length > 0 &&
-      localStorage.getItem(MIGRATED_LOCAL_KEY) !== "true"
-    ) {
-      const migrate = window.confirm(
-        `Existem ${legacyTasks.length} pendência(s) salvas neste computador. Deseja enviá-las para a sessão ${password}?`
+    if (!validTasks(data.tasks))
+      throw new Error(
+        "Dados da sessão inválidos. Nenhuma alteração foi feita.",
       );
-      localStorage.setItem(MIGRATED_LOCAL_KEY, "true");
-      if (migrate) {
-        nextTasks = legacyTasks;
-        uploadLocalTasks = true;
-      }
+    let pending;
+    try {
+      pending = JSON.parse(localStorage.getItem(outboxKey(password)));
+    } catch {
+      /* no valid outbox */
     }
-
     activeSession = password;
-    tasks = nextTasks;
+    connected = true;
+    baseTasks = structuredClone(data.tasks);
+    tasks = structuredClone(data.tasks);
+    cloudRevision = data.revision;
+    syncConflicts = [];
     cloudSavePending = false;
-    cloudSaveGeneration += 1;
-    cloudUpdatedAt = Number(data.updatedAt || 0);
-    localStorage.setItem(ACTIVE_SESSION_KEY, password);
-    localStorage.setItem(sessionStorageKey(), JSON.stringify(tasks));
-    sessionButton.textContent = `Sessão ${password}`;
-    sessionScreen.hidden = true;
-    sessionForm.reset();
-    render();
-
-    if (uploadLocalTasks) {
-      cloudSavePending = true;
-      await pushTasksToCloud(password, tasks, cloudSaveGeneration);
-    } else {
-      showSaveStatus(`Sessão ${password} sincronizada`);
+    if (pending && validTasks(pending.tasks) && validTasks(pending.base)) {
+      const merged = mergeTasks(pending.base, pending.tasks, data.tasks);
+      tasks = merged.tasks;
+      // Previously flagged conflicts remain explicit until the user resolves them.
+      syncConflicts = [...merged.conflicts];
+      for (const previous of pending.conflicts || []) {
+        if (
+          !syncConflicts.some(
+            (c) => c.id === previous.id && c.field === previous.field,
+          )
+        ) {
+          const remote = data.tasks.find((t) => t.id === previous.id);
+          syncConflicts.push({
+            ...previous,
+            remote: previous.field === "*" ? remote : remote?.[previous.field],
+          });
+        }
+      }
+      cloudSavePending = !equal(tasks, baseTasks) || syncConflicts.length > 0;
     }
+    localStorage.setItem(ACTIVE_SESSION_KEY, password);
+    persistState();
+    sessionButton.textContent = "Sessão " + password;
+    sessionScreen.close();
+    sessionForm.reset();
+    form.reset();
+    resetPendingItems();
+    searchInput.value = "";
+    render();
+    updateSyncState();
+    if (cloudSavePending && !syncConflicts.length) void pushTasksToCloud();
     return true;
   } catch (error) {
-    sessionError.textContent = navigator.onLine
-      ? error.message
-      : "Sem conexão com a internet.";
-    if (automatic) localStorage.removeItem(ACTIVE_SESSION_KEY);
+    sessionError.textContent = error.message || "Sem conexão. Tente novamente.";
     return false;
   } finally {
-    if (submitButton) submitButton.disabled = false;
+    submit.disabled = false;
   }
 }
 
 function showSessionScreen() {
   sessionError.textContent = "";
   sessionPassword.value = "";
-  sessionCancelButton.hidden = !activeSession;
-  sessionScreen.hidden = false;
-  window.setTimeout(() => sessionPassword.focus(), 0);
+  sessionCancelButton.hidden = !connected;
+  if (!sessionScreen.open) sessionScreen.showModal();
+  sessionPassword.focus();
 }
 
-function queueCloudSave(message) {
-  if (!activeSession) {
-    showSaveStatus("Salvo localmente; selecione uma sessão");
-    return;
-  }
-  clearTimeout(cloudSaveTimer);
-  cloudSavePending = true;
-  const generation = ++cloudSaveGeneration;
-  showSaveStatus(`${message}. Salvando sessão ${activeSession}...`, { persistent: true });
-  const session = activeSession;
-  const snapshot = structuredClone(tasks);
-  cloudSaveTimer = window.setTimeout(() => {
-    cloudSaveTimer = undefined;
-    pushTasksToCloud(session, snapshot, generation);
-  }, 500);
+function updateSyncState(message) {
+  document.querySelector("#conflict-banner").hidden = !syncConflicts.length;
+  document.querySelector("#retry-sync").hidden =
+    !cloudSavePending || !!syncConflicts.length || syncInFlight;
+  showSaveStatus(
+    message ||
+      (syncConflicts.length
+        ? "Edições aguardando revisão"
+        : cloudSavePending
+          ? "Alterações aguardando envio"
+          : "Sincronizado"),
+  );
 }
 
-async function pushTasksToCloud(session, snapshot, generation = cloudSaveGeneration) {
-  if (!session) return false;
-  try {
-    const response = await sessionRequest(session, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tasks: snapshot })
-    });
-    if (!response.ok) throw new Error("Falha ao salvar");
-    const data = await response.json();
-    if (session === activeSession && generation === cloudSaveGeneration) {
-      cloudUpdatedAt = Number(data.updatedAt || Date.now());
-      cloudSavePending = false;
-      showSaveStatus(`Sessão ${session} sincronizada`);
-    }
-    return true;
-  } catch {
-    if (session === activeSession && generation === cloudSaveGeneration) {
-      cloudSavePending = false;
-      showSaveStatus("Falha na sincronização; cópia local preservada", { persistent: true });
-    }
+async function pushTasksToCloud() {
+  if (!connected || syncInFlight || syncConflicts.length || !cloudSavePending)
     return false;
+  syncInFlight = true;
+  const session = activeSession;
+  updateSyncState("Sincronizando…");
+  try {
+    // Serialize writes. A stale revision can never replace newer server state.
+    for (let attempt = 0; attempt < 5 && cloudSavePending; attempt++) {
+      const snapshot = structuredClone(tasks);
+      const response = await sessionRequest(session, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tasks: snapshot, revision: cloudRevision }),
+      });
+      const data = await response.json();
+      if (response.status === 409 && validTasks(data.tasks)) {
+        const merged = mergeTasks(baseTasks, tasks, data.tasks);
+        baseTasks = structuredClone(data.tasks);
+        cloudRevision = data.revision;
+        tasks = merged.tasks;
+        syncConflicts = merged.conflicts;
+        cloudSavePending = !equal(tasks, baseTasks) || syncConflicts.length > 0;
+        persistState();
+        if (!isEditing()) render();
+        if (syncConflicts.length) break;
+        continue;
+      }
+      if (!response.ok)
+        throw new Error(data.error || "Não foi possível salvar.");
+      baseTasks = snapshot;
+      cloudRevision = data.revision;
+      cloudSavePending = !equal(tasks, baseTasks);
+      persistState();
+    }
+    updateSyncState();
+    return !cloudSavePending;
+  } catch (error) {
+    // Never clear pending changes on a network error; the next cycle retries the outbox.
+    persistState();
+    updateSyncState(
+      navigator.onLine
+        ? "Falha no envio. Alterações aguardando nova tentativa."
+        : "Sem conexão · alterações aguardando envio",
+    );
+    return false;
+  } finally {
+    syncInFlight = false;
+    document.querySelector("#retry-sync").hidden =
+      !cloudSavePending || !!syncConflicts.length;
   }
+}
+
+function isEditing() {
+  return !!document.querySelector(
+    "dialog[open], .card-edit-form:not([hidden]), .card-add-form:not([hidden]), .subtask-edit-form:not([hidden])",
+  );
 }
 
 async function refreshFromCloud() {
-  if (!activeSession || cloudSavePending || document.hidden) return;
-  const session = activeSession;
+  if (
+    !connected ||
+    cloudSavePending ||
+    syncInFlight ||
+    document.hidden ||
+    isEditing()
+  )
+    return;
+  const session = activeSession,
+    generation = cloudSaveGeneration;
   try {
     const response = await sessionRequest(session);
-    if (!response.ok) return;
+    if (!response.ok) throw new Error("refresh");
     const data = await response.json();
-    const updatedAt = Number(data.updatedAt || 0);
-    if (session !== activeSession || updatedAt <= cloudUpdatedAt) return;
-    tasks = Array.isArray(data.tasks) ? data.tasks : [];
-    cloudUpdatedAt = updatedAt;
-    localStorage.setItem(sessionStorageKey(), JSON.stringify(tasks));
-    render();
-    showSaveStatus(`Sessão ${session} atualizada`);
+    if (
+      session !== activeSession ||
+      generation !== cloudSaveGeneration ||
+      cloudSavePending ||
+      isEditing()
+    )
+      return;
+    if (!validTasks(data.tasks)) throw new Error("invalid");
+    if (data.revision > cloudRevision) {
+      tasks = structuredClone(data.tasks);
+      baseTasks = structuredClone(data.tasks);
+      cloudRevision = data.revision;
+      persistState();
+      render();
+    }
+    updateSyncState();
   } catch {
-    // O próximo ciclo tentará novamente; a cópia local continua disponível.
+    if (!cloudSavePending)
+      showSaveStatus("Sem atualização recente · verificando conexão");
   }
 }
 
@@ -913,7 +1144,7 @@ function createBackupPayload() {
     app: "GPendencias",
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    tasks
+    tasks,
   };
 }
 
@@ -932,7 +1163,7 @@ function exportBackupFile() {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  showSaveStatus("Backup exportado");
+  updateSyncState();
 }
 
 function restoreBackupText(text, message) {
@@ -942,22 +1173,27 @@ function restoreBackupText(text, message) {
     payload = JSON.parse(text);
   } catch {
     window.alert(
-      "Backup inválido. Cole o texto completo do backup ou importe um arquivo JSON válido."
+      "Backup inválido. Cole o texto completo do backup ou importe um arquivo JSON válido.",
     );
     return;
   }
 
+  if (syncConflicts.length) {
+    window.alert("Revise as edições simultâneas antes de restaurar um backup.");
+    return;
+  }
   const restoredTasks = Array.isArray(payload) ? payload : payload?.tasks;
-  if (!Array.isArray(restoredTasks)) {
+  if (!validTasks(restoredTasks)) {
     window.alert("Backup inválido. Não encontrei a lista de cards.");
     return;
   }
 
   const confirmed = window.confirm(
-    "Restaurar este backup vai substituir os cards atuais neste navegador. Continuar?"
+    `Restaurar este backup vai substituir as pendências da sessão ${activeSession} para todas as pessoas. Continuar?`,
   );
   if (!confirmed) return;
 
+  saveDatedBackup();
   tasks = restoredTasks;
   saveTasks(message);
   render();
@@ -999,7 +1235,9 @@ function restoreDatedBackup() {
     return;
   }
 
-  const selectedDate = window.prompt(`Digite a data para restaurar:\n\n${dates.join("\n")}`);
+  const selectedDate = window.prompt(
+    `Digite a data para restaurar:\n\n${dates.join("\n")}`,
+  );
   if (!selectedDate) return;
 
   const dateKey = selectedDate.trim();
@@ -1056,31 +1294,258 @@ function todayKey() {
   return `${year}-${month}-${day}`;
 }
 
-function showSaveStatus(message, { persistent = false } = {}) {
-  if (!saveStatus) return;
-
+function showSaveStatus(message) {
   saveStatus.textContent = message;
-  saveStatus.classList.add("is-fresh");
-
-  clearTimeout(saveStatusTimer);
-  if (!persistent) {
-    saveStatusTimer = setTimeout(() => {
-      saveStatus.textContent = activeSession
-        ? `Sessão ${activeSession} sincronizada`
-        : "Selecione uma sessão";
-      saveStatus.classList.remove("is-fresh");
-    }, 1800);
-  }
 }
+
+function readDue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
+}
+function toLocalInput(value) {
+  if (!value || Number.isNaN(new Date(value).getTime())) return "";
+  const d = new Date(value);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
+function formatDue(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return (
+    date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) +
+    " às " +
+    formatTime(date)
+  );
+}
+function isOverdue(task) {
+  return (
+    !task.done && !!task.dueAt && new Date(task.dueAt).getTime() <= Date.now()
+  );
+}
+function needsAttention(task) {
+  return !task.done && (task.priority === "high" || isOverdue(task));
+}
+
+document
+  .querySelector("#retry-sync")
+  .addEventListener("click", () => void pushTasksToCloud());
+document.querySelector("#handoff-button").addEventListener("click", () => {
+  const selection = document.querySelector("#handoff-selection");
+  selection.replaceChildren();
+  for (const group of groupTasks(tasks)
+    .filter((g) => g.tasks.some((t) => !t.done))
+    .sort(sortGroups)) {
+    const label = document.createElement("label"),
+      check = document.createElement("input");
+    check.type = "checkbox";
+    check.value = group.id;
+    check.checked = true;
+    label.append(check, document.createTextNode(group.tasks[0].patient));
+    selection.append(label);
+  }
+  document.querySelector("#handoff-status").textContent = cloudSavePending
+    ? "Há alterações ainda não sincronizadas. Este resumo reflete esta tela."
+    : "";
+  buildHandoff();
+  handoffDialog.showModal();
+});
+document
+  .querySelector("#handoff-selection")
+  .addEventListener("change", buildHandoff);
+function buildHandoff() {
+  const selected = new Set(
+    [...document.querySelectorAll("#handoff-selection input:checked")].map(
+      (i) => i.value,
+    ),
+  );
+  const groups = groupTasks(tasks)
+    .filter((g) => selected.has(g.id))
+    .sort(sortGroups);
+  const lines = [
+    "PASSAGEM DE PLANTÃO · Sessão " + activeSession,
+    new Date().toLocaleString("pt-BR"),
+    "",
+  ];
+  for (const group of groups) {
+    const patient = group.tasks[0];
+    lines.push(patient.patient);
+    if (patient.diagnosis) lines.push("Contexto: " + patient.diagnosis);
+    for (const task of group.tasks.filter((t) => !t.done).sort(sortTasks)) {
+      lines.push(
+        "• " +
+          task.description +
+          (task.priority === "high" ? " [Priorizar]" : "") +
+          (task.dueAt ? " — rever " + formatDue(task.dueAt) : ""),
+      );
+    }
+    if (patient.nextAction) lines.push("Próximo passo: " + patient.nextAction);
+    if (patient.owner) lines.push("Responsável: " + patient.owner);
+    if (patient.note) lines.push("Observações: " + patient.note);
+    lines.push("");
+  }
+  document.querySelector("#handoff-text").value = groups.length
+    ? lines.join("\n").trim()
+    : "";
+  document.querySelector("#copy-handoff").disabled = !groups.length;
+}
+document.querySelector("#copy-handoff").addEventListener("click", async () => {
+  try {
+    await copyText(document.querySelector("#handoff-text").value);
+    document.querySelector("#handoff-status").textContent =
+      "Passagem copiada. As pendências continuam abertas.";
+  } catch {
+    document.querySelector("#handoff-text").select();
+    document.querySelector("#handoff-status").textContent =
+      "Selecione e copie o texto manualmente.";
+  }
+});
+
+document.querySelector("#review-conflicts").addEventListener("click", () => {
+  const container = document.querySelector("#conflict-items");
+  container.replaceChildren();
+  syncConflicts.forEach((conflict, index) => {
+    const item = document.createElement("fieldset");
+    item.className = "conflict-item";
+    const title = document.createElement("legend");
+    title.textContent =
+      (conflict.patient ||
+        conflict.local?.patient ||
+        conflict.remote?.patient ||
+        "Paciente") +
+      " · " +
+      (fieldNames[conflict.field] || conflict.field);
+    item.append(title);
+    for (const side of ["local", "remote"]) {
+      const label = document.createElement("label"),
+        radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "conflict-" + index;
+      radio.value = side;
+      radio.required = true;
+      const task = tasks.find((t) => t.id === conflict.id);
+      const value =
+        side === "local"
+          ? conflict.field === "*"
+            ? task
+            : task?.[conflict.field]
+          : conflict.remote;
+      const text =
+        value === undefined
+          ? "Excluído"
+          : typeof value === "object"
+            ? JSON.stringify(value, null, 2)
+            : typeof value === "boolean"
+              ? value
+                ? "Concluída"
+                : "Em aberto"
+              : String(value);
+      label.append(
+        radio,
+        document.createTextNode(
+          (side === "local" ? "Sua edição: " : "Online: ") + text,
+        ),
+      );
+      item.append(label);
+    }
+    container.append(item);
+  });
+  conflictDialog.showModal();
+});
+document.querySelector("#conflict-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const data = new FormData(event.target);
+  syncConflicts.forEach((conflict, index) => {
+    if (data.get("conflict-" + index) !== "remote") return;
+    if (conflict.field === "*") {
+      tasks = tasks.filter((t) => t.id !== conflict.id);
+      if (conflict.remote) tasks.push(conflict.remote);
+    } else {
+      const task = tasks.find((t) => t.id === conflict.id);
+      if (task) {
+        if (conflict.remote === undefined) delete task[conflict.field];
+        else task[conflict.field] = conflict.remote;
+      }
+    }
+  });
+  syncConflicts = [];
+  conflictDialog.close();
+  saveTasks();
+  render();
+  updateSyncState();
+});
 
 updatePendingItemControls();
 updateClock();
-setInterval(updateClock, 30000);
-saveDatedBackup();
+setInterval(() => {
+  updateClock();
+  if (!isEditing() && connected) render();
+}, 30000);
 render();
-if (activeSession) {
-  connectSession(activeSession, { automatic: true });
-} else {
-  showSessionScreen();
-}
-setInterval(refreshFromCloud, 12000);
+showSessionScreen();
+// Opening the page always requires an explicit session choice.
+setInterval(() => {
+  if (cloudSavePending) void pushTasksToCloud();
+  else void refreshFromCloud();
+}, 12000);
+window.addEventListener("online", () => {
+  if (cloudSavePending) void pushTasksToCloud();
+  else void refreshFromCloud();
+});
+window.addEventListener("beforeunload", (event) => {
+  if (cloudSavePending) {
+    event.preventDefault();
+    event.returnValue = "";
+  }
+});
+
+const recoveryButton = document.createElement("button");
+recoveryButton.type = "button";
+recoveryButton.textContent = "Recuperar alterações locais";
+backupMenuPanel.insertBefore(recoveryButton, backupMenuPanel.firstChild);
+recoveryButton.addEventListener("click", () => {
+  closeBackupMenu();
+  if (cloudSavePending || syncInFlight) {
+    window.alert("Sincronize as alterações desta aba primeiro.");
+    return;
+  }
+  const prefix = "gpendencias-outbox-v2-" + activeSession;
+  const candidates = Object.keys(localStorage).filter(
+    (key) =>
+      (key === prefix || key.startsWith(prefix + "-")) &&
+      key !== outboxKey(activeSession),
+  );
+  if (!candidates.length) {
+    window.alert("Não há alterações locais de outras abas para recuperar.");
+    return;
+  }
+  if (
+    !window.confirm(
+      "Recuperar alterações não enviadas de outras abas desta sessão? Feche as outras abas antes de continuar.",
+    )
+  )
+    return;
+  const recovered = [];
+  for (const key of candidates) {
+    try {
+      const raw = localStorage.getItem(key),
+        pending = JSON.parse(raw);
+      if (!validTasks(pending?.base) || !validTasks(pending?.tasks)) continue;
+      const merged = mergeTasks(pending.base, pending.tasks, tasks);
+      tasks = merged.tasks;
+      syncConflicts.push(...merged.conflicts, ...(pending.conflicts || []));
+      recovered.push([key, raw]);
+    } catch {
+      /* Invalid outboxes are preserved for manual export. */
+    }
+  }
+  cloudSavePending = true;
+  if (persistState())
+    for (const [key, raw] of recovered) {
+      if (localStorage.getItem(key) === raw) localStorage.removeItem(key);
+    }
+  saveTasks();
+  render();
+  updateSyncState();
+});
