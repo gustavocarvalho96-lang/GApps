@@ -39,6 +39,7 @@ const sessionForm = document.querySelector("#session-form");
 const sessionPassword = document.querySelector("#session-password");
 const sessionError = document.querySelector("#session-error");
 const sessionButton = document.querySelector("#session-button");
+const sessionCancelButton = document.querySelector("#session-cancel-button");
 
 let activeSession = readRememberedSession();
 let tasks = activeSession ? loadTasks() : [];
@@ -47,6 +48,7 @@ let saveStatusTimer;
 let cloudSaveTimer;
 let cloudUpdatedAt = 0;
 let cloudSavePending = false;
+let cloudSaveGeneration = 0;
 
 sessionForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -58,9 +60,13 @@ sessionButton?.addEventListener("click", async () => {
   if (cloudSaveTimer) {
     clearTimeout(cloudSaveTimer);
     cloudSaveTimer = undefined;
-    await pushTasksToCloud(activeSession, tasks);
+    await pushTasksToCloud(activeSession, tasks, cloudSaveGeneration);
   }
   showSessionScreen();
+});
+
+sessionCancelButton?.addEventListener("click", () => {
+  if (activeSession) sessionScreen.hidden = true;
 });
 
 form?.addEventListener("submit", (event) => {
@@ -805,6 +811,8 @@ async function connectSession(password, { automatic = false } = {}) {
 
     activeSession = password;
     tasks = nextTasks;
+    cloudSavePending = false;
+    cloudSaveGeneration += 1;
     cloudUpdatedAt = Number(data.updatedAt || 0);
     localStorage.setItem(ACTIVE_SESSION_KEY, password);
     localStorage.setItem(sessionStorageKey(), JSON.stringify(tasks));
@@ -814,7 +822,8 @@ async function connectSession(password, { automatic = false } = {}) {
     render();
 
     if (uploadLocalTasks) {
-      await pushTasksToCloud(password, tasks);
+      cloudSavePending = true;
+      await pushTasksToCloud(password, tasks, cloudSaveGeneration);
     } else {
       showSaveStatus(`Sessão ${password} sincronizada`);
     }
@@ -833,6 +842,7 @@ async function connectSession(password, { automatic = false } = {}) {
 function showSessionScreen() {
   sessionError.textContent = "";
   sessionPassword.value = "";
+  sessionCancelButton.hidden = !activeSession;
   sessionScreen.hidden = false;
   window.setTimeout(() => sessionPassword.focus(), 0);
 }
@@ -844,16 +854,17 @@ function queueCloudSave(message) {
   }
   clearTimeout(cloudSaveTimer);
   cloudSavePending = true;
+  const generation = ++cloudSaveGeneration;
   showSaveStatus(`${message}. Salvando sessão ${activeSession}...`, { persistent: true });
   const session = activeSession;
   const snapshot = structuredClone(tasks);
   cloudSaveTimer = window.setTimeout(() => {
     cloudSaveTimer = undefined;
-    pushTasksToCloud(session, snapshot);
+    pushTasksToCloud(session, snapshot, generation);
   }, 500);
 }
 
-async function pushTasksToCloud(session, snapshot) {
+async function pushTasksToCloud(session, snapshot, generation = cloudSaveGeneration) {
   if (!session) return false;
   try {
     const response = await sessionRequest(session, {
@@ -863,14 +874,14 @@ async function pushTasksToCloud(session, snapshot) {
     });
     if (!response.ok) throw new Error("Falha ao salvar");
     const data = await response.json();
-    if (session === activeSession) {
+    if (session === activeSession && generation === cloudSaveGeneration) {
       cloudUpdatedAt = Number(data.updatedAt || Date.now());
       cloudSavePending = false;
       showSaveStatus(`Sessão ${session} sincronizada`);
     }
     return true;
   } catch {
-    if (session === activeSession) {
+    if (session === activeSession && generation === cloudSaveGeneration) {
       cloudSavePending = false;
       showSaveStatus("Falha na sincronização; cópia local preservada", { persistent: true });
     }
