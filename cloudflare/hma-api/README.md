@@ -8,7 +8,7 @@ Edite `HMA_INSTRUCTIONS.txt` em um editor de texto. Depois sincronize as regras 
 node scripts/sync-instructions.mjs
 ```
 
-O arquivo gerado em `src/hma-instructions.generated.mjs` é usado pelo Worker. Após a sincronização, publique uma nova versão do Worker.
+O arquivo gerado em `src/hma-instructions.generated.mjs` é usado pelo Worker. Após a sincronização, publique uma nova versão do Worker. O conteúdo clínico de `HMA_INSTRUCTIONS.txt` é mantido como foi escrito; instruções técnicas de segurança e de compatibilidade com a saída estruturada ficam separadas em `src/index.mjs`.
 
 A IA devolve uma saída estruturada com o campo `text`. O próprio modelo integra na narrativa as negativas e os sinais de alarme pertinentes definidos em `HMA_INSTRUCTIONS.txt`; o Worker remove um eventual título `HMA:` duplicado antes de devolver o texto ao aplicativo.
 
