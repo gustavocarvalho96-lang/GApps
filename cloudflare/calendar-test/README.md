@@ -8,6 +8,7 @@ Cópia de teste do calendário original, migrada do ChatGPT Sites para Cloudflar
 - Banco D1: `calendario-plantoes-teste`
 - Binding do banco: `DB`
 - Proteção de acesso: secret `CALENDAR_TOKEN`
+- A senha é solicitada em toda abertura ou recarga da página e fica somente na memória da aba.
 - Endereço: `https://calendario-plantoes-teste.gustavocarvalho96.workers.dev/`
 
 O código-fonte original em Vinext está em `app/`, `db/` e `worker/index.ts`. O arquivo `worker/standalone.mjs` contém a versão autônoma publicada pelo acesso conectado à API do Cloudflare.

@@ -22,20 +22,20 @@ const SHIFTS: Array<{ name: Exclude<Shift, "">; rate: number; tone: string }> = 
   { name: "CL N", rate: 1300, tone: "cl-n" },
   { name: "CL 10-22h", rate: 1300, tone: "cl-10-22h" },
 ];
-const ACCESS_TOKEN_KEY = "gapps-calendario-cloudflare-token-v1";
+// Deliberately kept only in memory: every new page load asks for the code again.
+let accessToken = "";
 
 function authenticatedFetch(input: RequestInfo | URL, init: RequestInit = {}) {
-  let token = window.localStorage.getItem(ACCESS_TOKEN_KEY);
-  if (!token) {
-    token = window.prompt("Digite o código de acesso do calendário:")?.trim() ?? "";
-    if (token) window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  if (!accessToken) {
+    accessToken =
+      window.prompt("Digite o código de acesso do calendário:")?.trim() ?? "";
   }
-  if (!token) return Promise.reject(new Error("Acesso cancelado"));
+  if (!accessToken) return Promise.reject(new Error("Acesso cancelado"));
 
   const headers = new Headers(init.headers);
-  headers.set("Authorization", `Bearer ${token}`);
+  headers.set("Authorization", `Bearer ${accessToken}`);
   return fetch(input, { ...init, headers }).then((response) => {
-    if (response.status === 401) window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    if (response.status === 401) accessToken = "";
     return response;
   });
 }
