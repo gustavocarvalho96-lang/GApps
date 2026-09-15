@@ -11,10 +11,9 @@ const HMA_RESPONSE_FORMAT = {
   schema: {
     type: "object",
     properties: {
-      text: { type: "string" },
-      alarm_signs: { type: "array", items: { type: "string" }, maxItems: 6 }
+      text: { type: "string" }
     },
-    required: ["text", "alarm_signs"],
+    required: ["text"],
     additionalProperties: false
   }
 };
@@ -41,16 +40,8 @@ function extractOutput(data) {
     .map(item => item.text).join("\n").trim();
 }
 
-function joinAlarmSigns(items) {
-  if (items.length === 1) return items[0];
-  return `${items.slice(0, -1).join(", nega ")} e nega ${items.at(-1)}`;
-}
-
-export function appendAlarmNegatives(text, items) {
-  const revised = text.trim();
-  if (!items.length) return revised;
-  const punctuated = revised && !/[.!?]$/.test(revised) ? `${revised}.` : revised;
-  return `${punctuated}${punctuated ? " " : ""}Nega ${joinAlarmSigns(items)}.`;
+export function normalizeHmaText(text) {
+  return text.trim().replace(/^\s*#?\s*HMA\s*:\s*/i, "").trim();
 }
 
 async function verifyToken(provided, expected) {
@@ -116,15 +107,10 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
   if (data.status !== "completed" || !output) return json(502, { error: "A revisão não foi concluída." }, origin);
   let review;
   try { review = JSON.parse(output); } catch { return json(502, { error: "A revisão retornou um formato inválido." }, origin); }
-  if (typeof review?.text !== "string" || !review.text.trim() || !Array.isArray(review.alarm_signs)) {
+  if (typeof review?.text !== "string" || !normalizeHmaText(review.text)) {
     return json(502, { error: "A revisão retornou um formato inválido." }, origin);
   }
-  const alarmSigns = review.alarm_signs
-    .filter(item => typeof item === "string")
-    .map(item => item.replace(/^\s*nega\s+/i, "").replace(/[.;]+\s*$/, "").trim().slice(0, 120))
-    .filter(Boolean)
-    .slice(0, 6);
-  return json(200, { text: appendAlarmNegatives(review.text, alarmSigns), alarmSigns }, origin);
+  return json(200, { text: normalizeHmaText(review.text) }, origin);
 }
 
 export default { fetch(request, env) { return handleRequest(request, env); } };

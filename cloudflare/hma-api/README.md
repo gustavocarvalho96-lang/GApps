@@ -10,6 +10,8 @@ node scripts/sync-instructions.mjs
 
 O arquivo gerado em `src/hma-instructions.generated.mjs` é usado pelo Worker. Após a sincronização, publique uma nova versão do Worker.
 
+A IA devolve uma saída estruturada com o campo `text`. O próprio modelo integra na narrativa as negativas e os sinais de alarme pertinentes definidos em `HMA_INSTRUCTIONS.txt`; o Worker remove um eventual título `HMA:` duplicado antes de devolver o texto ao aplicativo.
+
 Este Cloudflare Worker recebe somente o trecho da HMA, valida a origem e o código de acesso, limita chamadas por IP e envia o texto à Responses API da OpenAI com `store: false`. A chave da OpenAI nunca deve ser colocada no GitHub.
 
 Configurações públicas em `wrangler.jsonc`: `ALLOWED_ORIGIN` é a origem autorizada do GitHub Pages e `OPENAI_MODEL` pode ser alterado depois sem mudar a interface.
