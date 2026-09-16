@@ -55,9 +55,12 @@ let connected = false;
 const entryDialog = document.querySelector("#entry-dialog");
 const handoffDialog = document.querySelector("#handoff-dialog");
 const conflictDialog = document.querySelector("#conflict-dialog");
+const compat = window.GAppsCompat;
 const clientId =
-  sessionStorage.getItem("gpendencias-client-v2") || crypto.randomUUID();
-sessionStorage.setItem("gpendencias-client-v2", clientId);
+  (compat && compat.storageGet("sessionStorage", "gpendencias-client-v2")) ||
+  (compat ? compat.randomUUID() : crypto.randomUUID());
+if (compat) compat.storageSet("sessionStorage", "gpendencias-client-v2", clientId);
+else sessionStorage.setItem("gpendencias-client-v2", clientId);
 const outboxKey = (session) =>
   "gpendencias-outbox-v2-" + session + "-" + clientId;
 const fieldNames = {
@@ -1251,9 +1254,14 @@ function restoreDatedBackup() {
 }
 
 async function copyText(text) {
+  if (compat?.copyText) return compat.copyText(text);
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Fall through to execCommand for browsers that expose but block Clipboard API.
+    }
   }
 
   const textarea = document.createElement("textarea");

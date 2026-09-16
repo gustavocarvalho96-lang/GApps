@@ -13,6 +13,7 @@ const files = [
     "Apps/Shared/logo-stethoscope-c.svg",
     "site/Apps/Shared/logo-stethoscope-c.svg",
   ],
+  ["Apps/Shared/browser-compat.js", "site/Apps/Shared/browser-compat.js.txt"],
 ];
 for (const [source, target] of files) {
   await mkdir(path.dirname(path.join(here, target)), { recursive: true });
@@ -24,4 +25,4 @@ for (const [source, target] of files) {
   )
     throw new Error("Copy mismatch: " + target);
 }
-console.log("Pendências: 6 arquivos de publicação sincronizados.");
+console.log("Pendências: 7 arquivos de publicação sincronizados.");

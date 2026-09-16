@@ -1,4 +1,12 @@
 function copyText(text) {
+  if (window.GAppsCompat && window.GAppsCompat.copyText) {
+    window.GAppsCompat.copyText(text).then(function () {
+      showToast("Copiado");
+    }).catch(function () {
+      showToast("Não foi possível copiar");
+    });
+    return;
+  }
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard
       .writeText(text)

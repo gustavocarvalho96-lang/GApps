@@ -73,22 +73,28 @@ function mountHmaAi(area, body, headerActions) {
     var apiUrl = typeof config.url === "string" ? config.url.trim() : "";
     if (!apiUrl) { status.textContent = "O servidor online da IA ainda não foi configurado."; return; }
     var tokenKey = config.tokenStorageKey || "gplantao-hma-api-token-v1";
-    var accessToken = localStorage.getItem(tokenKey);
+    var compat = window.GAppsCompat;
+    var accessToken = compat ? compat.storageGet("localStorage", tokenKey) : localStorage.getItem(tokenKey);
     if (!accessToken) {
       accessToken = window.prompt("Digite o código de acesso da IA. Ele será solicitado apenas uma vez neste navegador:");
       if (!accessToken || !accessToken.trim()) { status.textContent = "Revisão cancelada."; return; }
       accessToken = accessToken.trim();
-      localStorage.setItem(tokenKey, accessToken);
+      if (compat) compat.storageSet("localStorage", tokenKey, accessToken);
+      else localStorage.setItem(tokenKey, accessToken);
     }
     original = area.value;
     preview.hidden = apply.hidden = discard.hidden = true;
     revise.disabled = true;
     status.textContent = "Revisando a redação da HMA…";
     try {
-      var response = await fetch(apiUrl, { method: "POST", headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json" }, body: JSON.stringify({ text: section.text }), signal: AbortSignal.timeout(55000) });
+      var signal = compat ? compat.timeoutSignal(55000) : AbortSignal.timeout(55000);
+      var response = await fetch(apiUrl, { method: "POST", headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json" }, body: JSON.stringify({ text: section.text }), signal: signal });
       if (!(response.headers.get("content-type") || "").includes("application/json")) throw new Error("O servidor da IA retornou uma resposta inválida.");
       var result = await response.json();
-      if (response.status === 401) localStorage.removeItem(tokenKey);
+      if (response.status === 401) {
+        if (compat) compat.storageRemove("localStorage", tokenKey);
+        else localStorage.removeItem(tokenKey);
+      }
       if (!response.ok) throw new Error(result.error || "Não foi possível revisar a HMA.");
       if (typeof result.text !== "string" || !result.text.trim()) throw new Error("A API não retornou uma revisão válida.");
       if (!area.isConnected) return;

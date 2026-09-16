@@ -100,6 +100,14 @@ input.addEventListener("input", scheduleAutoTranscription);
 
 document.getElementById("copyBtn").onclick = function () {
   var text = output.textContent || "";
+  if (window.GAppsCompat && window.GAppsCompat.copyText) {
+    window.GAppsCompat.copyText(text).then(function () {
+      showToast("Resultado copiado");
+    }).catch(function () {
+      showToast("Nao foi possivel copiar");
+    });
+    return;
+  }
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard
       .writeText(text)

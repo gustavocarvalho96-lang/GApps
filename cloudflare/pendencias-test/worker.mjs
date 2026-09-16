@@ -2,6 +2,7 @@ import PAGE_HTML from "./site/GPendencias.html";
 import APP_JS from "./site/Apps/GPendencias/app.js.txt";
 import APP_CSS from "./site/Apps/GPendencias/styles.css";
 import APP_LOGO from "./site/Apps/Shared/logo-stethoscope-c.svg";
+import BROWSER_COMPAT from "./site/Apps/Shared/browser-compat.js.txt";
 import SYNC_CORE from "./site/Apps/GPendencias/sync-core.mjs.txt";
 import { validTasks } from "./sync-core.mjs";
 
@@ -96,6 +97,14 @@ async function handleRequest(request, env) {
       headers: {
         "Content-Type": "image/svg+xml; charset=utf-8",
         "Cache-Control": "public, max-age=86400",
+      },
+    });
+  }
+  if (url.pathname === "/Apps/Shared/browser-compat.js") {
+    return new Response(BROWSER_COMPAT, {
+      headers: {
+        "Content-Type": "application/javascript; charset=utf-8",
+        "Cache-Control": "no-store",
       },
     });
   }

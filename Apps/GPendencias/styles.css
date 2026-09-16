@@ -531,6 +531,7 @@ dialog {
   box-shadow: 0 24px 100px #122e3033;
   padding: 26px;
   width: min(720px, calc(100vw - 28px));
+  max-height: 90vh;
   max-height: 90dvh;
   overflow: auto;
 }
