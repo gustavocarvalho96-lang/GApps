@@ -174,6 +174,7 @@ main { min-height: 100vh; }
 .day-card.cl-d { background: #dcefe5; border-color: #91c0a6; }
 .day-card.cl-n { background: #e8e4f5; border-color: #b4a8dc; }
 .day-card.cl-10-22h { background: #d8f1f4; border-color: #75b9c2; }
+.day-card.cl-13-19 { background: #e6f3dc; border-color: #99c879; }
 
 .summary-panel {
   padding: 26px 23px;
@@ -201,6 +202,7 @@ main { min-height: 100vh; }
 .shift-dot.cl-d { background: #4e9c70; }
 .shift-dot.cl-n { background: #8070b8; }
 .shift-dot.cl-10-22h { background: #348e99; }
+.shift-dot.cl-13-19 { background: #6e9d4f; }
 .summary-row div { display: grid; gap: 2px; }
 .summary-row strong { font-size: 13px; }
 .summary-row small { color: var(--muted); font-size: 11px; }
@@ -240,6 +242,7 @@ main { min-height: 100vh; }
 .shift-slot.cl-d { background: #dcefe5; }
 .shift-slot.cl-n { background: #e8e4f5; }
 .shift-slot.cl-10-22h { background: #d8f1f4; }
+.shift-slot.cl-13-19 { background: #e6f3dc; }
 
 @media (max-width: 960px) {
   .workspace { grid-template-columns: 1fr; }

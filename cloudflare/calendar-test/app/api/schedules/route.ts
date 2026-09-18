@@ -4,11 +4,11 @@ import { headers } from "next/headers";
 import { getDb } from "../../../db";
 import { monthlySchedules } from "../../../db/schema";
 
-type Shift = "" | "Chefe PAC D" | "Chefe PAC N" | "Chefe PAH D" | "Chefe PAH N" | "Chefe Ponte" | "Chefe Retiro" | "CL D" | "CL N" | "CL 10-22h";
+type Shift = "" | "Chefe PAC D" | "Chefe PAC N" | "Chefe PAH D" | "Chefe PAH N" | "Chefe Ponte" | "Chefe Retiro" | "CL D" | "CL N" | "CL 10-22h" | "CL 13-19";
 type DayEntry = { shifts: Exclude<Shift, "">[] };
 type MonthData = Record<number, DayEntry>;
 
-const VALID_SHIFTS = new Set<Shift>(["", "Chefe PAC D", "Chefe PAC N", "Chefe PAH D", "Chefe PAH N", "Chefe Ponte", "Chefe Retiro", "CL D", "CL N", "CL 10-22h"]);
+const VALID_SHIFTS = new Set<Shift>(["", "Chefe PAC D", "Chefe PAC N", "Chefe PAH D", "Chefe PAH N", "Chefe Ponte", "Chefe Retiro", "CL D", "CL N", "CL 10-22h", "CL 13-19"]);
 const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
 const OWNER_KEY = "owner";
 

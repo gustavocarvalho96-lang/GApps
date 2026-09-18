@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Shift = "" | "Chefe PAC D" | "Chefe PAC N" | "Chefe PAH D" | "Chefe PAH N" | "Chefe Ponte" | "Chefe Retiro" | "CL D" | "CL N" | "CL 10-22h";
+type Shift = "" | "Chefe PAC D" | "Chefe PAC N" | "Chefe PAH D" | "Chefe PAH N" | "Chefe Ponte" | "Chefe Retiro" | "CL D" | "CL N" | "CL 10-22h" | "CL 13-19";
 type DayEntry = { shifts: Exclude<Shift, "">[] };
 type MonthData = Record<number, DayEntry>;
 
@@ -21,6 +21,7 @@ const SHIFTS: Array<{ name: Exclude<Shift, "">; rate: number; tone: string }> = 
   { name: "CL D", rate: 1300, tone: "cl-d" },
   { name: "CL N", rate: 1300, tone: "cl-n" },
   { name: "CL 10-22h", rate: 1300, tone: "cl-10-22h" },
+  { name: "CL 13-19", rate: 650, tone: "cl-13-19" },
 ];
 // Deliberately kept only in memory: every new page load asks for the code again.
 let accessToken = "";
