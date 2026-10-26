@@ -464,6 +464,26 @@ textarea:focus {
   border-left: 1px solid #dce3eb;
 }
 
+.clinical-form { display: grid; gap: 12px; }
+.clinical-intro { margin: 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+.clinical-progress { color: #0f766e; font-size: 13px; }
+.clinical-section { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; background: #fff; }
+.clinical-section > summary { cursor: pointer; font-weight: 600; font-size: 13px; color: #334155; line-height: 1.5; }
+.clinical-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-top: 16px; }
+.clinical-field { display: grid; align-content: start; gap: 7px; min-width: 0; }
+.clinical-field[hidden] { display: none; }
+.clinical-field-wide { grid-column: 1 / -1; }
+.clinical-field > label { color: #475569; font-size: 12px; font-weight: 600; }
+.clinical-field input { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; font-size: 13px; }
+.clinical-field input:focus { outline: 2px solid #99d5ce; outline-offset: 1px; }
+.clinical-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.clinical-option.active { background: #e6f5f0; border-color: #76b8a4; color: #115e59; }
+.clinical-heart-total { font-size: 13px; color: #475569; }
+.clinical-finish h2 { margin: 0; font-size: 18px; }
+.clinical-status { color: #475569; font-size: 13px; line-height: 1.5; }
+textarea.clinical-result-editor { min-height: 350px; }
+@media (max-width: 700px) { .clinical-field-grid { grid-template-columns: minmax(0, 1fr); } }
+
 .nav-group > summary {
   list-style: none;
 }

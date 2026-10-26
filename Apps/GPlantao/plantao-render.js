@@ -37,8 +37,7 @@ function renderNav(containerId, items, selectedId, emptyText) {
 function createClearTemplateButton(protocol) {
   var clearTemplateButton = textButton("×", "text-btn template-clear-button", function () {
     if (protocol.clinicalTemplate) {
-      state.editableText = protocol.prescription;
-      saveClinicalDraft(protocol);
+      resetClinicalForm(protocol);
       render();
       return;
     }
@@ -626,11 +625,8 @@ function renderHighRiskReavaliacao(body) {
 
 function renderEditable(protocol, body, headerActions) {
   if (protocol.clinicalTemplate) {
-    renderChestPainGuide(body);
-    headerActions.appendChild(textButton("Escores", "text-btn", function () {
-      state.openGroups.scores = !state.openGroups.scores;
-      render();
-    }));
+    renderClinicalForm(protocol, body, headerActions);
+    return;
   }
   if (protocol.freeGroupsEnabled) renderFreeGroups(body);
   if (protocol.collapsibleSections) renderCollapsibleSections(protocol, body);
@@ -842,7 +838,7 @@ function renderProtocol(protocol) {
   }
   actions.appendChild(
     textButton("Copiar", "text-btn copy-all-button", function () {
-      copyText(finalText(protocol));
+      copyProtocolText(protocol);
     })
   );
 

@@ -471,6 +471,7 @@ function renderAllergyControls() {
 }
 function clearAllSavedData() {
   if (!window.confirm("Limpar todos os saves do GPlantao?")) return;
+  clinicalFormDrafts = {};
   try {
     for (var i = localStorage.length - 1; i >= 0; i -= 1) {
       var key = localStorage.key(i);
@@ -885,14 +886,14 @@ function boot() {
         : typeof target.selectionStart === "number" && target.selectionStart !== target.selectionEnd);
       if (selected || event.defaultPrevented || event.isComposing) return;
       event.preventDefault();
-      if (!event.repeat) copyText(finalText(currentProtocol()));
+      if (!event.repeat) copyProtocolText(currentProtocol());
       return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
       if (state.selectedId === "reavaliacao" && event.target && event.target.className === "small")
         return;
       event.preventDefault();
-      copyText(finalText(currentProtocol()));
+      copyProtocolText(currentProtocol());
     }
   });
   var clearSavedDataBtn = el("clearSavedDataBtn");

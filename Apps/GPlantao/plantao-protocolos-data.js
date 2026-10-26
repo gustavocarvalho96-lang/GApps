@@ -223,6 +223,7 @@ function clinicalDraftKey(protocol) {
 }
 
 function loadClinicalDraft(protocol) {
+  if (typeof getClinicalFormDraft === "function") return getClinicalFormDraft(protocol).result;
   try {
     var saved = localStorage.getItem(clinicalDraftKey(protocol));
     var draft = saved ? JSON.parse(saved) : null;
@@ -232,6 +233,10 @@ function loadClinicalDraft(protocol) {
 }
 
 function saveClinicalDraft(protocol) {
+  if (typeof getClinicalFormDraft === "function") {
+    persistClinicalForm(protocol, getClinicalFormDraft(protocol));
+    return;
+  }
   try {
     localStorage.setItem(clinicalDraftKey(protocol), JSON.stringify({ text: state.editableText, savedAt: new Date().toISOString() }));
   } catch (error) {}

@@ -19,3 +19,10 @@ await writeFile(
 );
 
 console.log("Instruções da HMA sincronizadas.");
+
+const protocolInstructions = (await readFile(path.join(projectDirectory, "PROTOCOL_INSTRUCTIONS.txt"), "utf8")).trim();
+if (!protocolInstructions) throw new Error("PROTOCOL_INSTRUCTIONS.txt está vazio.");
+await writeFile(path.join(projectDirectory, "src", "protocol-instructions.generated.mjs"),
+  "// Gerado por scripts/sync-instructions.mjs. Edite PROTOCOL_INSTRUCTIONS.txt.\n" +
+  "export const PROTOCOL_INSTRUCTIONS = " + JSON.stringify(protocolInstructions) + ";\n", "utf8");
+console.log("Instruções dos protocolos sincronizadas.");
