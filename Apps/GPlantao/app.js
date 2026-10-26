@@ -881,6 +881,19 @@ function boot() {
       : getInitialText(initialProtocol);
   if (initialProtocol.id === "anamnese") updateAnamneseAllergiesInTemplate(false);
   document.addEventListener("keydown", function (event) {
+    var copyShortcut = (event.ctrlKey || event.metaKey) &&
+      !event.altKey && !event.shiftKey && String(event.key).toLowerCase() === "x";
+    if (copyShortcut) {
+      var target = event.target;
+      var editable = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      var selected = editable && (target.isContentEditable
+        ? String(window.getSelection() || "").length > 0
+        : typeof target.selectionStart === "number" && target.selectionStart !== target.selectionEnd);
+      if (selected || event.defaultPrevented || event.isComposing) return;
+      event.preventDefault();
+      if (!event.repeat) copyText(finalText(currentProtocol()));
+      return;
+    }
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
       if (state.selectedId === "reavaliacao" && event.target && event.target.className === "small")
         return;
