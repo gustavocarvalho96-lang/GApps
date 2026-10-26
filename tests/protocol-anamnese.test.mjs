@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
-import { handleRequest, PROTOCOL_INSTRUCTIONS, validateProtocolPayload } from "../cloudflare/hma-api/src/index.mjs";
+import { handleRequest, PROTOCOL_INSTRUCTIONS, REASSESSMENT_INSTRUCTIONS, validateProtocolPayload, validateReassessmentPayload } from "../cloudflare/hma-api/src/index.mjs";
 
 const context = vm.createContext({ window: {} });
 for (const file of ["plantao-protocolo-form-core.js", "plantao-protocolos-data.js"]) {
@@ -52,8 +52,8 @@ test("HEART só soma quando os cinco componentes foram explicitamente preenchido
 const origin = "https://gustavocarvalho96-lang.github.io";
 const env = { OPENAI_API_KEY: "test", APP_TOKEN: "test", OPENAI_MODEL: "modelo-teste" };
 const payload = { protocol: "dor-toracica", sections: [{ section: "SINTOMAS ASSOCIADOS", items: [{ label: "Dispneia", value: "Negado" }] }] };
-function request(body = payload, headers = {}) {
-  return new Request("https://worker.example/api/protocolos/anamnese", { method: "POST", headers: { Origin: origin, Authorization: "Bearer test", "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });
+function request(body = payload, headers = {}, pathname = "/api/protocolos/anamnese") {
+  return new Request("https://worker.example" + pathname, { method: "POST", headers: { Origin: origin, Authorization: "Bearer test", "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });
 }
 
 test("API dos protocolos usa instruções próprias, preserva seções e mantém store false", async () => {
@@ -139,4 +139,69 @@ test("etapas 12 a 16 ficam em reavaliação e as duas abas entram no envio", () 
   assert.equal(sections.length, 2);
   assert.equal(sections[0].section, "CARACTERIZAÇÃO DA DOR");
   assert.equal(sections[1].section, "TROPONINA");
+});
+
+test("nova API diferencia contexto inicial de exames e achados posteriores", async () => {
+  const input = { protocol: "dor-toracica", initialSections: [{ section: "CARACTERIZAÇÃO DA DOR", items: [{ label: "Dor na chegada", value: "aperto" }] }], sections: [{ section: "TROPONINA", items: [{ label: "1ª coleta — horário / valor", value: "10:00 / resultado fictício" }] }] };
+  const response = await handleRequest(request(input, {}, "/api/protocolos/reavaliacao"), env, async (url, options) => {
+    const body = JSON.parse(options.body);
+    assert.equal(body.instructions, REASSESSMENT_INSTRUCTIONS);
+    assert.notEqual(body.instructions, PROTOCOL_INSTRUCTIONS);
+    assert.match(body.instructions, /não podem ser apresentados como achados atuais/);
+    assert.match(body.instructions, /Não invente melhora/);
+    assert.equal(body.text.format.name, "protocol_reassessment");
+    assert.equal(body.store, false);
+    assert.deepEqual(JSON.parse(body.input), input);
+    return Response.json({ status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify({ text: "# Reavaliação:\nResultado laboratorial registrado às 10:00." }) }] }] });
+  });
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).text, /^# Reavaliação:/);
+});
+
+test("reavaliação exige dados posteriores e mantém autenticação, CORS e limite", async () => {
+  const input = { protocol: "dor-toracica", sections: [{ section: "REAVALIAÇÃO", items: [{ label: "Dor atual", value: "4/10" }] }] };
+  const route = "/api/protocolos/reavaliacao";
+  assert.equal(validateReassessmentPayload(input), true);
+  assert.equal(validateReassessmentPayload({ ...input, initialSections: "inválido" }), false);
+  assert.equal(validateReassessmentPayload({ ...input, sections: [], initialSections: payload.sections }), false);
+  assert.equal(validateReassessmentPayload(payload), false);
+  assert.equal((await handleRequest(request({ ...input, sections: [] }, {}, route), env)).status, 400);
+  assert.equal((await handleRequest(request(input, { Authorization: "Bearer errado" }, route), env)).status, 401);
+  assert.equal((await handleRequest(request(input, { Origin: "https://outro.example" }, route), env)).status, 403);
+  assert.equal((await handleRequest(request(input, {}, route), { ...env, HMA_RATE_LIMITER: { async limit() { return { success: false }; } } })).status, 429);
+  const preflight = new Request("https://worker.example" + route, { method: "OPTIONS", headers: { Origin: origin } });
+  assert.equal((await handleRequest(preflight, env)).status, 204);
+});
+
+test("cada etapa tem geração, cópia e validade independentes", () => {
+  const { sandbox, storage } = draftContext();
+  const draft = sandbox.getClinicalFormDraft(protocol);
+  draft.answers[field("Característica").id] = { selected: ["aperto"] };
+  draft.answers[field("1ª coleta — horário / valor").id] = { text: "resultado fictício" };
+  const initial = plain(sandbox.clinicalGenerationPayload(protocol, draft, "inicial"));
+  const later = plain(sandbox.clinicalGenerationPayload(protocol, draft, "reavaliacao"));
+  assert.equal(initial.sections.length, 1);
+  assert.equal(initial.sections[0].section, "CARACTERIZAÇÃO DA DOR");
+  assert.equal(later.sections.length, 1);
+  assert.equal(later.sections[0].section, "TROPONINA");
+  assert.deepEqual(later.initialSections, initial.sections);
+  draft.result = "Anamnese inicial";
+  draft.snapshot = sandbox.clinicalFormSnapshot(protocol, draft, "inicial");
+  draft.reassessmentResult = "Evolução posterior";
+  draft.reassessmentSnapshot = sandbox.clinicalFormSnapshot(protocol, draft, "reavaliacao");
+  let copied;
+  sandbox.copyText = text => { copied = text; };
+  sandbox.clinicalFormTabs[protocol.id] = "reavaliacao";
+  sandbox.copyProtocolText(protocol);
+  assert.equal(copied, "Evolução posterior");
+  sandbox.copyProtocolText(protocol, "inicial");
+  assert.equal(copied, "Anamnese inicial");
+  sandbox.persistClinicalForm(protocol, draft);
+  sandbox.clinicalFormDrafts = {};
+  const restored = sandbox.getClinicalFormDraft(protocol);
+  assert.equal(restored.reassessmentResult, "Evolução posterior");
+  restored.answers[field("1ª coleta — horário / valor").id] = { text: "outro resultado" };
+  assert.equal(sandbox.clinicalResultReady(protocol, restored, "inicial"), true);
+  assert.equal(sandbox.clinicalResultReady(protocol, restored, "reavaliacao"), false);
+  assert.match(storage.values().next().value, /Evolução posterior/);
 });

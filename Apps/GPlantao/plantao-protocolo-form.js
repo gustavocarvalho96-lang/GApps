@@ -7,8 +7,8 @@ function getClinicalFormDraft(protocol) {
   var saved;
   try { saved = JSON.parse(localStorage.getItem(clinicalDraftKey(protocol)) || "null"); } catch (error) {}
   var draft = saved && saved.version === 2 && saved.answers && typeof saved.answers === "object" && !Array.isArray(saved.answers)
-    ? { version: 2, answers: saved.answers, result: typeof saved.result === "string" ? saved.result : "", snapshot: typeof saved.snapshot === "string" ? saved.snapshot : "" }
-    : { version: 2, answers: {}, result: "", snapshot: "" };
+    ? { version: 2, answers: saved.answers, result: typeof saved.result === "string" ? saved.result : "", snapshot: typeof saved.snapshot === "string" ? saved.snapshot : "", reassessmentResult: typeof saved.reassessmentResult === "string" ? saved.reassessmentResult : "", reassessmentSnapshot: typeof saved.reassessmentSnapshot === "string" ? saved.reassessmentSnapshot : "" }
+    : { version: 2, answers: {}, result: "", snapshot: "", reassessmentResult: "", reassessmentSnapshot: "" };
   clinicalFormDrafts[protocol.id] = draft;
   if (saved && typeof saved === "object" && ("legacyText" in saved || "includeLegacy" in saved || "text" in saved)) persistClinicalForm(protocol, draft);
   return draft;
@@ -23,7 +23,7 @@ function persistClinicalForm(protocol, draft) {
 
 function resetClinicalForm(protocol) {
   clinicalFormTabs[protocol.id] = "inicial";
-  clinicalFormDrafts[protocol.id] = { version: 2, answers: {}, result: "", snapshot: "" };
+  clinicalFormDrafts[protocol.id] = { version: 2, answers: {}, result: "", snapshot: "", reassessmentResult: "", reassessmentSnapshot: "" };
   persistClinicalForm(protocol, clinicalFormDrafts[protocol.id]);
   state.editableText = "";
 }
@@ -39,22 +39,37 @@ function clinicalFormSections(protocol, draft) {
   return ClinicalFormCore.collect(clinicalFormSchema(protocol), draft.answers);
 }
 
-function clinicalFormSnapshot(protocol, draft) {
-  return JSON.stringify(clinicalFormSections(protocol, draft));
+function clinicalGenerationPayload(protocol, draft, mode) {
+  var schema = clinicalFormSchema(protocol);
+  var initial = ClinicalFormCore.collect(schema.filter(function (group) { return group.stage === "inicial"; }), draft.answers);
+  if (mode !== "reavaliacao") return { protocol: "dor-toracica", sections: initial };
+  var later = ClinicalFormCore.collect(schema.filter(function (group) { return group.stage === "reavaliacao"; }), draft.answers);
+  return { protocol: "dor-toracica", initialSections: initial, sections: later };
 }
 
-function clinicalResultReady(protocol, draft) {
-  return Boolean(draft.result.trim() && draft.snapshot === clinicalFormSnapshot(protocol, draft));
+function clinicalFormSnapshot(protocol, draft, mode) {
+  return JSON.stringify(clinicalGenerationPayload(protocol, draft, mode));
 }
 
-function copyProtocolText(protocol) {
+function clinicalOutputKeys(mode) {
+  return mode === "reavaliacao" ? { text: "reassessmentResult", snapshot: "reassessmentSnapshot" } : { text: "result", snapshot: "snapshot" };
+}
+
+function clinicalResultReady(protocol, draft, mode) {
+  var keys = clinicalOutputKeys(mode);
+  return Boolean(draft[keys.text] && draft[keys.text].trim() && draft[keys.snapshot] === clinicalFormSnapshot(protocol, draft, mode));
+}
+
+function copyProtocolText(protocol, mode) {
   if (protocol.clinicalTemplate) {
+    mode = mode || clinicalFormTabs[protocol.id] || "inicial";
     var draft = getClinicalFormDraft(protocol);
-    if (!clinicalResultReady(protocol, draft)) {
-      showToast(draft.result ? "O roteiro mudou. Gere a anamnese novamente." : "Preencha o roteiro e gere a anamnese primeiro.");
+    var result = draft[clinicalOutputKeys(mode).text];
+    if (!clinicalResultReady(protocol, draft, mode)) {
+      showToast(result ? "O roteiro mudou. Gere o texto novamente." : "Preencha a etapa e gere o texto primeiro.");
       return;
     }
-    copyText(draft.result);
+    copyText(result);
     return;
   }
   copyText(finalText(protocol));
@@ -81,6 +96,7 @@ function renderClinicalForm(protocol, body, headerActions) {
   var stages = [{ id: "inicial", label: "Avaliação inicial", hint: "Etapas 1 a 11 · História, exame físico e ECG." }, { id: "reavaliacao", label: "Reavaliação", hint: "Etapas 12 a 16 · Troponinas, estratificação, outros escores, reavaliação e observações. Preencha conforme os resultados estiverem disponíveis." }];
   function activateStage(stage, focus) {
     clinicalFormTabs[protocol.id] = stage;
+    state.editableText = draft[clinicalOutputKeys(stage).text] || "";
     stages.forEach(function (item) {
       var selected = item.id === stage;
       tabs[item.id].setAttribute("aria-selected", String(selected));
@@ -120,15 +136,7 @@ function renderClinicalForm(protocol, body, headerActions) {
     render();
   }));
   var totalNode;
-  var resultArea = document.createElement("textarea");
-  resultArea.className = "clinical-result-editor";
-  resultArea.setAttribute("aria-label", "Anamnese gerada pela IA — editável para revisão");
-  resultArea.value = draft.result;
-  resultArea.placeholder = "A anamnese será exibida aqui para revisão após a geração.";
-  var status = div("clinical-status");
-  status.setAttribute("role", "status");
-  var copy = textButton("Copiar anamnese", "text-btn primary-btn", function () { copyProtocolText(protocol); });
-  var generate;
+  var outputUpdates = [];
 
   function update(saved, preserveStatus) {
     var sections = clinicalFormSections(protocol, draft);
@@ -138,11 +146,7 @@ function renderClinicalForm(protocol, body, headerActions) {
       var total = sections.flatMap(function (group) { return group.items; }).find(function (item) { return item.label === "HEART — total informado pelos componentes"; });
       totalNode.textContent = total ? total.value + "/10 — soma dos componentes informados" : "Preencha os cinco componentes para somar. A versão do escore deve seguir o protocolo do serviço.";
     }
-    var ready = clinicalResultReady(protocol, draft);
-    copy.disabled = !ready;
-    resultArea.hidden = !draft.result;
-    if (draft.result && !ready && !preserveStatus) status.textContent = "O roteiro mudou. Gere novamente antes de copiar; o texto anterior permanece para consulta.";
-    if (generate) generate.disabled = Boolean(clinicalFormPending[protocol.id]) || !sections.length;
+    outputUpdates.forEach(function (refresh) { refresh(saved, preserveStatus); });
   }
 
   groups.forEach(function (group, index) {
@@ -213,32 +217,68 @@ function renderClinicalForm(protocol, body, headerActions) {
     panels[group.stage].appendChild(section);
   });
 
+  stages.forEach(function (stage) {
+    outputUpdates.push(renderClinicalGeneration(protocol, draft, panels[stage.id], stage.id, root, update));
+  });
+  body.appendChild(root);
+  update();
+}
+
+function renderClinicalGeneration(protocol, draft, panel, mode, root, onUpdate) {
+  var reassessment = mode === "reavaliacao";
+  var keys = clinicalOutputKeys(mode);
+  var pendingKey = protocol.id + ":" + mode;
+  var noun = reassessment ? "reavaliação" : "anamnese";
   var finish = div("panel stack clinical-finish");
-  var heading = document.createElement("h2"); heading.textContent = "Gerar anamnese"; finish.appendChild(heading);
-  var privacy = document.createElement("p"); privacy.className = "clinical-intro";
-  privacy.textContent = "A IA usará os campos preenchidos nas duas abas. Remova nome, documento e outros identificadores do paciente. Confira a redação antes de utilizar no prontuário.";
+  var heading = document.createElement("h2");
+  heading.textContent = reassessment ? "Gerar reavaliação" : "Gerar anamnese inicial";
+  finish.appendChild(heading);
+  var privacy = document.createElement("p");
+  privacy.className = "clinical-intro";
+  privacy.textContent = reassessment
+    ? "A IA usará os novos resultados e achados desta aba para redigir a evolução, com a avaliação inicial como contexto. Remova identificadores do paciente e revise o texto antes de copiar."
+    : "A IA usará os campos preenchidos na avaliação inicial. Remova identificadores do paciente e revise o texto antes de copiar.";
   finish.appendChild(privacy);
   var accessBox = div("clinical-field");
   var accessLabel = document.createElement("label");
   accessLabel.textContent = "Código de acesso da IA";
-  accessLabel.htmlFor = "clinical-ai-access";
+  accessLabel.htmlFor = "clinical-ai-access-" + mode;
   var accessInput = document.createElement("input");
-  accessInput.id = "clinical-ai-access";
+  accessInput.id = accessLabel.htmlFor;
   accessInput.type = "password";
   accessInput.autocomplete = "off";
   accessInput.placeholder = "O mesmo código utilizado na IA da HMA";
   accessBox.appendChild(accessLabel); accessBox.appendChild(accessInput);
-  var initialConfig = window.GPLANTAO_HMA_API || {};
-  accessBox.hidden = Boolean(window.GAppsCompat.storageGet("localStorage", initialConfig.tokenStorageKey || "gplantao-hma-api-token-v1"));
   finish.appendChild(accessBox);
-  generate = textButton("Gerar anamnese com IA", "text-btn primary-btn", async function () {
-    if (clinicalFormPending[protocol.id]) return;
-    var sections = clinicalFormSections(protocol, draft);
-    if (!sections.length) { status.textContent = "Preencha o roteiro antes de gerar a anamnese."; return; }
+  var resultArea = document.createElement("textarea");
+  resultArea.className = "clinical-result-editor";
+  resultArea.setAttribute("aria-label", reassessment ? "Reavaliação gerada pela IA — editável para revisão" : "Anamnese gerada pela IA — editável para revisão");
+  resultArea.value = draft[keys.text] || "";
+  resultArea.placeholder = "O texto será exibido aqui para revisão após a geração.";
+  var status = div("clinical-status");
+  status.setAttribute("role", "status");
+  var copy = textButton("Copiar " + noun, "text-btn primary-btn", function () { copyProtocolText(protocol, mode); });
+  var generate;
+
+  function refresh(saved, preserveStatus) {
+    var payload = clinicalGenerationPayload(protocol, draft, mode);
+    var ready = clinicalResultReady(protocol, draft, mode);
+    resultArea.hidden = !draft[keys.text];
+    copy.disabled = !ready;
+    if (draft[keys.text] && !ready && !preserveStatus) status.textContent = "Os dados usados neste texto mudaram. Gere novamente antes de copiar.";
+    generate.disabled = Boolean(clinicalFormPending[pendingKey]) || !payload.sections.length;
     var config = window.GPLANTAO_HMA_API || {};
-    var endpoint = config.protocolUrl;
-    if (!endpoint) { status.textContent = "A API dos protocolos ainda não foi configurada."; return; }
-    var payload = JSON.stringify({ protocol: "dor-toracica", sections: sections });
+    accessBox.hidden = Boolean(window.GAppsCompat.storageGet("localStorage", config.tokenStorageKey || "gplantao-hma-api-token-v1"));
+  }
+
+  generate = textButton("Gerar " + noun + " com IA", "text-btn primary-btn", async function () {
+    if (clinicalFormPending[pendingKey]) return;
+    var payloadData = clinicalGenerationPayload(protocol, draft, mode);
+    if (!payloadData.sections.length) { status.textContent = "Preencha os dados desta etapa antes de gerar o texto."; return; }
+    var config = window.GPLANTAO_HMA_API || {};
+    var endpoint = reassessment ? config.reassessmentUrl : config.protocolUrl;
+    if (!endpoint) { status.textContent = "A API de " + noun + " ainda não foi configurada."; return; }
+    var payload = JSON.stringify(payloadData);
     if (payload.length > 32000) { status.textContent = "O roteiro excede 32.000 caracteres. Resuma os detalhes antes de gerar."; return; }
     var compat = window.GAppsCompat;
     var tokenKey = config.tokenStorageKey || "gplantao-hma-api-token-v1";
@@ -247,14 +287,15 @@ function renderClinicalForm(protocol, body, headerActions) {
       token = accessInput.value.trim();
       if (!token) {
         accessBox.hidden = false;
-        status.textContent = "Digite o código de acesso da IA para gerar a anamnese.";
-        accessInput.focus();
-        return;
+        status.textContent = "Digite o código de acesso da IA para gerar o texto.";
+        accessInput.focus(); return;
       }
       compat.storageSet("localStorage", tokenKey, token);
     }
-    var snapshot = JSON.stringify(sections);
-    clinicalFormPending[protocol.id] = true; update(); status.textContent = "Gerando a anamnese com os dados informados…";
+    var snapshot = payload;
+    clinicalFormPending[pendingKey] = true;
+    onUpdate();
+    status.textContent = "Gerando " + noun + " com os dados informados…";
     try {
       var response = await fetch(endpoint, { method: "POST", headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" }, body: payload, signal: compat.timeoutSignal(90000) });
       if (!(response.headers.get("content-type") || "").includes("application/json")) throw new Error("O servidor retornou uma resposta inválida.");
@@ -263,29 +304,34 @@ function renderClinicalForm(protocol, body, headerActions) {
         compat.storageRemove("localStorage", tokenKey);
         accessBox.hidden = false;
       }
-      if (!response.ok) throw new Error(data.error || "Não foi possível gerar a anamnese.");
-      if (typeof data.text !== "string" || !data.text.trim()) throw new Error("A API não retornou uma anamnese válida.");
+      if (!response.ok) throw new Error(data.error || "Não foi possível gerar o texto de " + noun + ".");
+      if (typeof data.text !== "string" || !data.text.trim()) throw new Error("A API não retornou um texto válido.");
       if (clinicalFormDrafts[protocol.id] !== draft) return;
-      if (clinicalFormSnapshot(protocol, draft) !== snapshot) { status.textContent = "O roteiro mudou durante a geração. Gere novamente com as respostas atuais."; return; }
-      draft.result = data.text.trim(); draft.snapshot = snapshot;
-      accessInput.value = ""; accessBox.hidden = true;
+      if (clinicalFormSnapshot(protocol, draft, mode) !== snapshot) { status.textContent = "Os dados mudaram durante a geração. Gere novamente com as respostas atuais."; return; }
+      draft[keys.text] = data.text.trim();
+      draft[keys.snapshot] = snapshot;
+      accessInput.value = "";
       var saved = persistClinicalForm(protocol, draft);
-      if (state.selectedId === protocol.id) state.editableText = draft.result;
-      resultArea.value = draft.result;
-      update(saved); status.textContent = "Anamnese gerada. Revise o texto e ajuste o que for necessário antes de copiar.";
+      if (state.selectedId === protocol.id && (clinicalFormTabs[protocol.id] || "inicial") === mode) state.editableText = draft[keys.text];
+      resultArea.value = draft[keys.text];
+      onUpdate(saved);
+      status.textContent = "Texto gerado. Revise e ajuste o que for necessário antes de copiar.";
     } catch (error) {
       status.textContent = error.name === "TimeoutError" || error.name === "AbortError" ? "A geração demorou demais. Tente novamente." : error.message === "Failed to fetch" ? "Não foi possível conectar ao servidor da IA." : error.message;
     } finally {
-      delete clinicalFormPending[protocol.id]; update(undefined, true);
+      delete clinicalFormPending[pendingKey];
+      onUpdate(undefined, true);
       if (!root.isConnected && state.selectedId === protocol.id) render();
     }
   });
-  var actions = div("row"); actions.appendChild(generate); actions.appendChild(copy);
+  var actions = div("row");
+  actions.appendChild(generate); actions.appendChild(copy);
   finish.appendChild(actions); finish.appendChild(status); finish.appendChild(resultArea);
   resultArea.oninput = function () {
-    draft.result = resultArea.value;
-    state.editableText = draft.result;
-    update(persistClinicalForm(protocol, draft));
+    draft[keys.text] = resultArea.value;
+    if (state.selectedId === protocol.id && (clinicalFormTabs[protocol.id] || "inicial") === mode) state.editableText = draft[keys.text];
+    onUpdate(persistClinicalForm(protocol, draft));
   };
-  root.appendChild(finish); body.appendChild(root); update();
+  panel.appendChild(finish);
+  return refresh;
 }

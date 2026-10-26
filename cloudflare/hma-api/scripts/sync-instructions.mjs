@@ -26,3 +26,10 @@ await writeFile(path.join(projectDirectory, "src", "protocol-instructions.genera
   "// Gerado por scripts/sync-instructions.mjs. Edite PROTOCOL_INSTRUCTIONS.txt.\n" +
   "export const PROTOCOL_INSTRUCTIONS = " + JSON.stringify(protocolInstructions) + ";\n", "utf8");
 console.log("Instruções dos protocolos sincronizadas.");
+
+const reassessmentInstructions = (await readFile(path.join(projectDirectory, "REASSESSMENT_INSTRUCTIONS.txt"), "utf8")).trim();
+if (!reassessmentInstructions) throw new Error("REASSESSMENT_INSTRUCTIONS.txt está vazio.");
+await writeFile(path.join(projectDirectory, "src", "reassessment-instructions.generated.mjs"),
+  "// Gerado por scripts/sync-instructions.mjs. Edite REASSESSMENT_INSTRUCTIONS.txt.\n" +
+  "export const REASSESSMENT_INSTRUCTIONS = " + JSON.stringify(reassessmentInstructions) + ";\n", "utf8");
+console.log("Instruções de reavaliação sincronizadas.");

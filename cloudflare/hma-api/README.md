@@ -31,3 +31,9 @@ As instruções específicas ficam em `PROTOCOL_INSTRUCTIONS.txt`. O comando `no
 O formulário mantém as respostas atuais em rascunho local versionado e invalida a cópia quando elas mudam após gerar a anamnese. O antigo rascunho em texto livre não é importado nem enviado. O total HEART só é somado quando seus cinco componentes são informados; os pontos são selecionados pelo profissional conforme a versão adotada pelo serviço.
 
 Verificação da rota e do formulário: `node --test tests/protocol-anamnese.test.mjs tests/hma-api.test.mjs` na raiz do GApps. Esses testes simulam a OpenAI e não consomem créditos.
+
+## API de reavaliação
+
+`POST /api/protocolos/reavaliacao` gera uma evolução posterior com instruções próprias em `REASSESSMENT_INSTRUCTIONS.txt`. Recebe `{ protocol: "dor-toracica", initialSections: [...], sections: [...] }`: `initialSections` contém apenas o contexto inicial e `sections` os dados preenchidos nas etapas 12 a 16. É obrigatório preencher pelo menos um dado posterior. A API não transforma dados iniciais em achados atuais, não presume troponina normal, melhora, estabilidade ou alta, e não calcula interpretações clínicas.
+
+As duas abas mantêm resultados e cópias independentes. A avaliação inicial envia apenas as etapas 1 a 11. A reavaliação usa as etapas 12 a 16 e o contexto inicial. Alterações nas etapas posteriores não invalidam o texto inicial; alterações em dados usados pela evolução exigem nova geração dessa evolução. Ambas as rotas compartilham o modelo, segredos, origem permitida e limitador existentes, sempre com `store: false`.
