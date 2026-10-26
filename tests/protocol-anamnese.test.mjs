@@ -123,3 +123,20 @@ test("alterações invalidam cópia, reset não mistura rascunho da anamnese ger
   assert.deepEqual(plain(sandbox.getClinicalFormDraft(protocol).answers), {});
   assert.equal(storage.get("gplantao-anamnese-draft-v1"), "outro paciente");
 });
+
+test("etapas 12 a 16 ficam em reavaliação e as duas abas entram no envio", () => {
+  const { sandbox } = draftContext();
+  const schema = sandbox.clinicalFormSchema(protocol);
+  assert.equal(schema.filter(group => group.stage === "inicial").length, 11);
+  assert.deepEqual(plain(schema.filter(group => group.stage === "reavaliacao").map(group => group.title)), ["TROPONINA", "ESTRATIFICAÇÃO CORONARIANA", "OUTROS ESCORES — CONFORME SUSPEITA CLÍNICA", "REAVALIAÇÃO", "OBSERVAÇÕES COMPLEMENTARES"]);
+  const draft = sandbox.getClinicalFormDraft(protocol);
+  draft.answers[field("Característica").id] = { selected: ["aperto"] };
+  draft.answers[field("1ª coleta — horário / valor").id] = { text: "10:00 / resultado fictício" };
+  const before = sandbox.clinicalFormSnapshot(protocol, draft);
+  sandbox.clinicalFormTabs[protocol.id] = "reavaliacao";
+  assert.equal(sandbox.clinicalFormSnapshot(protocol, draft), before);
+  const sections = plain(sandbox.clinicalFormSections(protocol, draft));
+  assert.equal(sections.length, 2);
+  assert.equal(sections[0].section, "CARACTERIZAÇÃO DA DOR");
+  assert.equal(sections[1].section, "TROPONINA");
+});

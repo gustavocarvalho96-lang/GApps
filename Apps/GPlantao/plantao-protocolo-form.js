@@ -1,5 +1,6 @@
 var clinicalFormDrafts = {};
 var clinicalFormPending = {};
+var clinicalFormTabs = {};
 
 function getClinicalFormDraft(protocol) {
   if (clinicalFormDrafts[protocol.id]) return clinicalFormDrafts[protocol.id];
@@ -21,6 +22,7 @@ function persistClinicalForm(protocol, draft) {
 }
 
 function resetClinicalForm(protocol) {
+  clinicalFormTabs[protocol.id] = "inicial";
   clinicalFormDrafts[protocol.id] = { version: 2, answers: {}, result: "", snapshot: "" };
   persistClinicalForm(protocol, clinicalFormDrafts[protocol.id]);
   state.editableText = "";
@@ -29,6 +31,7 @@ function resetClinicalForm(protocol) {
 function clinicalFormSchema(protocol) {
   var groups = ClinicalFormCore.schema(protocol.prescription);
   groups.push({ id: "notes", title: "OBSERVAÇÕES COMPLEMENTARES", fields: [{ id: "notes", label: "Outras informações fornecidas", kind: "text", options: [] }] });
+  groups.forEach(function (group, index) { group.stage = index >= 11 ? "reavaliacao" : "inicial"; });
   return groups;
 }
 
@@ -69,7 +72,49 @@ function renderClinicalForm(protocol, body, headerActions) {
   var progress = div("clinical-progress");
   progress.setAttribute("role", "status");
   root.appendChild(progress);
+  var tablist = div("clinical-tabs");
+  tablist.setAttribute("role", "tablist");
+  tablist.setAttribute("aria-label", "Etapas do protocolo de dor torácica");
+  var panels = {}, tabs = {};
+  var stageNote = document.createElement("p");
+  stageNote.className = "clinical-intro";
+  var stages = [{ id: "inicial", label: "Avaliação inicial", hint: "Etapas 1 a 11 · História, exame físico e ECG." }, { id: "reavaliacao", label: "Reavaliação", hint: "Etapas 12 a 16 · Troponinas, estratificação, outros escores, reavaliação e observações. Preencha conforme os resultados estiverem disponíveis." }];
+  function activateStage(stage, focus) {
+    clinicalFormTabs[protocol.id] = stage;
+    stages.forEach(function (item) {
+      var selected = item.id === stage;
+      tabs[item.id].setAttribute("aria-selected", String(selected));
+      tabs[item.id].tabIndex = selected ? 0 : -1;
+      panels[item.id].hidden = !selected;
+      if (selected) stageNote.textContent = item.hint;
+    });
+    if (focus) tabs[stage].focus();
+  }
+  stages.forEach(function (stage, index) {
+    var tab = textButton(stage.label, "text-btn clinical-tab", function () { activateStage(stage.id); });
+    tab.id = protocol.id + "-tab-" + stage.id;
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-controls", protocol.id + "-panel-" + stage.id);
+    tab.onkeydown = function (event) {
+      var next;
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") next = stages[1 - index].id;
+      if (event.key === "Home") next = stages[0].id;
+      if (event.key === "End") next = stages[1].id;
+      if (next) { event.preventDefault(); activateStage(next, true); }
+    };
+    tabs[stage.id] = tab;
+    tablist.appendChild(tab);
+    var panel = div("clinical-tabpanel");
+    panel.id = protocol.id + "-panel-" + stage.id;
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", tab.id);
+    panels[stage.id] = panel;
+  });
+  root.appendChild(tablist);
+  root.appendChild(stageNote);
   renderChestPainGuide(root);
+  stages.forEach(function (stage) { root.appendChild(panels[stage.id]); });
+  activateStage(clinicalFormTabs[protocol.id] === "reavaliacao" ? "reavaliacao" : "inicial");
   headerActions.appendChild(textButton("Escores", "text-btn", function () {
     state.openGroups.scores = !state.openGroups.scores;
     render();
@@ -103,7 +148,7 @@ function renderClinicalForm(protocol, body, headerActions) {
   groups.forEach(function (group, index) {
     var section = document.createElement("details");
     section.className = "clinical-section";
-    section.open = index < 2;
+    section.open = index < 2 || index === 11;
     var summary = document.createElement("summary");
     summary.textContent = (index + 1) + ". " + group.title;
     section.appendChild(summary);
@@ -165,13 +210,13 @@ function renderClinicalForm(protocol, body, headerActions) {
       grid.appendChild(wrap);
     });
     section.appendChild(grid);
-    root.appendChild(section);
+    panels[group.stage].appendChild(section);
   });
 
   var finish = div("panel stack clinical-finish");
   var heading = document.createElement("h2"); heading.textContent = "Gerar anamnese"; finish.appendChild(heading);
   var privacy = document.createElement("p"); privacy.className = "clinical-intro";
-  privacy.textContent = "Serão enviados à OpenAI apenas os campos preenchidos. Remova nome, documento e outros identificadores do paciente. Confira a redação antes de utilizar no prontuário.";
+  privacy.textContent = "A IA usará os campos preenchidos nas duas abas. Remova nome, documento e outros identificadores do paciente. Confira a redação antes de utilizar no prontuário.";
   finish.appendChild(privacy);
   var accessBox = div("clinical-field");
   var accessLabel = document.createElement("label");

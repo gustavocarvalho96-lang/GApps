@@ -472,6 +472,7 @@ function renderAllergyControls() {
 function clearAllSavedData() {
   if (!window.confirm("Limpar todos os saves do GPlantao?")) return;
   clinicalFormDrafts = {};
+  clinicalFormTabs = {};
   try {
     for (var i = localStorage.length - 1; i >= 0; i -= 1) {
       var key = localStorage.key(i);

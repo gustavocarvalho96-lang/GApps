@@ -467,6 +467,11 @@ textarea:focus {
 .clinical-form { display: grid; gap: 12px; }
 .clinical-intro { margin: 0; color: #64748b; font-size: 13px; line-height: 1.6; }
 .clinical-progress { color: #0f766e; font-size: 13px; }
+.clinical-tabs { display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+.clinical-tab[aria-selected="true"] { background: #e6f5f0; border-color: #76b8a4; color: #115e59; }
+.clinical-tab:focus-visible { outline: 2px solid #0f766e; outline-offset: 2px; }
+.clinical-tabpanel { display: grid; gap: 12px; }
+.clinical-tabpanel[hidden] { display: none; }
 .clinical-section { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; background: #fff; }
 .clinical-section > summary { cursor: pointer; font-weight: 600; font-size: 13px; color: #334155; line-height: 1.5; }
 .clinical-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-top: 16px; }
