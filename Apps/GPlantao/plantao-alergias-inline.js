@@ -42,7 +42,19 @@ function mountInlineAllergies(area, body) {
     return function () {
       var scrollTop = area.scrollTop;
       var scrollLeft = area.scrollLeft;
-      action();
+      var added = action();
+      if (added) {
+        var line = inlineAllergyLine(area);
+        if (line) {
+          var value = line.text.replace(/[| \t]+$/, "");
+          if (value) {
+            area.setRangeText(value + " | ", line.start, line.end, "end");
+            state.editableText = area.value;
+            syncInlineAllergies(area);
+            saveAnamneseDraft("Anamnese salva");
+          }
+        }
+      }
       focusLine();
       area.scrollTop = scrollTop;
       area.scrollLeft = scrollLeft;
@@ -117,13 +129,14 @@ function mountInlineAllergies(area, body) {
           }
           if (!term || medicine.toLocaleLowerCase("pt-BR").indexOf(term) < 0) {
             addAllergy(medicine);
-            return;
+            return true;
           }
           var replacement = (tokenStart ? " " : "") + medicine;
           area.setRangeText(replacement, line.start + tokenStart, line.start + tokenEnd, "end");
           state.editableText = area.value;
           syncInlineAllergies(area);
           saveAnamneseDraft("Anamnese salva");
+          return true;
         })
       );
       button.setAttribute("aria-pressed", String(Boolean(selectedMedicine)));

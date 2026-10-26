@@ -37,10 +37,11 @@ function inlineApItems(line) {
   return line.text.split("|").map(function (item) { return item.trim(); }).filter(Boolean);
 }
 
-function writeInlineAp(area, items, section) {
+function writeInlineAp(area, items, section, appendSeparator) {
   var line = inlineApLine(area, section);
   if (!line) return;
   var value = items.join(" | ");
+  if (appendSeparator && value) value += " | ";
   area.setRangeText(value, line.start, line.end, "end");
   state.editableText = area.value;
   saveAnamneseDraft("Anamnese salva");
@@ -130,7 +131,7 @@ function mountInlineClinicalList(area, settings) {
           var updated = line.text.slice(0, tokenStart) + replacement + line.text.slice(tokenEnd);
           next = inlineApItems({ text: updated }).filter(function (value) { return normalize(value) !== normalize(settings.negative); });
         } else next.push(item.text);
-        writeInlineAp(area, next, settings.section);
+        writeInlineAp(area, next, settings.section, !selected);
       }));
       button.setAttribute("aria-pressed", String(selected));
       options.appendChild(button);
