@@ -21,8 +21,11 @@ var AP_OPTIONS = [
 ];
 var AP_NEGATIVE = "Nega comorbidades";
 
-function inlineApLine(area) {
-  var match = /^([ \t]*#?[ \t]*AP[ \t]*:[ \t]*)([^\r\n]*)/im.exec(area.value);
+function inlineApLine(area, section) {
+  var pattern = section === "MUC"
+    ? /^([ \t]*#?[ \t]*MUC[ \t]*:[ \t]*)([^\r\n]*)/im
+    : /^([ \t]*#?[ \t]*AP[ \t]*:[ \t]*)([^\r\n]*)/im;
+  var match = pattern.exec(area.value);
   return match ? {
     start: match.index + match[1].length,
     end: match.index + match[0].length,
@@ -34,8 +37,8 @@ function inlineApItems(line) {
   return line.text.split("|").map(function (item) { return item.trim(); }).filter(Boolean);
 }
 
-function writeInlineAp(area, items) {
-  var line = inlineApLine(area);
+function writeInlineAp(area, items, section) {
+  var line = inlineApLine(area, section);
   if (!line) return;
   var value = items.join(" | ");
   area.setRangeText(value, line.start, line.end, "end");
@@ -44,10 +47,17 @@ function writeInlineAp(area, items) {
 }
 
 function mountInlineAp(area) {
+  mountInlineClinicalList(area, {
+    section: "AP", title: "Antecedentes pessoais",
+    options: AP_OPTIONS, negative: AP_NEGATIVE
+  });
+}
+
+function mountInlineClinicalList(area, settings) {
   var wrap = area.parentNode;
   var panel = div("inline-allergy-panel inline-ap-panel hidden");
   panel.setAttribute("role", "group");
-  panel.setAttribute("aria-label", "Antecedentes pessoais — doenças crônicas");
+  panel.setAttribute("aria-label", settings.title);
   wrap.appendChild(panel);
 
   function normalize(value) {
@@ -60,7 +70,7 @@ function mountInlineAp(area) {
       var scrollLeft = area.scrollLeft;
       callback();
       area.focus({ preventScroll: true });
-      var line = inlineApLine(area);
+      var line = inlineApLine(area, settings.section);
       if (line) area.setSelectionRange(line.end, line.end);
       area.scrollTop = scrollTop;
       area.scrollLeft = scrollLeft;
@@ -87,7 +97,7 @@ function mountInlineAp(area) {
   }
 
   function refresh() {
-    var line = inlineApLine(area);
+    var line = inlineApLine(area, settings.section);
     var cursor = area.selectionStart;
     var lineStart = line ? area.value.lastIndexOf("\n", Math.max(0, line.start - 1)) + 1 : -1;
     if (!line || cursor < lineStart || cursor > line.end || document.activeElement !== area) {
@@ -100,41 +110,41 @@ function mountInlineAp(area) {
     var nextSeparator = line.text.indexOf("|", offset);
     var tokenEnd = nextSeparator < 0 ? line.text.length : nextSeparator;
     var token = line.text.slice(tokenStart, tokenEnd).trim();
-    var known = AP_OPTIONS.some(function (item) { return normalize(item.text) === normalize(token); }) || normalize(token) === normalize(AP_NEGATIVE);
+    var known = settings.options.some(function (item) { return normalize(item.text) === normalize(token); }) || normalize(token) === normalize(settings.negative);
     var term = known ? "" : normalize(token);
     panel.innerHTML = "";
     panel.classList.remove("hidden");
     var heading = div("allergy-menu-label");
-    heading.textContent = "Antecedentes pessoais";
+    heading.textContent = settings.title;
     panel.appendChild(heading);
     var options = div("inline-allergy-options");
-    AP_OPTIONS.filter(function (item) {
+    settings.options.filter(function (item) {
       return !term || normalize(item.label + " " + item.text + " " + (item.search || "")).indexOf(term) >= 0;
     }).forEach(function (item) {
       var selected = items.some(function (value) { return normalize(value) === normalize(item.text); });
       var button = textButton(item.label, "allergy-chip" + (selected ? " active" : ""), action(function () {
-        var next = items.filter(function (value) { return normalize(value) !== normalize(AP_NEGATIVE); });
+        var next = items.filter(function (value) { return normalize(value) !== normalize(settings.negative); });
         if (selected) next = next.filter(function (value) { return normalize(value) !== normalize(item.text); });
         else if (term) {
           var replacement = (tokenStart ? " " : "") + item.text;
           var updated = line.text.slice(0, tokenStart) + replacement + line.text.slice(tokenEnd);
-          next = inlineApItems({ text: updated }).filter(function (value) { return normalize(value) !== normalize(AP_NEGATIVE); });
+          next = inlineApItems({ text: updated }).filter(function (value) { return normalize(value) !== normalize(settings.negative); });
         } else next.push(item.text);
-        writeInlineAp(area, next);
+        writeInlineAp(area, next, settings.section);
       }));
       button.setAttribute("aria-pressed", String(selected));
       options.appendChild(button);
     });
     panel.appendChild(options);
-    var negative = textButton(AP_NEGATIVE, "text-btn" + (items.indexOf(AP_NEGATIVE) >= 0 ? " active" : ""), action(function () {
-      writeInlineAp(area, items.length === 1 && items[0] === AP_NEGATIVE ? [] : [AP_NEGATIVE]);
+    var negative = textButton(settings.negative, "text-btn" + (items.indexOf(settings.negative) >= 0 ? " active" : ""), action(function () {
+      writeInlineAp(area, items.length === 1 && items[0] === settings.negative ? [] : [settings.negative], settings.section);
     }));
-    negative.setAttribute("aria-pressed", String(items.indexOf(AP_NEGATIVE) >= 0));
+    negative.setAttribute("aria-pressed", String(items.indexOf(settings.negative) >= 0));
     panel.appendChild(negative);
     var registered = div("allergy-selected");
     items.forEach(function (value) {
       var remove = textButton(value + " ×", "allergy-tag", action(function () {
-        writeInlineAp(area, items.filter(function (item) { return item !== value; }));
+        writeInlineAp(area, items.filter(function (item) { return item !== value; }), settings.section);
       }));
       remove.setAttribute("aria-label", "Remover " + value);
       registered.appendChild(remove);
