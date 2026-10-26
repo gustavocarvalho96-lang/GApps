@@ -458,6 +458,12 @@ textarea:focus {
   margin: 0;
 }
 
+.protocol-nav-children {
+  margin-left: 12px;
+  padding-left: 6px;
+  border-left: 1px solid #dce3eb;
+}
+
 .nav-group > summary {
   list-style: none;
 }

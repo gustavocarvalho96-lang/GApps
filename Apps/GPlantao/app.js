@@ -3,11 +3,13 @@ var quickOrder = [
   "reavaliacao",
   "internacao",
   "encaminhamento",
+  "protocolos",
   "antibioticos",
   "receita-livre",
   "administrativo"
 ];
 var editableIds = [
+  "protocolo-dor-toracica",
   "administrativo",
   "anamnese",
   "reavaliacao",
@@ -229,6 +231,7 @@ function getProtocols() {
 
 function getInitialText(protocol) {
   if (!protocol) return "";
+  if (protocol.clinicalTemplate) return loadClinicalDraft(protocol);
   if (protocol.atestaditeSections) return buildAtestaditeText(protocol);
   if (protocol.referralTemplates)
     return buildReferralText(
@@ -563,7 +566,7 @@ function filtered() {
     });
   var recipes = protocols
     .filter(function (item) {
-      return quickOrder.indexOf(item.id) < 0 && item.atestadite !== true;
+      return quickOrder.indexOf(item.id) < 0 && item.atestadite !== true && !item.parentGroup;
     })
     .sort(function (a, b) {
       return a.title.localeCompare(b.title, "pt-BR");

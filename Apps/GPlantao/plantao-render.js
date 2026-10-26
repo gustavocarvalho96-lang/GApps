@@ -18,12 +18,30 @@ function renderNav(containerId, items, selectedId, emptyText) {
       title.textContent = item.title;
       b.appendChild(title);
       node.appendChild(b);
+      if (containerId === "quickList" && item.id === "protocolos") {
+        var children = getProtocols().filter(function (child) { return child.parentGroup === item.id; });
+        var expanded = selectedId === item.id || children.some(function (child) { return child.id === selectedId; });
+        b.setAttribute("aria-expanded", String(expanded));
+        if (expanded) {
+          var group = div("protocol-nav-children");
+          children.forEach(function (child) {
+            group.appendChild(textButton(child.title, "nav-btn" + (child.id === selectedId ? " active" : ""), function () { selectProtocol(child.id); }));
+          });
+          node.appendChild(group);
+        }
+      }
     })(items[i]);
   }
 }
 
 function createClearTemplateButton(protocol) {
   var clearTemplateButton = textButton("×", "text-btn template-clear-button", function () {
+    if (protocol.clinicalTemplate) {
+      state.editableText = protocol.prescription;
+      saveClinicalDraft(protocol);
+      render();
+      return;
+    }
     state.editableText = getInitialText(protocol);
     state.labInput = "";
     state.labOutput = "";
@@ -607,6 +625,13 @@ function renderHighRiskReavaliacao(body) {
 }
 
 function renderEditable(protocol, body, headerActions) {
+  if (protocol.clinicalTemplate) {
+    renderChestPainGuide(body);
+    headerActions.appendChild(textButton("Escores", "text-btn", function () {
+      state.openGroups.scores = !state.openGroups.scores;
+      render();
+    }));
+  }
   if (protocol.freeGroupsEnabled) renderFreeGroups(body);
   if (protocol.collapsibleSections) renderCollapsibleSections(protocol, body);
   if (protocol.id === "reavaliacao") renderReavaliacaoVitals(body);
@@ -736,6 +761,7 @@ function renderEditable(protocol, body, headerActions) {
     saveAnamneseDraft("Anamnese salva");
     saveReavaliacaoDraft();
     saveInternacaoDraft();
+    if (protocol.clinicalTemplate) saveClinicalDraft(protocol);
   };
   if (protocol.id === "anamnese") {
     mountInlineAllergies(area, body);
@@ -781,6 +807,10 @@ function renderProtocol(protocol) {
   var content = el("content");
   content.innerHTML = "";
   if (!protocol) return;
+  if (protocol.id === "protocolos") {
+    renderClinicalProtocolHub(content);
+    return;
+  }
   if (isEditable(protocol.id) && protocol.id !== "internacao" && state.editableText === "")
     state.editableText = getInitialText(protocol);
 

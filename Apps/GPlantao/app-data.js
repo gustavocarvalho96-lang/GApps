@@ -1,4 +1,4 @@
-const protocolsBase = administrativeProtocols.concat([encaminhamentoProtocol], recipeProtocols);
+const protocolsBase = administrativeProtocols.concat([encaminhamentoProtocol], clinicalProtocols, recipeProtocols);
 
 window.freeGroups = freeGroups;
 window.antibioticOptions = antibioticOptions;
