@@ -28,6 +28,6 @@ Testes: execute `node --test tests/hma-api.test.mjs` na raiz do GApps.
 
 As instruções específicas ficam em `PROTOCOL_INSTRUCTIONS.txt`. O comando `node scripts/sync-instructions.mjs` sincroniza os dois prompts. O prompt dos protocolos preserva apenas fatos fornecidos e não utiliza a regra de acrescentar negativas do revisor de HMA.
 
-O formulário mantém rascunho local versionado, exige revisão de texto anterior antes de incluí-lo no envio e invalida a cópia quando as respostas mudam após gerar a anamnese. O total HEART só é somado quando seus cinco componentes são informados; os pontos são selecionados pelo profissional conforme a versão adotada pelo serviço.
+O formulário mantém as respostas atuais em rascunho local versionado e invalida a cópia quando elas mudam após gerar a anamnese. O antigo rascunho em texto livre não é importado nem enviado. O total HEART só é somado quando seus cinco componentes são informados; os pontos são selecionados pelo profissional conforme a versão adotada pelo serviço.
 
 Verificação da rota e do formulário: `node --test tests/protocol-anamnese.test.mjs tests/hma-api.test.mjs` na raiz do GApps. Esses testes simulam a OpenAI e não consomem créditos.

@@ -6,9 +6,10 @@ function getClinicalFormDraft(protocol) {
   var saved;
   try { saved = JSON.parse(localStorage.getItem(clinicalDraftKey(protocol)) || "null"); } catch (error) {}
   var draft = saved && saved.version === 2 && saved.answers && typeof saved.answers === "object" && !Array.isArray(saved.answers)
-    ? { version: 2, answers: saved.answers, result: typeof saved.result === "string" ? saved.result : "", snapshot: typeof saved.snapshot === "string" ? saved.snapshot : "", legacyText: typeof saved.legacyText === "string" ? saved.legacyText : "", includeLegacy: saved.includeLegacy === true }
-    : { version: 2, answers: {}, result: "", snapshot: "", legacyText: saved && typeof saved.text === "string" && saved.text !== protocol.prescription ? saved.text : "", includeLegacy: false };
+    ? { version: 2, answers: saved.answers, result: typeof saved.result === "string" ? saved.result : "", snapshot: typeof saved.snapshot === "string" ? saved.snapshot : "" }
+    : { version: 2, answers: {}, result: "", snapshot: "" };
   clinicalFormDrafts[protocol.id] = draft;
+  if (saved && typeof saved === "object" && ("legacyText" in saved || "includeLegacy" in saved || "text" in saved)) persistClinicalForm(protocol, draft);
   return draft;
 }
 
@@ -20,7 +21,7 @@ function persistClinicalForm(protocol, draft) {
 }
 
 function resetClinicalForm(protocol) {
-  clinicalFormDrafts[protocol.id] = { version: 2, answers: {}, result: "", snapshot: "", legacyText: "", includeLegacy: false };
+  clinicalFormDrafts[protocol.id] = { version: 2, answers: {}, result: "", snapshot: "" };
   persistClinicalForm(protocol, clinicalFormDrafts[protocol.id]);
   state.editableText = "";
 }
@@ -32,11 +33,7 @@ function clinicalFormSchema(protocol) {
 }
 
 function clinicalFormSections(protocol, draft) {
-  var sections = ClinicalFormCore.collect(clinicalFormSchema(protocol), draft.answers);
-  if (draft.includeLegacy && draft.legacyText.trim()) {
-    sections.push({ section: "RASCUNHO ANTERIOR REVISADO", items: [{ label: "Registro anterior informado pelo profissional", value: draft.legacyText.trim() }] });
-  }
-  return sections;
+  return ClinicalFormCore.collect(clinicalFormSchema(protocol), draft.answers);
 }
 
 function clinicalFormSnapshot(protocol, draft) {
@@ -170,22 +167,6 @@ function renderClinicalForm(protocol, body, headerActions) {
     section.appendChild(grid);
     root.appendChild(section);
   });
-
-  if (draft.legacyText) {
-    var legacy = document.createElement("details");
-    legacy.className = "clinical-section";
-    var legacySummary = document.createElement("summary"); legacySummary.textContent = "Rascunho anterior preservado";
-    legacy.appendChild(legacySummary);
-    var legacyArea = document.createElement("textarea"); legacyArea.value = draft.legacyText;
-    legacyArea.setAttribute("aria-label", "Rascunho anterior para revisão");
-    legacyArea.oninput = function () { draft.legacyText = legacyArea.value; update(persistClinicalForm(protocol, draft)); };
-    legacy.appendChild(legacyArea);
-    var legacyLabel = document.createElement("label");
-    var include = document.createElement("input"); include.type = "checkbox"; include.checked = draft.includeLegacy;
-    include.onchange = function () { draft.includeLegacy = include.checked; update(persistClinicalForm(protocol, draft)); };
-    legacyLabel.appendChild(include); legacyLabel.appendChild(document.createTextNode(" Revisei e quero incluir este rascunho no envio à IA"));
-    legacy.appendChild(legacyLabel); root.appendChild(legacy);
-  }
 
   var finish = div("panel stack clinical-finish");
   var heading = document.createElement("h2"); heading.textContent = "Gerar anamnese"; finish.appendChild(heading);

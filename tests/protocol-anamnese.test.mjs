@@ -98,14 +98,16 @@ function draftContext(initial) {
   return { sandbox, storage };
 }
 
-test("rascunho anterior é preservado e só enviado após revisão explícita", () => {
+test("rascunho anterior não é importado nem enviado e é retirado do armazenamento", () => {
   const key = "gplantao-" + protocol.id + "-draft-v1";
-  const { sandbox } = draftContext([[key, JSON.stringify({ text: "Relato antigo digitado" })]]);
+  const { sandbox, storage } = draftContext([[key, JSON.stringify({ text: "Relato antigo digitado" })]]);
   const draft = sandbox.getClinicalFormDraft(protocol);
-  assert.equal(draft.legacyText, "Relato antigo digitado");
+  assert.equal(draft.legacyText, undefined);
   assert.deepEqual(plain(sandbox.clinicalFormSections(protocol, draft)), []);
+  assert.doesNotMatch(storage.get(key), /Relato antigo digitado/);
   draft.includeLegacy = true;
-  assert.match(JSON.stringify(sandbox.clinicalFormSections(protocol, draft)), /Relato antigo digitado/);
+  draft.legacyText = "Texto antigo";
+  assert.deepEqual(plain(sandbox.clinicalFormSections(protocol, draft)), []);
 });
 
 test("alterações invalidam cópia, reset não mistura rascunho da anamnese geral", () => {
