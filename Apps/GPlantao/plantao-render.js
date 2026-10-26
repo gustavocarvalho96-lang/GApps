@@ -739,6 +739,7 @@ function renderEditable(protocol, body, headerActions) {
   };
   if (protocol.id === "anamnese") {
     mountInlineAllergies(area, body);
+    mountInlineAp(area);
     if (typeof mountHmaAi === "function") mountHmaAi(area, body, headerActions);
   } else {
     body.appendChild(area);
