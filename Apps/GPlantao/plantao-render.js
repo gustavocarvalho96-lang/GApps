@@ -324,9 +324,9 @@ function renderOptions(protocol, parent, headerActions) {
     });
     var r2 = div("row");
     [
-      ["Avaliacao ambulatorial", "ambulatorial"],
-      ["Avaliacao urgente", "urgente"],
-      ["Investigacao complementar", "investigacao"]
+      ["Acompanhamento de condição crônica", "ambulatorial"],
+      ["Investigação ambulatorial", "investigacao"],
+      ["Reavaliação após atendimento no PS", "reavaliacao"]
     ].forEach(function (item) {
       r2.appendChild(
         dotButton(

@@ -610,29 +610,20 @@ function getAtestaditeSectionText(section) {
 
 function buildReferralText(template, mode) {
   if (!template) return "";
-  var urgencyText =
-    mode === "urgente"
-      ? "Solicito avaliacao com prioridade/urgencia conforme disponibilidade do servico."
-      : mode === "investigacao"
-        ? "Solicito avaliacao para investigacao complementar e definicao de conduta."
-        : "Solicito avaliacao ambulatorial conforme disponibilidade da rede.";
+  var purpose = mode === "investigacao"
+    ? "Investigação ambulatorial."
+    : mode === "reavaliacao"
+      ? "Reavaliação após atendimento no PS."
+      : "Acompanhamento de condição crônica.";
   return (
-    "Encaminho para avaliacao em " +
-    template.specialty +
-    "\n\n" +
-    "Hipotese diagnostica: " +
-    template.hypothesis +
-    "\n\n" +
-    "Resumo clinico:\n" +
-    template.summary +
-    "\n\n" +
-    "Conduta ja realizada:\n" +
-    template.conduct +
-    "\n\n" +
-    "Prioridade / finalidade:\n" +
-    urgencyText +
-    "\n\n" +
-    "Solicito avaliacao especializada e seguimento."
+    "À UBS / Estratégia Saúde da Família\n\n" +
+    "Motivo do encaminhamento:\n" + template.reason + "\n\n" +
+    "Resumo do atendimento no PS:\n" +
+    "[História relevante, evolução e achados da avaliação.]\n\n" +
+    "Exames e conduta realizados:\n" +
+    "[Registrar somente o que foi efetivamente realizado ou prescrito.]\n\n" +
+    "Solicitação:\n" + template.request + "\n\n" +
+    "Finalidade:\n" + purpose
   );
 }
 
