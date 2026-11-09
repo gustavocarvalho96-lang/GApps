@@ -165,6 +165,26 @@
       --card-color-strong: var(--pendencias-strong);
     }
 
+    .support-link {
+      display: block;
+      width: fit-content;
+      margin: 24px auto 0;
+      color: var(--accent);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 10px 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .support-link:hover,
+    .support-link:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
     .card:hover,
     .card:focus-visible {
       color: #ffffff;
@@ -527,6 +547,7 @@
       </a>
 
     </section>
+    <a class="support-link" href="https://gapps-suporte.gustavocarvalho96.workers.dev/">Suporte · Anotações de melhorias</a>
   </main>
   <a
     class="sensitive-dot cloudflare-test"

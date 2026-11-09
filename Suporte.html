@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Suporte · GApps</title>
+  <link rel="stylesheet" href="Apps/Suporte/suporte.css">
+</head>
+<body>
+  <main>
+    <header><div><span class="eyebrow">GApps · Área pessoal</span><h1>Suporte</h1><p>Um lugar para guardar as próximas melhorias.</p></div><nav><a href="https://gustavocarvalho96-lang.github.io/GApps/Menu.html">Menu</a><button id="logout" hidden>Sair</button></nav></header>
+    <section id="loginPanel" class="panel login">
+      <span class="eyebrow">Acesso restrito</span><h2>Suas ideias, sempre à mão.</h2><p>Entre para consultar e atualizar suas anotações de qualquer lugar.</p>
+      <form id="loginForm"><label>Senha<input id="password" type="password" autocomplete="current-password" required maxlength="256"></label><button class="primary" id="loginButton">Entrar</button></form>
+      <p id="loginStatus" role="status" aria-live="polite"></p>
+    </section>
+    <section id="workspace" hidden>
+      <div class="toolbar"><div><h2>Próximas mudanças <span id="count"></span></h2><p id="syncStatus" role="status" aria-live="polite">Anotações salvas online.</p></div><div class="actions"><button id="refresh">Atualizar</button><button id="newNote" class="primary">+ Nova anotação</button></div></div>
+      <div class="filters"><label>Buscar<input id="search" type="search" placeholder="Título ou descrição"></label><label>Aplicativo<select id="appFilter"><option value="">Todos</option></select></label><label>Status<select id="statusFilter"><option value="">Todos</option><option>Pendente</option><option>Em andamento</option><option>Concluída</option></select></label></div>
+      <div id="notes" class="notes"></div>
+      <p id="empty" class="empty" hidden></p>
+    </section>
+  </main>
+  <dialog id="editor"><form id="noteForm"><div class="dialogHead"><h2 id="editorTitle">Nova anotação</h2><button type="button" id="closeEditor" aria-label="Fechar">×</button></div>
+    <label>Título<input id="title" required maxlength="160" placeholder="O que você quer mudar?"></label>
+    <div class="fields"><label>Aplicativo<select id="app"></select></label><label>Prioridade<select id="priority"><option>Normal</option><option>Alta</option><option>Baixa</option></select></label><label>Status<select id="noteStatus"><option>Pendente</option><option>Em andamento</option><option>Concluída</option></select></label></div>
+    <label>Descrição<textarea id="body" rows="8" maxlength="20000" placeholder="Descreva a ideia e os detalhes que você quer lembrar."></textarea></label>
+    <p id="editorStatus" role="status" aria-live="polite"></p><div class="dialogFooter"><button id="deleteNote" type="button" class="danger" hidden>Excluir</button><div class="actions"><button type="button" id="cancelEditor">Cancelar</button><button id="saveNote" class="primary">Salvar online</button></div></div>
+  </form></dialog>
+  <script src="Apps/Suporte/suporte.js" defer></script>
+</body>
+</html>
