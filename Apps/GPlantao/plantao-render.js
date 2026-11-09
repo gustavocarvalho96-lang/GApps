@@ -746,7 +746,9 @@ function renderEditable(protocol, body, headerActions) {
     if (protocol.id === "anamnese" && area.value.indexOf("/") >= 0) {
       var cursorStart = area.selectionStart;
       var cursorEnd = area.selectionEnd;
-      area.value = area.value.replace(/\//g, "|");
+      area.value = area.value.replace(/(?:mcg|µg|mg|g|mL|UI|U)\s*\/\s*(?:mL|L|dose|g|mg)\b|\//gi, function (value) {
+        return value === "/" ? "|" : value;
+      });
       area.setSelectionRange(cursorStart, cursorEnd);
     }
     state.editableText = area.value;

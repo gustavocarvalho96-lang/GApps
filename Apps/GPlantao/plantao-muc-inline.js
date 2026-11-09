@@ -26,7 +26,7 @@ function mountInlineMuc(area) {
     options: MUC_OPTIONS,
     negative: "Nega uso de medicações contínuas",
     sameItem: function (left, right) {
-      return mucMedicineName(left).toLocaleLowerCase("pt-BR") === mucMedicineName(right).toLocaleLowerCase("pt-BR");
+      return mucMedicineDetails(left).name.toLocaleLowerCase("pt-BR") === mucMedicineDetails(right).name.toLocaleLowerCase("pt-BR");
     },
     onSelect: function (medicine) { queueMicrotask(function () { openSchedule(medicine); }); }
   });
@@ -36,14 +36,33 @@ function mucMedicineName(value) {
   return value.replace(/\s*\([\d.,½¼¾]+-[\d.,½¼¾]+-[\d.,½¼¾]+\)\s*$/, "").trim();
 }
 
+function mucMedicineDetails(value) {
+  var text = mucMedicineName(value);
+  var known = MUC_OPTIONS.slice().sort(function (a, b) { return b.text.length - a.text.length; }).find(function (item) {
+    return text.toLocaleLowerCase("pt-BR") === item.text.toLocaleLowerCase("pt-BR") ||
+      text.toLocaleLowerCase("pt-BR").indexOf(item.text.toLocaleLowerCase("pt-BR") + " ") === 0;
+  });
+  if (known) return { name: text.slice(0, known.text.length), dosage: text.slice(known.text.length).trim() };
+  var custom = /^(.+?)\s+(\d[\s\S]*)$/.exec(text);
+  return custom ? { name: custom[1], dosage: custom[2] } : { name: text, dosage: "" };
+}
+
 function mountMucSchedule(area) {
   var dialog = document.createElement("dialog");
   dialog.className = "muc-schedule-dialog";
-  dialog.setAttribute("aria-label", "Horários de tomada");
+  dialog.setAttribute("aria-label", "Dosagem e horários");
   var form = document.createElement("form");
   var title = document.createElement("h2");
   var help = document.createElement("p");
-  help.textContent = "Selecione as tomadas informadas ou ajuste a quantidade de cada período.";
+  help.textContent = "Informe a dosagem e selecione as tomadas relatadas pelo paciente.";
+  var dosageLabel = document.createElement("label");
+  dosageLabel.className = "muc-dosage-field";
+  dosageLabel.textContent = "Dosagem (opcional)";
+  var dosage = document.createElement("input");
+  dosage.type = "text";
+  dosage.maxLength = 60;
+  dosage.placeholder = "Ex.: 50 mg, 20 mg/mL ou 10 UI";
+  dosageLabel.appendChild(dosage);
   var presets = div("muc-schedule-presets");
   var fields = div("muc-schedule-fields");
   var inputs = [];
@@ -64,8 +83,13 @@ function mountMucSchedule(area) {
       error.textContent = "A anotação mudou. Feche e abra os horários novamente.";
       return;
     }
-    var medicine = mucMedicineName(originalValue);
-    items[activeIndex] = medicine + (values ? " (" + values.join("-") + ")" : "");
+    var doseText = dosage.value.trim();
+    if (/[|\r\n]/.test(doseText)) {
+      error.textContent = "Informe apenas a dosagem, sem o separador |.";
+      return;
+    }
+    var medicine = mucMedicineDetails(originalValue).name;
+    items[activeIndex] = medicine + (doseText ? " " + doseText : "") + (values ? " (" + values.join("-") + ")" : "");
     writeInlineAp(area, items, "MUC", /\|\s*$/.test(line.text));
     close();
   }
@@ -103,9 +127,9 @@ function mountMucSchedule(area) {
   var save = document.createElement("button");
   save.type = "submit";
   save.className = "text-btn primary-btn";
-  save.textContent = "Aplicar horários";
+  save.textContent = "Aplicar";
   actions.append(notApplicable, cancel, save);
-  form.append(title, help, presets, customLabel, fields, error, actions);
+  form.append(title, help, dosageLabel, presets, customLabel, fields, error, actions);
   dialog.appendChild(form);
   area.parentNode.appendChild(dialog);
   form.onsubmit = function (event) {
@@ -124,12 +148,15 @@ function mountMucSchedule(area) {
     if (dialog.open || !area.isConnected) return;
     var line = inlineApLine(area, "MUC");
     var items = line ? inlineApItems(line) : [];
-    activeIndex = items.findIndex(function (item) {
-      return mucMedicineName(item).toLocaleLowerCase("pt-BR") === mucMedicineName(medicine).toLocaleLowerCase("pt-BR");
+    activeIndex = items.indexOf(medicine);
+    if (activeIndex < 0) activeIndex = items.findIndex(function (item) {
+      return mucMedicineDetails(item).name.toLocaleLowerCase("pt-BR") === mucMedicineDetails(medicine).name.toLocaleLowerCase("pt-BR");
     });
     if (activeIndex < 0) return;
     originalValue = items[activeIndex];
-    title.textContent = mucMedicineName(originalValue);
+    var details = mucMedicineDetails(originalValue);
+    title.textContent = details.name;
+    dosage.value = details.dosage;
     var schedule = /\(([\d.,½¼¾]+)-([\d.,½¼¾]+)-([\d.,½¼¾]+)\)\s*$/.exec(originalValue);
     inputs.forEach(function (input, index) { input.value = schedule ? schedule[index + 1] : "0"; });
     error.textContent = "";
