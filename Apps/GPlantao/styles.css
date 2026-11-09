@@ -1351,6 +1351,29 @@ textarea.anamnese-editor {
   overflow-y: auto;
 }
 
+.muc-schedule-dialog {
+  width: min(540px, calc(100% - 28px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  color: #0f2230;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .2);
+}
+.muc-schedule-dialog::backdrop { background: rgba(15, 23, 42, .35); }
+.muc-schedule-dialog h2 { margin: 0; font-size: 20px; overflow-wrap: anywhere; }
+.muc-schedule-dialog p { color: #64748b; font-size: 13px; line-height: 1.5; }
+.muc-schedule-presets, .muc-schedule-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.muc-schedule-presets .allergy-chip { min-height: 36px; border: 1px solid #b7dfd9; background: #f4fbf9; color: #0f766e; font-family: inherit; font-weight: 600; cursor: pointer; }
+.muc-schedule-presets .allergy-chip:hover { background: #e1f4ee; }
+.muc-schedule-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.muc-schedule-fields label { display: grid; gap: 6px; font-size: 13px; }
+.muc-schedule-fields input { width: 100%; min-width: 0; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
+.muc-schedule-actions { margin-top: 18px; justify-content: flex-end; }
+.muc-schedule-error { color: #b42318; font-size: 13px; margin-top: 10px; }
+
 .inline-allergy-options {
   display: flex;
   flex-wrap: wrap;

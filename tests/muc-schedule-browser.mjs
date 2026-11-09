@@ -1,0 +1,69 @@
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import { mkdir } from 'node:fs/promises';
+const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
+const browser = await chromium.launch({ headless: true, executablePath: process.env.BROWSER_EXECUTABLE });
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+const errors = [];
+page.on('pageerror', error => errors.push(error.message));
+const dialog = page.getByRole('dialog', { name: 'Horários de tomada' });
+const editor = page.locator('textarea.anamnese-editor');
+const prefix = '# HMA : Texto já preenchido\n# AP : HAS\n# MUC : ';
+const suffix = '\n# Alergia : Nega alergias medicamentosas\n# Conduta : Preservar esta anotação.';
+async function editSchedule(name) {
+  await editor.evaluate(el => { const start = el.value.indexOf('# MUC : '); const end = el.value.indexOf('\n', start); el.focus(); el.setSelectionRange(end, end); });
+  await editor.dispatchEvent('click');
+  await page.getByRole('button', { name: 'Horários de ' + name, exact: true }).click();
+  await dialog.waitFor({ state: 'visible' });
+}
+try {
+  await page.goto(new URL('../GPlantao.html', import.meta.url).href);
+  await page.getByRole('button', { name: 'Anamnese', exact: true }).click();
+  // Seed existing content without simulating a whole-document paste completion.
+  await editor.fill(prefix + suffix);
+  await editor.evaluate(el => { const pos = el.value.indexOf('# MUC : ') + 8; el.focus(); el.setSelectionRange(pos, pos); });
+  await editor.pressSequentially('los');
+  await dialog.waitFor({ state: 'visible' });
+  assert.equal(await editor.inputValue(), prefix + 'Losartana | ' + suffix);
+  await dialog.getByRole('button', { name: 'Manhã e noite', exact: true }).click();
+  assert.equal(await editor.inputValue(), prefix + 'Losartana (1-0-1) | ' + suffix);
+  for (const [label, value] of [['Manhã', '1-0-0'], ['Tarde', '0-1-0'], ['Noite', '0-0-1'], ['Manhã, tarde e noite', '1-1-1']]) {
+    const current = await editor.inputValue();
+    const medicine = current.split('# MUC : ')[1].split('\n')[0].replace(/\s*\|\s*$/, '');
+    await editSchedule(medicine);
+    await dialog.getByRole('button', { name: label, exact: true }).click();
+    assert.equal(await editor.inputValue(), prefix + 'Losartana (' + value + ') | ' + suffix);
+  }
+  await editSchedule('Losartana (1-1-1)');
+  await dialog.getByRole('button', { name: 'Não aplicável', exact: true }).click();
+  assert.equal(await editor.inputValue(), prefix + 'Losartana | ' + suffix);
+  await editSchedule('Losartana');
+  await dialog.getByRole('button', { name: 'Aplicar horários', exact: true }).click();
+  await dialog.getByRole('status').filter({ hasText: 'Não aplicável' }).waitFor();
+  await dialog.getByLabel('Quantidade de tomada: Manhã', { exact: true }).fill('½');
+  await dialog.getByLabel('Quantidade de tomada: Tarde', { exact: true }).fill('0');
+  await dialog.getByLabel('Quantidade de tomada: Noite', { exact: true }).fill('2');
+  await dialog.getByRole('button', { name: 'Aplicar horários', exact: true }).click();
+  assert.equal(await editor.inputValue(), prefix + 'Losartana (½-0-2) | ' + suffix);
+  await page.reload();
+  assert.equal(await editor.inputValue(), prefix + 'Losartana (½-0-2) | ' + suffix);
+  await editSchedule('Losartana (½-0-2)');
+  assert.equal(await dialog.getByLabel('Quantidade de tomada: Manhã', { exact: true }).inputValue(), '½');
+  await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  assert.equal(await editor.inputValue(), prefix + 'Losartana (½-0-2) | ' + suffix);
+  await editSchedule('Losartana (½-0-2)');
+  await dialog.getByLabel('Quantidade de tomada: Manhã', { exact: true }).fill('0.5');
+  await dialog.getByRole('button', { name: 'Aplicar horários', exact: true }).click();
+  assert.equal(await editor.inputValue(), prefix + 'Losartana (0,5-0-2) | ' + suffix);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await editSchedule('Losartana (0,5-0-2)');
+  assert.equal(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth), true);
+  await mkdir('.wrangler/qa/muc', { recursive: true });
+  await dialog.screenshot({ path: '.wrangler/qa/muc/mobile.png' });
+  await dialog.getByRole('button', { name: 'Não aplicável', exact: true }).click();
+  await editSchedule('Losartana');
+  await page.keyboard.press('Escape');
+  assert.equal(await dialog.isVisible(), false);
+  assert.deepEqual(errors, []);
+  console.log('PASS: seleção automática, cinco atalhos, Não aplicável, quantidades personalizadas, validação, edição, persistência, cancelamento e layout móvel.');
+} finally { await browser.close(); }

@@ -20,6 +20,8 @@ try {
   for (const file of ['plantao-alergias-inline.js', 'plantao-ap-inline.js', 'plantao-muc-inline.js']) await page.addScriptTag({ content: await readFile(new URL('../Apps/GPlantao/' + file, import.meta.url), 'utf8') });
   await page.evaluate(() => {
     const area = document.querySelector('textarea');
+    // Exercise matching independently; schedule UI is covered in muc-schedule-browser.mjs.
+    mountMucSchedule = () => () => {};
     area.oninput = () => { state.editableText = area.value; syncInlineAllergies(area); };
     mountInlineAllergies(area, area.parentNode); mountInlineAp(area); mountInlineMuc(area);
   });

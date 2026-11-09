@@ -65,6 +65,10 @@ function mountInlineClinicalList(area, settings) {
     return value.toLocaleLowerCase("pt-BR").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
 
+  function sameItem(left, right) {
+    return settings.sameItem ? settings.sameItem(left, right) : normalize(left) === normalize(right);
+  }
+
   function action(callback) {
     return function () {
       var scrollTop = area.scrollTop;
@@ -111,23 +115,24 @@ function mountInlineClinicalList(area, settings) {
     var nextSeparator = line.text.indexOf("|", offset);
     var tokenEnd = nextSeparator < 0 ? line.text.length : nextSeparator;
     var token = line.text.slice(tokenStart, tokenEnd).trim();
-    var known = settings.options.some(function (item) { return normalize(item.text) === normalize(token); }) || normalize(token) === normalize(settings.negative);
+    var known = settings.options.some(function (item) { return sameItem(item.text, token); }) || normalize(token) === normalize(settings.negative);
     var term = known ? "" : normalize(token);
     var matches = settings.options.filter(function (item) {
       return !term || normalize(item.label + " " + item.text + " " + (item.search || "")).indexOf(term) >= 0;
     });
     function selectItem(item, selected, completing) {
       var next = items.filter(function (value) { return normalize(value) !== normalize(settings.negative); });
-      if (selected && !completing) next = next.filter(function (value) { return normalize(value) !== normalize(item.text); });
+      if (selected && !completing) next = next.filter(function (value) { return !sameItem(value, item.text); });
       else if (term) {
         var replacement = (tokenStart ? " " : "") + item.text;
         var updated = line.text.slice(0, tokenStart) + replacement + line.text.slice(tokenEnd);
         next = inlineApItems({ text: updated }).filter(function (value) { return normalize(value) !== normalize(settings.negative); });
         if (completing) next = next.filter(function (value, index, values) {
-          return values.findIndex(function (other) { return normalize(other) === normalize(value); }) === index;
+          return values.findIndex(function (other) { return sameItem(other, value); }) === index;
         });
       } else next.push(item.text);
       writeInlineAp(area, next, settings.section, completing || !selected);
+      if (settings.onSelect && (completing || !selected)) settings.onSelect(item.text);
     }
     // Complete only a unique visible result while inserting at the end of a token.
     // Deleting, moving the caret and editing in the middle must remain ordinary edits.
@@ -145,7 +150,7 @@ function mountInlineClinicalList(area, settings) {
     panel.appendChild(heading);
     var options = div("inline-allergy-options");
     matches.forEach(function (item) {
-      var selected = items.some(function (value) { return normalize(value) === normalize(item.text); });
+      var selected = items.some(function (value) { return sameItem(value, item.text); });
       var button = textButton(item.label, "allergy-chip" + (selected ? " active" : ""), action(function () {
         selectItem(item, selected, false);
       }));
@@ -160,6 +165,11 @@ function mountInlineClinicalList(area, settings) {
     panel.appendChild(negative);
     var registered = div("allergy-selected");
     items.forEach(function (value) {
+      if (settings.onSelect && normalize(value) !== normalize(settings.negative)) {
+        var edit = textButton("Horários", "text-btn", function () { settings.onSelect(value); });
+        edit.setAttribute("aria-label", "Horários de " + value);
+        registered.appendChild(edit);
+      }
       var remove = textButton(value + " ×", "allergy-tag", action(function () {
         writeInlineAp(area, items.filter(function (item) { return item !== value; }), settings.section);
       }));
