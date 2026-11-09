@@ -9,13 +9,20 @@ page.on('pageerror', error => errors.push(error.message));
 try {
   await page.setContent('<style>.hidden{display:none}textarea{width:600px;height:200px}</style><div><textarea id="area"></textarea></div>');
   await page.evaluate(() => {
-    window.state = {}; window.saves = 0;
+    window.state = { allergies: [] }; window.saves = 0;
+    window.saveAllergies = () => { window.savedAllergies = [...state.allergies]; };
     window.saveAnamneseDraft = () => { window.saves++; };
     window.div = className => { const el = document.createElement('div'); el.className = className; return el; };
     window.textButton = (text, className, callback) => { const el = document.createElement('button'); el.textContent = text; el.className = className; el.onclick = callback; return el; };
   });
-  for (const file of ['plantao-ap-inline.js', 'plantao-muc-inline.js']) await page.addScriptTag({ content: await readFile(new URL('../Apps/GPlantao/' + file, import.meta.url), 'utf8') });
-  await page.evaluate(() => { mountInlineAp(document.querySelector('textarea')); mountInlineMuc(document.querySelector('textarea')); });
+  const appSource = await readFile(new URL('../Apps/GPlantao/app.js', import.meta.url), 'utf8');
+  await page.addScriptTag({ content: appSource.slice(0, appSource.indexOf('var ANAMNESE_PRE_MED_TRAMAL_TEXT')) });
+  for (const file of ['plantao-alergias-inline.js', 'plantao-ap-inline.js', 'plantao-muc-inline.js']) await page.addScriptTag({ content: await readFile(new URL('../Apps/GPlantao/' + file, import.meta.url), 'utf8') });
+  await page.evaluate(() => {
+    const area = document.querySelector('textarea');
+    area.oninput = () => { state.editableText = area.value; syncInlineAllergies(area); };
+    mountInlineAllergies(area, area.parentNode); mountInlineAp(area); mountInlineMuc(area);
+  });
   const area = page.locator('textarea');
   const reset = async (value = '# AP : \n# MUC : ') => { await area.evaluate((el, text) => { el.value = text; el.focus(); el.setSelectionRange(text.length, text.length); }, value); };
   await reset('# AP : '); await area.pressSequentially('di');
@@ -34,6 +41,20 @@ try {
   await reset('# MUC : '); await area.pressSequentially('val'); assert.equal(await area.inputValue(), '# MUC : Ácido valproico | ');
   await reset('# MUC : met'); await area.dispatchEvent('input', { inputType: 'insertCompositionText', isComposing: true }); assert.equal(await area.inputValue(), '# MUC : met');
   await reset('# MUC : met'); await area.dispatchEvent('click'); await page.getByRole('button', { name: 'Metformina', exact: true }).click(); assert.equal(await area.inputValue(), '# MUC : Metformina | ');
+  await reset('# Alergia : '); await area.pressSequentially('di'); assert.equal(await area.inputValue(), '# Alergia : di');
+  assert.ok(await page.locator('.inline-allergy-panel:not(.hidden) .allergy-chip').count() > 1);
+  await area.pressSequentially('p'); assert.equal(await area.inputValue(), '# Alergia : Dipirona | ');
+  assert.deepEqual(await page.evaluate(() => savedAllergies), ['Dipirona']);
+  await reset('# AP : HAS\n# Alergia : Dipirona | \n# MUC : Losartana');
+  await area.evaluate(el => { const pos = el.value.indexOf(' | ') + 3; el.setSelectionRange(pos, pos); });
+  await area.pressSequentially('amox'); assert.equal(await area.inputValue(), '# AP : HAS\n# Alergia : Dipirona | Amoxicilina | \n# MUC : Losartana');
+  await reset('# Alergia : Dipirona | '); await area.pressSequentially('dip'); assert.equal(await area.inputValue(), '# Alergia : Dipirona | ');
+  await reset('# Alergia : Nega alergias medicamentosas | '); await area.pressSequentially('dip'); assert.equal(await area.inputValue(), '# Alergia : Dipirona | ');
+  await reset('# Alergia : dipir'); await area.press('Backspace'); assert.equal(await area.inputValue(), '# Alergia : dipi');
+  await reset('# Alergia : Dipirona'); await area.press('ArrowLeft'); await area.press('x'); assert.equal(await area.inputValue(), '# Alergia : Dipironxa');
+  await reset('# Alergia : '); await area.pressSequentially('zzzz'); assert.equal(await area.inputValue(), '# Alergia : zzzz');
+  await reset('# Alergia : di'); await area.dispatchEvent('click'); await page.getByRole('button', { name: 'Dipirona', exact: true }).click(); assert.equal(await area.inputValue(), '# Alergia : Dipirona | ');
+  await reset('# Alergia : dip'); await area.dispatchEvent('input', { inputType: 'insertCompositionText', isComposing: true }); assert.equal(await area.inputValue(), '# Alergia : dip');
   assert.deepEqual(errors, []);
-  console.log('PASS: AP e MUC completam só resultado único, sem mínimo de letras; ambiguidade, acentos, aliases, duplicatas, exclusão, edição e seleção manual.');
+  console.log('PASS: AP, MUC e Alergia completam só resultado único; ambiguidade, acentos, aliases, duplicatas, exclusão, edição, persistência e seleção manual.');
 } finally { await browser.close(); }

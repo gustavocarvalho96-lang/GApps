@@ -90,7 +90,11 @@ function mountInlineAllergies(area, body) {
     panel.style.top = Math.max(8, Math.min(top, area.clientHeight - panel.offsetHeight - 8)) + "px";
   }
 
-  function refresh() {
+  function normalize(value) {
+    return value.toLocaleLowerCase("pt-BR").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function refresh(event) {
     var line = inlineAllergyLine(area);
     var cursor = area.selectionStart;
     var lineStart = line ? area.value.lastIndexOf("\n", Math.max(0, line.start - 1)) + 1 : -1;
@@ -104,17 +108,40 @@ function mountInlineAllergies(area, body) {
     var tokenStart = line.text.lastIndexOf("|", offset - 1) + 1;
     var nextSeparator = line.text.indexOf("|", offset);
     var tokenEnd = nextSeparator < 0 ? line.text.length : nextSeparator;
-    var term = line.text.slice(tokenStart, tokenEnd).trim().toLocaleLowerCase("pt-BR");
+    var term = normalize(line.text.slice(tokenStart, tokenEnd).trim());
+    var known = ALLERGY_OPTIONS.concat(ALLERGY_QUICK_OPTIONS).some(function (medicine) {
+      return normalize(medicine) === term;
+    }) || normalize(NO_KNOWN_ALLERGIES_TEXT) === term;
     var options = div("inline-allergy-options");
-    var matches = ALLERGY_OPTIONS.filter(function (item, index, list) {
+    var matches = ALLERGY_QUICK_OPTIONS.concat(ALLERGY_OPTIONS).filter(function (item, index, list) {
       return (
         list.indexOf(item) === index &&
-        ALLERGY_QUICK_OPTIONS.indexOf(item) < 0 &&
         term &&
-        item.toLocaleLowerCase("pt-BR").indexOf(term) >= 0
+        normalize(item).indexOf(term) >= 0
       );
-    }).slice(0, 5);
-    var candidates = ALLERGY_QUICK_OPTIONS.concat(matches);
+    });
+    function completeMedicine(medicine) {
+      var replacement = (tokenStart ? " " : "") + medicine;
+      var updated = line.text.slice(0, tokenStart) + replacement + line.text.slice(tokenEnd);
+      var values = updated.split("|").map(function (item) { return item.trim(); }).filter(Boolean);
+      values = values.filter(function (value, index, list) {
+        return normalize(value) !== normalize(NO_KNOWN_ALLERGIES_TEXT) &&
+          list.findIndex(function (other) { return normalize(other) === normalize(value); }) === index;
+      });
+      area.setRangeText(values.join(" | "), line.start, line.end, "end");
+      state.editableText = area.value;
+      syncInlineAllergies(area);
+      saveAnamneseDraft("Anamnese salva");
+      return true;
+    }
+    if (event && event.type === "input" && !event.isComposing &&
+        /^insert/.test(event.inputType || "") && term && !known && matches.length === 1 &&
+        area.selectionStart === area.selectionEnd && cursor >= line.start &&
+        !line.text.slice(offset, tokenEnd).trim()) {
+      allergyAction(function () { return completeMedicine(matches[0]); })();
+      return;
+    }
+    var candidates = term && !known ? matches.slice(0, 5) : ALLERGY_QUICK_OPTIONS;
     candidates.forEach(function (medicine) {
       var selectedMedicine = state.allergies.find(function (item) {
         return item.toLocaleLowerCase("pt-BR") === medicine.toLocaleLowerCase("pt-BR");
@@ -127,16 +154,11 @@ function mountInlineAllergies(area, body) {
             removeAllergy(selectedMedicine);
             return;
           }
-          if (!term || medicine.toLocaleLowerCase("pt-BR").indexOf(term) < 0) {
+          if (!term || normalize(medicine).indexOf(term) < 0) {
             addAllergy(medicine);
             return true;
           }
-          var replacement = (tokenStart ? " " : "") + medicine;
-          area.setRangeText(replacement, line.start + tokenStart, line.start + tokenEnd, "end");
-          state.editableText = area.value;
-          syncInlineAllergies(area);
-          saveAnamneseDraft("Anamnese salva");
-          return true;
+          return completeMedicine(medicine);
         })
       );
       button.setAttribute("aria-pressed", String(Boolean(selectedMedicine)));
@@ -178,7 +200,7 @@ function mountInlineAllergies(area, body) {
       area.setSelectionRange(line.end, line.end);
     }
   });
-  ["click", "keyup", "focus", "scroll"].forEach(function (event) {
+  ["click", "keyup", "focus", "scroll", "input"].forEach(function (event) {
     area.addEventListener(event, refresh);
   });
   area.addEventListener("keydown", function (event) {
