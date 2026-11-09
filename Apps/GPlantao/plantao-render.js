@@ -910,6 +910,13 @@ function renderAtestaditeSidebar(items) {
 }
 
 function render() {
+  var severePatientToggle = el("severePatientToggle");
+  if (severePatientToggle) {
+    severePatientToggle.setAttribute("aria-pressed", String(Boolean(state.severePatient)));
+    severePatientToggle.title = state.severePatient
+      ? "Desativar edição de dosagem e horários dos medicamentos"
+      : "Habilitar dosagem e horários dos medicamentos";
+  }
   var lists = filtered();
   var protocol = currentProtocol();
   if (protocol) state.selectedId = protocol.id;

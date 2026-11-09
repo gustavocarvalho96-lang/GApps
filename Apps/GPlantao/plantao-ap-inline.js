@@ -165,7 +165,7 @@ function mountInlineClinicalList(area, settings) {
     panel.appendChild(negative);
     var registered = div("allergy-selected");
     items.forEach(function (value) {
-      if (settings.onSelect && normalize(value) !== normalize(settings.negative)) {
+      if (settings.onSelect && (!settings.canEdit || settings.canEdit()) && normalize(value) !== normalize(settings.negative)) {
         var edit = textButton("Horários", "text-btn", function () { settings.onSelect(value); });
         edit.setAttribute("aria-label", "Horários de " + value);
         registered.appendChild(edit);

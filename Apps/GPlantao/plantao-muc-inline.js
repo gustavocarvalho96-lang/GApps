@@ -25,6 +25,7 @@ function mountInlineMuc(area) {
     title: "Medicamentos de uso contínuo",
     options: MUC_OPTIONS,
     negative: "Nega uso de medicações contínuas",
+    canEdit: function () { return Boolean(state.severePatient); },
     sameItem: function (left, right) {
       return mucMedicineDetails(left).name.toLocaleLowerCase("pt-BR") === mucMedicineDetails(right).name.toLocaleLowerCase("pt-BR");
     },
@@ -145,7 +146,7 @@ function mountMucSchedule(area) {
   dialog.addEventListener("cancel", function (event) { event.preventDefault(); close(); });
 
   return function (medicine) {
-    if (dialog.open || !area.isConnected) return;
+    if (!state.severePatient || dialog.open || !area.isConnected) return;
     var line = inlineApLine(area, "MUC");
     var items = line ? inlineApItems(line) : [];
     activeIndex = items.indexOf(medicine);

@@ -11,6 +11,8 @@ const editor = page.locator('textarea.anamnese-editor');
 const prefix = '# HMA : Texto já preenchido\n# AP : HAS\n# MUC : ';
 const suffix = '\n# Alergia : Nega alergias medicamentosas\n# Conduta : Preservar esta anotação.';
 async function editSchedule(name) {
+  const toggle = page.getByRole('button', { name: 'Paciente grave', exact: true });
+  if (await toggle.getAttribute('aria-pressed') === 'false') await toggle.click();
   await editor.evaluate(el => { const start = el.value.indexOf('# MUC : '); const end = el.value.indexOf('\n', start); el.focus(); el.setSelectionRange(end, end); });
   await editor.dispatchEvent('click');
   await page.getByRole('button', { name: 'Horários de ' + name, exact: true }).click();
@@ -23,8 +25,11 @@ try {
   await editor.fill(prefix + suffix);
   await editor.evaluate(el => { const pos = el.value.indexOf('# MUC : ') + 8; el.focus(); el.setSelectionRange(pos, pos); });
   await editor.pressSequentially('los');
-  await dialog.waitFor({ state: 'visible' });
   assert.equal(await editor.inputValue(), prefix + 'Losartana | ' + suffix);
+  assert.equal(await dialog.isVisible(), false);
+  assert.equal(await page.getByRole('button', { name: /^Horários de / }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Paciente grave', exact: true }).getAttribute('aria-pressed'), 'false');
+  await editSchedule('Losartana');
   await dialog.getByRole('button', { name: 'Manhã e noite', exact: true }).click();
   assert.equal(await editor.inputValue(), prefix + 'Losartana (1-0-1) | ' + suffix);
   for (const [label, value] of [['Manhã', '1-0-0'], ['Tarde', '0-1-0'], ['Noite', '0-0-1'], ['Manhã, tarde e noite', '1-1-1']]) {
@@ -47,6 +52,7 @@ try {
   assert.equal(await editor.inputValue(), prefix + 'Losartana (½-0-2) | ' + suffix);
   await page.reload();
   assert.equal(await editor.inputValue(), prefix + 'Losartana (½-0-2) | ' + suffix);
+  assert.equal(await page.getByRole('button', { name: 'Paciente grave', exact: true }).getAttribute('aria-pressed'), 'false');
   await editSchedule('Losartana (½-0-2)');
   assert.equal(await dialog.getByLabel('Quantidade de tomada: Manhã', { exact: true }).inputValue(), '½');
   await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
@@ -99,6 +105,27 @@ try {
   await dialog.getByLabel('Dosagem (opcional)', { exact: true }).fill('850 mg');
   await dialog.getByRole('button', { name: 'Noite', exact: true }).click();
   assert.equal(await editor.inputValue(), prefix + 'Losartana 50 mg (1-0-1) | Metformina 850 mg (0-0-1) | ' + suffix);
+  const saved = await editor.inputValue();
+  await page.getByRole('button', { name: 'Paciente grave', exact: true }).click();
+  assert.equal(await editor.inputValue(), saved);
+  await editor.evaluate(el => { const pos = el.value.indexOf('# MUC : ') + 8; el.focus(); el.setSelectionRange(pos, pos); });
+  await editor.dispatchEvent('click');
+  assert.equal(await page.getByRole('button', { name: /^Horários de / }).count(), 0);
+  await page.getByRole('button', { name: 'Paciente grave', exact: true }).click();
+  assert.equal(await editor.inputValue(), saved);
+  await editor.evaluate(el => { const pos = el.value.indexOf('# MUC : ') + 8; el.focus(); el.setSelectionRange(pos, pos); });
+  await editor.dispatchEvent('click');
+  assert.equal(await page.getByRole('button', { name: /^Horários de / }).count(), 2);
+  await page.getByRole('button', { name: 'Paciente grave', exact: true }).screenshot({ path: '.wrangler/qa/muc/severe-patient.png' });
+  await page.locator('.topbar').screenshot({ path: '.wrangler/qa/muc/severe-topbar-mobile.png' });
+  await editor.fill(prefix + suffix);
+  await editor.evaluate(el => { const pos = el.value.indexOf('# MUC : ') + 8; el.focus(); el.setSelectionRange(pos, pos); });
+  await editor.pressSequentially('los');
+  await dialog.waitFor({ state: 'visible' });
+  await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  page.once('dialog', prompt => prompt.accept());
+  await page.getByRole('button', { name: 'Limpar', exact: true }).click();
+  assert.equal(await page.getByRole('button', { name: 'Paciente grave', exact: true }).getAttribute('aria-pressed'), 'false');
   assert.deepEqual(errors, []);
   console.log('PASS: dosagem opcional, edição, unidades, persistência, horários, Não aplicável, preservação de outros medicamentos, cancelamento e layout móvel.');
 } finally { await browser.close(); }

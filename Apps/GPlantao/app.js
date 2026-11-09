@@ -135,6 +135,7 @@ var ANAMNESE_ATTESTATION_OPTIONS = [
   }
 ];
 var state = {
+  severePatient: false,
   selectedId: "administrativo",
   selectedOption: 0,
   selectedOrientationOption: 0,
@@ -471,6 +472,7 @@ function renderAllergyControls() {
 }
 function clearAllSavedData() {
   if (!window.confirm("Limpar todos os saves do GPlantao?")) return;
+  state.severePatient = false;
   clinicalFormDrafts = {};
   clinicalFormTabs = {};
   try {
@@ -926,6 +928,11 @@ function boot() {
   if (clearSavedDataBtn) {
     clearSavedDataBtn.addEventListener("click", clearAllSavedData);
   }
+  var severePatientToggle = el("severePatientToggle");
+  if (severePatientToggle) severePatientToggle.addEventListener("click", function () {
+    state.severePatient = !state.severePatient;
+    render();
+  });
   render();
 }
 

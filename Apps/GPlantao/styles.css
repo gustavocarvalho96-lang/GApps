@@ -92,6 +92,24 @@ button {
   position: relative;
 }
 
+.severe-patient-toggle {
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.severe-patient-toggle[aria-pressed="true"] {
+  color: #9a3412;
+  border-color: #fdba74;
+  background: #fff1e6;
+}
+.severe-patient-toggle:focus-visible { outline: 2px solid #c2410c; outline-offset: 3px; }
+
 .sidebar-visibility-toggle {
   min-height: 38px;
   border: 1px solid rgba(37, 99, 235, .32);
