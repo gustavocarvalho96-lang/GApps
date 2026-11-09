@@ -613,13 +613,38 @@ function getAtestaditeSectionText(section) {
   return ((state.atestaditeTexts || {})[section.key] || section.text || "").trim();
 }
 
-function buildReferralText(template, mode) {
-  if (!template) return "";
-  var purpose = mode === "investigacao"
+function referralPurpose(mode) {
+  return mode === "investigacao"
     ? "Investigação ambulatorial."
     : mode === "reavaliacao"
       ? "Reavaliação após atendimento no PS."
       : "Acompanhamento de condição crônica.";
+}
+
+function updateReferralPurpose(text, mode) {
+  var purpose = referralPurpose(mode);
+  var newline = text.indexOf("\r\n") >= 0 ? "\r\n" : "\n";
+  var heading = /^([ \t]*Finalidade[ \t]*:[ \t]*)([^\r\n]*)(\r?\n|$)/im.exec(text);
+  if (!heading) return text + (text ? newline + newline : "") + "Finalidade:" + newline + purpose;
+  var purposes = ["ambulatorial", "investigacao", "reavaliacao"].map(referralPurpose);
+  // Replace only a generated purpose; keep any additional text written by the user.
+  if (heading[2].trim()) {
+    var inline = heading[2].trim();
+    if (purposes.indexOf(inline) >= 0) {
+      return text.slice(0, heading.index) + heading[1] + purpose + heading[3] + text.slice(heading.index + heading[0].length);
+    }
+    return text.slice(0, heading.index) + heading[1] + newline + purpose + newline + heading[2] + heading[3] + text.slice(heading.index + heading[0].length);
+  }
+  var start = heading.index + heading[0].length;
+  var tail = text.slice(start);
+  var firstLine = /^[^\r\n]*/.exec(tail)[0];
+  if (purposes.indexOf(firstLine.trim()) >= 0) return text.slice(0, start) + purpose + tail.slice(firstLine.length);
+  return text.slice(0, start) + (heading[3] ? "" : newline) + purpose + (tail ? newline + tail : "");
+}
+
+function buildReferralText(template, mode) {
+  if (!template) return "";
+  var purpose = referralPurpose(mode);
   return (
     "À UBS / Estratégia Saúde da Família\n\n" +
     "Motivo do encaminhamento:\n" + template.reason + "\n\n" +

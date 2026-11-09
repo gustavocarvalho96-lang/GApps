@@ -350,10 +350,7 @@ function renderOptions(protocol, parent, headerActions) {
           item[0],
           function () {
             state.referralMode = item[1];
-            state.editableText = buildReferralText(
-              protocol.referralTemplates[state.selectedReferral],
-              state.referralMode
-            );
+            state.editableText = updateReferralPurpose(state.editableText, state.referralMode);
             render();
           },
           item[1] === state.referralMode
