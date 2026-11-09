@@ -97,7 +97,7 @@ function mountInlineClinicalList(area, settings) {
     panel.style.top = Math.max(8, Math.min(top, area.clientHeight - panel.offsetHeight - 8)) + "px";
   }
 
-  function refresh() {
+  function refresh(event) {
     var line = inlineApLine(area, settings.section);
     var cursor = area.selectionStart;
     var lineStart = line ? area.value.lastIndexOf("\n", Math.max(0, line.start - 1)) + 1 : -1;
@@ -113,25 +113,41 @@ function mountInlineClinicalList(area, settings) {
     var token = line.text.slice(tokenStart, tokenEnd).trim();
     var known = settings.options.some(function (item) { return normalize(item.text) === normalize(token); }) || normalize(token) === normalize(settings.negative);
     var term = known ? "" : normalize(token);
+    var matches = settings.options.filter(function (item) {
+      return !term || normalize(item.label + " " + item.text + " " + (item.search || "")).indexOf(term) >= 0;
+    });
+    function selectItem(item, selected, completing) {
+      var next = items.filter(function (value) { return normalize(value) !== normalize(settings.negative); });
+      if (selected && !completing) next = next.filter(function (value) { return normalize(value) !== normalize(item.text); });
+      else if (term) {
+        var replacement = (tokenStart ? " " : "") + item.text;
+        var updated = line.text.slice(0, tokenStart) + replacement + line.text.slice(tokenEnd);
+        next = inlineApItems({ text: updated }).filter(function (value) { return normalize(value) !== normalize(settings.negative); });
+        if (completing) next = next.filter(function (value, index, values) {
+          return values.findIndex(function (other) { return normalize(other) === normalize(value); }) === index;
+        });
+      } else next.push(item.text);
+      writeInlineAp(area, next, settings.section, completing || !selected);
+    }
+    // Complete only a unique visible result while inserting at the end of a token.
+    // Deleting, moving the caret and editing in the middle must remain ordinary edits.
+    if (event && event.type === "input" && !event.isComposing &&
+        /^insert/.test(event.inputType || "") && term && matches.length === 1 &&
+        area.selectionStart === area.selectionEnd && cursor >= line.start &&
+        !line.text.slice(offset, tokenEnd).trim()) {
+      action(function () { selectItem(matches[0], false, true); })();
+      return;
+    }
     panel.innerHTML = "";
     panel.classList.remove("hidden");
     var heading = div("allergy-menu-label");
     heading.textContent = settings.title;
     panel.appendChild(heading);
     var options = div("inline-allergy-options");
-    settings.options.filter(function (item) {
-      return !term || normalize(item.label + " " + item.text + " " + (item.search || "")).indexOf(term) >= 0;
-    }).forEach(function (item) {
+    matches.forEach(function (item) {
       var selected = items.some(function (value) { return normalize(value) === normalize(item.text); });
       var button = textButton(item.label, "allergy-chip" + (selected ? " active" : ""), action(function () {
-        var next = items.filter(function (value) { return normalize(value) !== normalize(settings.negative); });
-        if (selected) next = next.filter(function (value) { return normalize(value) !== normalize(item.text); });
-        else if (term) {
-          var replacement = (tokenStart ? " " : "") + item.text;
-          var updated = line.text.slice(0, tokenStart) + replacement + line.text.slice(tokenEnd);
-          next = inlineApItems({ text: updated }).filter(function (value) { return normalize(value) !== normalize(settings.negative); });
-        } else next.push(item.text);
-        writeInlineAp(area, next, settings.section, !selected);
+        selectItem(item, selected, false);
       }));
       button.setAttribute("aria-pressed", String(selected));
       options.appendChild(button);
