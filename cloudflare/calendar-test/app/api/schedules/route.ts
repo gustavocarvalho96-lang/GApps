@@ -16,7 +16,7 @@ async function isAuthorized() {
   const requestHeaders = await headers();
   const authorization = requestHeaders.get("authorization") ?? "";
   const provided = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  const expected = (env as unknown as { CALENDAR_TOKEN?: string }).CALENDAR_TOKEN ?? "";
+  const expected = env.CALENDAR_TOKEN ?? "";
   if (!provided || !expected) return false;
 
   const encoder = new TextEncoder();
@@ -53,7 +53,7 @@ function sanitizeEntries(value: unknown): MonthData {
     } else if (rawEntry && typeof rawEntry === "object") {
       const candidate = rawEntry as { shift?: unknown; dayNight?: unknown; shifts?: unknown };
       if (Array.isArray(candidate.shifts)) {
-        const migrated = candidate.shifts.flatMap((item) => {
+        const migrated = candidate.shifts.flatMap<Exclude<Shift, "">>((item) => {
           if (item === "CL 24H") return ["CL D", "CL N"];
           if (item === "Chefe PAH") return ["Chefe PAH N"];
           return typeof item === "string" && VALID_SHIFTS.has(item as Shift) && item !== "" ? [item as Exclude<Shift, "">] : [];

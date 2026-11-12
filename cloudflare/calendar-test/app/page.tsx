@@ -58,7 +58,7 @@ function normalizeEntries(value: unknown): MonthData {
     } else if (rawEntry && typeof rawEntry === "object") {
       const candidate = rawEntry as { shift?: unknown; dayNight?: unknown; shifts?: unknown };
       if (Array.isArray(candidate.shifts)) {
-        const migrated = candidate.shifts.flatMap((item) => {
+        const migrated = candidate.shifts.flatMap<Exclude<Shift, "">>((item) => {
           if (item === "CL 24H") return ["CL D", "CL N"];
           if (item === "Chefe PAH") return ["Chefe PAH N"];
           return typeof item === "string" && valid.has(item as Exclude<Shift, "">) ? [item as Exclude<Shift, "">] : [];
@@ -97,30 +97,29 @@ export default function Home() {
   useEffect(() => {
     const controller = new AbortController();
     const monthKey = storageKey(year, month).replace("plantoes:", "");
-    setLoaded(false);
-    setSyncStatus("loading");
     authenticatedFetch(`/api/schedules?month=${monthKey}`, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Falha ao carregar");
-        return response.json();
+        return response.json() as Promise<{ entries?: unknown }>;
       })
       .then((data) => {
+        if (controller.signal.aborted) return;
         const onlineEntries = normalizeEntries(data.entries);
         const legacySaved = window.localStorage.getItem(storageKey(year, month));
         const legacyEntries = normalizeEntries(legacySaved ? JSON.parse(legacySaved) : {});
         setEntries(Object.keys(onlineEntries).length ? onlineEntries : legacyEntries);
         setLoaded(true);
-        setSyncStatus("saved");
+        setSyncStatus("saving");
       })
       .catch((error) => {
-        if (error.name !== "AbortError") setSyncStatus("error");
+        if (!controller.signal.aborted && error.name !== "AbortError") setSyncStatus("error");
       });
     return () => controller.abort();
   }, [year, month]);
 
   useEffect(() => {
     if (!loaded) return;
-    setSyncStatus("saving");
+    let active = true;
     const monthKey = storageKey(year, month).replace("plantoes:", "");
     const timer = window.setTimeout(() => {
       authenticatedFetch("/api/schedules", {
@@ -131,11 +130,16 @@ export default function Home() {
         .then((response) => {
           if (!response.ok) throw new Error("Falha ao salvar");
           window.localStorage.removeItem(storageKey(year, month));
-          setSyncStatus("saved");
+          if (active) setSyncStatus("saved");
         })
-        .catch(() => setSyncStatus("error"));
+        .catch(() => {
+          if (active) setSyncStatus("error");
+        });
     }, 450);
-    return () => window.clearTimeout(timer);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
   }, [entries, loaded, month, year]);
 
   const calendar = useMemo(() => {
@@ -154,14 +158,21 @@ export default function Home() {
   const total = summary.reduce((sum, item) => sum + item.subtotal, 0);
   const shiftsCount = summary.reduce((sum, item) => sum + item.count, 0);
 
+  function selectMonth(nextYear: number, nextMonth: number) {
+    if (year === nextYear && month === nextMonth) return;
+    setLoaded(false);
+    setSyncStatus("loading");
+    setYear(nextYear);
+    setMonth(nextMonth);
+  }
+
   function moveMonth(delta: number) {
     const next = new Date(year, month + delta, 1);
-    setLoaded(false);
-    setYear(next.getFullYear());
-    setMonth(next.getMonth());
+    selectMonth(next.getFullYear(), next.getMonth());
   }
 
   function setShift(day: number, slot: 0 | 1, value: Shift) {
+    if (loaded) setSyncStatus("saving");
     setEntries((current) => {
       const next = [...(current[day]?.shifts ?? [])];
       if (value) next[slot] = value as Exclude<Shift, "">;
@@ -173,25 +184,6 @@ export default function Home() {
 
       return { ...current, [day]: { shifts } };
     });
-  }
-
-  function applyBaseSchedule() {
-    const next: MonthData = {};
-    calendar.forEach((day, index) => {
-      if (!day) return;
-      const weekday = index % 7;
-      if (weekday === 1) next[day] = { shifts: ["Chefe PAC N"] };
-      if (weekday === 2 || weekday === 5) next[day] = { shifts: ["CL D", "CL N"] };
-    });
-    setEntries(next);
-  }
-
-  function clearMonth() {
-    const cleared: MonthData = {};
-    calendar.forEach((day) => {
-      if (day) cleared[day] = { shifts: [] };
-    });
-    setEntries(cleared);
   }
 
   function exportCsv() {
@@ -248,8 +240,7 @@ export default function Home() {
               <button aria-label="Mês anterior" onClick={() => moveMonth(-1)}>←</button>
               <div className="month-selectors">
                 <select aria-label="Mês" value={month} onChange={(event) => {
-                  setLoaded(false);
-                  setMonth(Number(event.target.value));
+                  selectMonth(year, Number(event.target.value));
                 }}>
                   {MONTHS.map((name, index) => <option value={index} key={name}>{name}</option>)}
                 </select>
@@ -260,16 +251,11 @@ export default function Home() {
                   max="2100"
                   value={year}
                   onChange={(event) => {
-                    setLoaded(false);
-                    setYear(Number(event.target.value));
+                    selectMonth(Number(event.target.value), month);
                   }}
                 />
               </div>
               <button aria-label="Próximo mês" onClick={() => moveMonth(1)}>→</button>
-            </div>
-            <div className="calendar-actions">
-              <button className="subtle-button" onClick={applyBaseSchedule}>Aplicar escala-base</button>
-              <button className="text-button" onClick={clearMonth} disabled={!shiftsCount}>Limpar mês</button>
             </div>
           </div>
 

@@ -50,7 +50,7 @@ main { min-height: 100vh; }
 .brand strong { font-size: 16px; }
 .brand span:last-child { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-.export-button, .subtle-button, .text-button {
+.export-button {
   border: 0;
   border-radius: 10px;
   transition: transform .15s ease, background .15s ease;
@@ -59,7 +59,7 @@ main { min-height: 100vh; }
   padding: 11px 17px;
   background: var(--ink); color: white; font-weight: 650;
 }
-.export-button:hover, .subtle-button:hover { transform: translateY(-1px); }
+.export-button:hover { transform: translateY(-1px); }
 
 .intro {
   padding: 30px clamp(22px, 5vw, 76px) 24px;
@@ -127,9 +127,6 @@ main { min-height: 100vh; }
 }
 .month-selectors select { width: 130px; padding: 0 10px; border-radius: 10px 0 0 10px; }
 .month-selectors input { width: 80px; padding: 0 8px; border-left: 0; border-radius: 0 10px 10px 0; }
-.calendar-actions { display: flex; align-items: center; gap: 8px; }
-.subtle-button { padding: 10px 13px; background: var(--green-soft); color: var(--green); font-weight: 700; }
-.text-button { padding: 10px; background: transparent; color: var(--muted); }
 
 .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .weekday-row { border-bottom: 1px solid var(--line); }
@@ -258,7 +255,6 @@ main { min-height: 100vh; }
   .calendar-panel { padding: 13px; }
   .calendar-toolbar { align-items: stretch; flex-direction: column; }
   .month-navigation { justify-content: space-between; }
-  .calendar-actions { justify-content: space-between; }
   .weekday-row div { text-align: center; padding-inline: 1px; }
   .days-grid { gap: 4px; }
   .day-card { min-height: 75px; padding: 7px 5px; }
